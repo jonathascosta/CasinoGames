@@ -88,6 +88,11 @@ export type {
   RoundState,
 } from './game/types.ts';
 export { defineBets, validateBets } from './game/validation.ts';
+export {
+  ProgressiveJackpot,
+  type ProgressiveOptions,
+  type ProgressiveSnapshot,
+} from './progressive/progressive.ts';
 export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
 export { randomInt, shuffleInPlace, type Rng } from './rng/rng.ts';
 export { createSeededRng, type Seed } from './rng/seeded.ts';
