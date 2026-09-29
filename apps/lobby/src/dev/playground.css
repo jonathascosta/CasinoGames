@@ -95,6 +95,10 @@
   overflow: hidden;
 }
 
+.pg-stage--tall {
+  height: clamp(320px, 84vw, 420px);
+}
+
 @media (min-width: 880px) {
   .pg-grid {
     grid-template-columns: 1fr 1fr;

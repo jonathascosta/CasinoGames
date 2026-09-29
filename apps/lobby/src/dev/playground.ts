@@ -8,6 +8,8 @@ import {
   diceTotal,
   odds,
   rollDice,
+  Shoe,
+  type Card,
   oddsLabel,
   settleLoss,
   settleWin,
@@ -17,6 +19,7 @@ import {
   Bankroll,
   BankrollDisplay,
   BetSpot,
+  CardDealer,
   ChipRail,
   DiceRoller,
   SoundEngine,
@@ -228,6 +231,64 @@ function diceSection(): HTMLElement {
   );
 }
 
+function cardsSection(): HTMLElement {
+  const stage = h('div', { class: 'pg-stage pg-stage--tall' });
+  const shoe = new Shoe({ decks: 6 });
+  const rng = createCryptoRng();
+  let dealer: CardDealer | undefined;
+  let hole: Card | undefined;
+  const dealButton = h('button', { type: 'button', class: 'cg-btn cg-btn--primary' }, 'Deal');
+  const revealButton = h('button', { type: 'button', class: 'cg-btn', disabled: true }, 'Reveal');
+
+  const draw = (): Card => {
+    const card = shoe.draw(rng);
+    dealer?.setShoe(shoe.remaining(), shoe.size(), shoe.isCutCardOut());
+    return card;
+  };
+  const deal = async () => {
+    if (dealer === undefined) return;
+    dealButton.disabled = true;
+    revealButton.disabled = true;
+    await dealer.clear();
+    if (shoe.beginRound(rng)) {
+      dealer.setShoe(shoe.remaining(), shoe.size());
+      await dealer.shuffle();
+    }
+    await dealer.deal(draw(), 'player');
+    await dealer.deal(draw(), 'dealer');
+    await dealer.deal(draw(), 'player');
+    hole = draw();
+    await dealer.deal(hole, 'dealer', { faceUp: false });
+    dealButton.disabled = false;
+    revealButton.disabled = false;
+  };
+  dealButton.addEventListener('click', () => void deal());
+  revealButton.addEventListener('click', () => {
+    revealButton.disabled = true;
+    if (hole !== undefined) void dealer?.reveal('dealer', 1, hole);
+  });
+  void CardDealer.create({
+    host: stage,
+    sound,
+    hands: [
+      { id: 'dealer', label: 'Dealer', x: 0.4, y: 0.24 },
+      { id: 'player', label: 'Player', x: 0.5, y: 0.66 },
+    ],
+  }).then((created) => {
+    dealer = created;
+    dealer.setShoe(shoe.size(), shoe.size());
+  });
+
+  return section(
+    'cards',
+    'CardDealer',
+    'Cards slide from a six-deck engine Shoe (cut card at 75% penetration) and flip; the hole ' +
+      'card is dealt face down until revealed. Vector suits and a lattice back, drawn in PixiJS.',
+    stage,
+    h('div', { class: 'pg-row' }, dealButton, revealButton),
+  );
+}
+
 const app = document.getElementById('app')!;
 app.className = 'pg';
 app.append(
@@ -247,6 +308,7 @@ app.append(
     'div',
     { class: 'pg-grid' },
     diceSection(),
+    cardsSection(),
     bettingSection(),
     bankrollSection(),
     settingsSection(),

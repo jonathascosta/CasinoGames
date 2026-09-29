@@ -54,3 +54,5 @@ export {
 } from './motion/motion.ts';
 export { DiceRoller, type DiceRollerOptions } from './dice/DiceRoller.ts';
 export type { DiceView, ThrowOptions } from './dice/dice-view.ts';
+export { CardDealer, type CardDealerOptions } from './cards/CardDealer.ts';
+export type { CardView, HandLayout, ShoeDisplay } from './cards/card-view.ts';
