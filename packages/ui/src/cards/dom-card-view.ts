@@ -1,4 +1,4 @@
-import { cardLabel, isRed, rankLabel, suitSymbol } from '@casinogames/engine';
+import { cardLabel, isRed, rankLabel, suitSymbol, type Card } from '@casinogames/engine';
 import { formatCount } from '../format/format.ts';
 import { h } from '../dom/h.ts';
 import { wait } from '../motion/motion.ts';
@@ -33,11 +33,25 @@ export function createDomCardView(container: HTMLElement, hands: readonly HandLa
   );
   container.append(table);
   const dealt = new Map<string, HTMLElement[]>(hands.map((hand) => [hand.id, []]));
+  /** The face each card was dealt with; absent while it is unknown. */
+  const faces = new WeakMap<HTMLElement, Card>();
 
   const cardsOf = (handId: string): HTMLElement[] => {
     const cards = dealt.get(handId);
     if (cards === undefined) throw new RangeError(`Unknown hand "${handId}"`);
     return cards;
+  };
+
+  const paintFace = (element: HTMLElement, card: Card) => {
+    element.append(
+      h(
+        'div',
+        { class: 'cg-dom-card__face', dataset: { red: String(isRed(card.suit)) } },
+        h('span', { class: 'cg-dom-card__rank' }, rankLabel(card.rank)),
+        h('span', { class: 'cg-dom-card__suit' }, suitSymbol(card.suit)),
+      ),
+    );
+    faces.set(element, card);
   };
 
   const layout = (hand: HandLayout) => {
@@ -57,13 +71,8 @@ export function createDomCardView(container: HTMLElement, hands: readonly HandLa
         'div',
         { class: 'cg-dom-card', role: 'img', 'aria-label': 'Face-down card' },
         h('div', { class: 'cg-dom-card__back' }),
-        h(
-          'div',
-          { class: 'cg-dom-card__face', dataset: { red: String(isRed(card.suit)) } },
-          h('span', { class: 'cg-dom-card__rank' }, rankLabel(card.rank)),
-          h('span', { class: 'cg-dom-card__suit' }, suitSymbol(card.suit)),
-        ),
       );
+      if (card !== null) paintFace(element, card);
       element.style.setProperty('--deal-ms', `${duration}ms`);
       table.append(element);
       cardsOf(handId).push(element);
@@ -76,6 +85,12 @@ export function createDomCardView(container: HTMLElement, hands: readonly HandLa
     async reveal(handId, index, card, duration) {
       const element = cardsOf(handId)[index];
       if (element === undefined) throw new RangeError(`No card ${index} in "${handId}"`);
+      const dealtFace = faces.get(element);
+      if (dealtFace === undefined) {
+        paintFace(element, card);
+      } else if (dealtFace.rank !== card.rank || dealtFace.suit !== card.suit) {
+        throw new Error(`Card ${index} in "${handId}" is not the revealed card`);
+      }
       element.style.setProperty('--flip-ms', `${duration}ms`);
       element.setAttribute('aria-label', cardLabel(card));
       element.classList.add('is-face-up');

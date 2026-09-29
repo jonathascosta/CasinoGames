@@ -17,9 +17,10 @@ interface Palette {
 
 interface CardSprite {
   root: Container;
-  front: Container;
+  /** Null while the face is unknown (dealt face down, not revealed yet). */
+  front: Container | null;
   back: Container;
-  readonly card: Card;
+  card: Card | null;
   faceUp: boolean;
 }
 
@@ -102,7 +103,7 @@ export async function createPixiCardView(
     });
   }
 
-  function build(card: Card, faceUp: boolean): CardSprite {
+  function build(card: Card | null, faceUp: boolean): CardSprite {
     const { w, h } = cardSize();
     const root = new Container();
     const shadow = new Graphics();
@@ -115,12 +116,21 @@ export async function createPixiCardView(
         .roundRect(-w / 2 - grow + 2, -h / 2 - grow + 5, w + grow * 2, h + grow * 2, w * 0.1 + grow)
         .fill({ color: 0x000000, alpha });
     }
-    const front = drawFront(card, w, h, palette, fontFamily);
     const back = drawBack(w, h, palette);
-    front.visible = faceUp;
     back.visible = !faceUp;
-    root.addChild(shadow, back, front);
-    return { root, front, back, card, faceUp };
+    root.addChild(shadow, back);
+    const sprite: CardSprite = { root, front: null, back, card: null, faceUp };
+    if (card !== null) paintFace(sprite, card);
+    return sprite;
+  }
+
+  function paintFace(sprite: CardSprite, card: Card): void {
+    const { w, h } = cardSize();
+    const front = drawFront(card, w, h, palette, fontFamily);
+    front.visible = sprite.faceUp;
+    sprite.root.addChild(front);
+    sprite.front = front;
+    sprite.card = card;
   }
 
   function place(sprite: CardSprite, pose: Pose): void {
@@ -204,7 +214,7 @@ export async function createPixiCardView(
       if (!swapped && e >= 0.5) {
         swapped = true;
         sprite.back.visible = false;
-        sprite.front.visible = true;
+        if (sprite.front !== null) sprite.front.visible = true;
         sprite.faceUp = true;
       }
       const lift = Math.sin(e * Math.PI) * 0.08;
@@ -268,7 +278,9 @@ export async function createPixiCardView(
     async reveal(handId, index, card, duration) {
       const sprite = handOf(handId).cards[index];
       if (sprite === undefined) throw new RangeError(`No card ${index} in "${handId}"`);
-      if (sprite.card.rank !== card.rank || sprite.card.suit !== card.suit) {
+      if (sprite.card === null) {
+        paintFace(sprite, card);
+      } else if (sprite.card.rank !== card.rank || sprite.card.suit !== card.suit) {
         throw new Error(`Card ${index} in "${handId}" is not the revealed card`);
       }
       if (!sprite.faceUp) await flip(sprite, duration);

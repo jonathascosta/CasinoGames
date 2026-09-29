@@ -73,22 +73,29 @@ export class CardDealer {
     return this.#counts.get(hand) ?? 0;
   }
 
-  /** Deals `card` from the shoe to the end of `hand`, face up unless told otherwise. */
+  /**
+   * Deals a card from the shoe to the end of `hand`, face up unless told
+   * otherwise. A face-down card is drawn as a back only and its face is not
+   * put on the page until reveal(), so `card` may be null when the face is
+   * unknown, as when a server withholds hidden cards.
+   */
   async deal(
-    card: Card,
+    card: Card | null,
     hand: string,
     { faceUp = true }: { faceUp?: boolean } = {},
   ): Promise<void> {
     if (!this.#counts.has(hand)) throw new RangeError(`Unknown hand "${hand}"`);
+    const face = faceUp ? card : null;
+    if (faceUp && face === null) throw new TypeError('A card dealt face up needs its face');
     const index = this.count(hand);
     this.#counts.set(hand, index + 1);
     this.#options.sound?.play('card-slide');
-    await this.#view.deal(card, hand, this.#motion.duration(DEAL_MS));
-    if (faceUp) await this.reveal(hand, index, card);
+    await this.#view.deal(face, hand, this.#motion.duration(DEAL_MS));
+    if (face !== null) await this.reveal(hand, index, face);
     else this.#announce(`${this.#label(hand)}: face-down card`);
   }
 
-  /** Turns over the card at `index` in `hand`. */
+  /** Turns over the card at `index` in `hand`, painting its face if it was unknown. */
   async reveal(hand: string, index: number, card: Card): Promise<void> {
     this.#options.sound?.play('card-flip');
     await this.#view.reveal(hand, index, card, this.#motion.duration(FLIP_MS));

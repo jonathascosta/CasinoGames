@@ -20,9 +20,16 @@ export interface ShoeDisplay {
  * to the motion level (0 means instant).
  */
 export interface CardView {
-  /** Slides a card, face down, from the shoe to the end of `hand`. */
-  deal(card: Card, hand: string, duration: number): Promise<void>;
-  /** Turns a face-down card over. */
+  /**
+   * Slides a card, face down, from the shoe to the end of `hand`. `card` is
+   * null when its face must stay unknown until reveal(): nothing of it is
+   * drawn or put on the page before then.
+   */
+  deal(card: Card | null, hand: string, duration: number): Promise<void>;
+  /**
+   * Turns a face-down card over, painting its face first if it was dealt
+   * without one. Throws if the card was dealt with a different face.
+   */
   reveal(hand: string, index: number, card: Card, duration: number): Promise<void>;
   /** Sweeps every card off the table. */
   clear(duration: number): Promise<void>;

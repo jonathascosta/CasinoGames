@@ -47,6 +47,30 @@ describe('CardDealer', () => {
     expect(cards()[0]!.getAttribute('aria-label')).toBe('K♥');
   });
 
+  it('never puts the face of a face-down card on the page before it is revealed', async () => {
+    const { dealer, host, cards } = await create();
+    await dealer.deal(parseCardCode('KH'), 'dealer', { faceUp: false });
+    await dealer.deal(null, 'dealer', { faceUp: false });
+    expect(host.querySelector('.cg-dom-card__face')).toBeNull();
+    expect(host.textContent).not.toMatch(/[KQJ♥♠♦♣]/);
+
+    await dealer.reveal('dealer', 1, parseCardCode('QS'));
+    const face = cards()[1]!.querySelector('.cg-dom-card__face')!;
+    expect(face.textContent).toBe('Q♠');
+    expect(cards()[1]!.classList.contains('is-face-up')).toBe(true);
+    expect(cards()[0]!.querySelector('.cg-dom-card__face')).toBeNull();
+  });
+
+  it('refuses a face-up card without its face, and a reveal that contradicts the deal', async () => {
+    const { dealer } = await create();
+    await expect(dealer.deal(null, 'player')).rejects.toThrow(TypeError);
+    expect(dealer.count('player')).toBe(0);
+    await dealer.deal(parseCardCode('AS'), 'player');
+    await expect(dealer.reveal('player', 0, parseCardCode('2S'))).rejects.toThrow(
+      /not the revealed/,
+    );
+  });
+
   it('lays out each hand around its anchor', async () => {
     const { dealer, cards } = await create();
     await dealer.deal(parseCardCode('2C'), 'player');
