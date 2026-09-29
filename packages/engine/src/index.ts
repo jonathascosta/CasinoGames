@@ -7,6 +7,32 @@
  * no Node typings), so the same code can run in a browser or on a server.
  */
 export {
+  ACE,
+  JACK,
+  KING,
+  QUEEN,
+  RANK_SETS,
+  SUITS,
+  cardCode,
+  cardLabel,
+  isRank,
+  isRed,
+  parseCardCode,
+  rankLabel,
+  rankRange,
+  suitSymbol,
+  type Card,
+  type Rank,
+  type Suit,
+} from './cards/card.ts';
+export {
+  DEFAULT_PENETRATION,
+  Shoe,
+  ShoeExhaustedError,
+  type CardSource,
+  type ShoeOptions,
+} from './cards/shoe.ts';
+export {
   DIE_FACES,
   diceTotal,
   isDieFace,

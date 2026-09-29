@@ -3,4 +3,5 @@
  * can force exact outcomes and check distributions. Not used by game code.
  */
 export * from './chi-square.ts';
+export * from './scripted-cards.ts';
 export * from './scripted-rng.ts';
