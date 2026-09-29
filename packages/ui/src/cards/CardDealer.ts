@@ -79,6 +79,7 @@ export class CardDealer {
     hand: string,
     { faceUp = true }: { faceUp?: boolean } = {},
   ): Promise<void> {
+    if (!this.#counts.has(hand)) throw new RangeError(`Unknown hand "${hand}"`);
     const index = this.count(hand);
     this.#counts.set(hand, index + 1);
     this.#options.sound?.play('card-slide');

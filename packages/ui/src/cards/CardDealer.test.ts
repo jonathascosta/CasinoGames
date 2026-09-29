@@ -79,5 +79,6 @@ describe('CardDealer', () => {
   it('rejects unknown hands', async () => {
     const { dealer } = await create();
     await expect(dealer.deal(parseCardCode('2C'), 'nobody')).rejects.toThrow(RangeError);
+    expect(dealer.count('nobody')).toBe(0);
   });
 });
