@@ -6,4 +6,6 @@
  * runtime dependencies and compiles against the bare ES2022 library (no DOM,
  * no Node typings), so the same code can run in a browser or on a server.
  */
-export {};
+export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
+export { randomInt, shuffleInPlace, type Rng } from './rng/rng.ts';
+export { createSeededRng, type Seed } from './rng/seeded.ts';

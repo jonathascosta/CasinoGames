@@ -36,6 +36,8 @@ export default defineConfig([
       ],
       '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
+      // noUncheckedIndexedAccess is on; a local, obvious `!` beats defensive noise.
+      '@typescript-eslint/no-non-null-assertion': 'off',
       eqeqeq: ['error', 'always'],
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
@@ -104,15 +106,6 @@ export default defineConfig([
           ],
         },
       ],
-    },
-  },
-
-  {
-    name: 'repo/tests',
-    files: ['**/*.test.ts'],
-    rules: {
-      // Tests assert on shapes they just built; non-null assertions keep them readable.
-      '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
 
