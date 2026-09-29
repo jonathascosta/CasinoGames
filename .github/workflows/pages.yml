@@ -1,0 +1,56 @@
+name: Deploy to GitHub Pages
+
+# Publishes the lobby (and the component playground at /dev.html) on every
+# push to main. One-time setup: Settings → Pages → Source: "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; never cancel a deployment in progress.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the lobby
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Unit tests gate the deployment
+        run: pnpm test
+      - id: pages
+        uses: actions/configure-pages@v6
+      - name: Build with the Pages base path
+        run: pnpm --filter @casinogames/lobby build
+        env:
+          # "/<repo>/" for a project site, "/" with a custom domain.
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: apps/lobby/dist
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
