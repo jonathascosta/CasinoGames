@@ -1,0 +1,142 @@
+.cg-dice-tray {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  border-radius: var(--radius-lg);
+  outline-offset: -3px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.cg-dice-tray.is-armed {
+  cursor: grab;
+}
+
+.cg-dice-tray.is-armed:active {
+  cursor: grabbing;
+}
+
+.cg-dice-tray__stage {
+  position: absolute;
+  inset: 0;
+}
+
+.cg-pixi-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cg-dice-tray__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  translate: -50% 0;
+  padding: 6px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  background: rgb(3 14 9 / 0.62);
+  color: var(--gold-200);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+
+.cg-dice-tray.is-armed .cg-dice-tray__hint {
+  opacity: 1;
+  animation: cg-hint-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes cg-hint-breathe {
+  50% {
+    box-shadow: 0 0 22px rgb(221 189 119 / 0.35);
+  }
+}
+
+/* Flat CSS dice (fallback renderer). */
+.cg-dom-dice {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.cg-die {
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  padding: 8px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--die-face), var(--die-body));
+  box-shadow:
+    inset 0 -3px 0 rgb(0 0 0 / 0.12),
+    0 8px 16px rgb(0 0 0 / 0.45);
+}
+
+.cg-die__pip {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--die-pip);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.5);
+}
+
+.cg-die[data-face='1'] .cg-die__pip {
+  width: 15px;
+  height: 15px;
+  background: var(--die-pip-accent);
+}
+
+.cg-dom-dice.is-holding .cg-die {
+  animation: cg-die-rattle 120ms linear infinite alternate;
+}
+
+.cg-dom-dice.is-rolling .cg-die {
+  animation: cg-die-roll var(--roll-ms) var(--ease-out);
+}
+
+.cg-dom-dice.is-settling .cg-die {
+  animation: cg-die-settle var(--roll-ms) var(--ease-out);
+}
+
+@keyframes cg-die-rattle {
+  from {
+    transform: translate(-2px, 1px) rotate(-6deg);
+  }
+  to {
+    transform: translate(2px, -1px) rotate(6deg);
+  }
+}
+
+@keyframes cg-die-roll {
+  0% {
+    transform: translateY(90px) rotate(-200deg) scale(1.2);
+  }
+  40% {
+    transform: translateY(-12px) rotate(40deg) scale(1.05);
+  }
+  70% {
+    transform: translateY(4px) rotate(-8deg);
+  }
+}
+
+@keyframes cg-die-settle {
+  from {
+    opacity: 0.4;
+    transform: scale(0.9);
+  }
+}

@@ -52,3 +52,5 @@ export {
   type Easing,
   type MotionLevel,
 } from './motion/motion.ts';
+export { DiceRoller, type DiceRollerOptions } from './dice/DiceRoller.ts';
+export type { DiceView, ThrowOptions } from './dice/dice-view.ts';

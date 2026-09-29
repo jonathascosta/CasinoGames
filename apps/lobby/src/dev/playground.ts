@@ -3,8 +3,11 @@
  * development and review aid, deliberately free of Storybook.
  */
 import {
+  createCryptoRng,
   createSeededRng,
+  diceTotal,
   odds,
+  rollDice,
   oddsLabel,
   settleLoss,
   settleWin,
@@ -15,6 +18,7 @@ import {
   BankrollDisplay,
   BetSpot,
   ChipRail,
+  DiceRoller,
   SoundEngine,
   applySettings,
   createMemoryBackend,
@@ -188,6 +192,42 @@ function settingsSection(): HTMLElement {
   );
 }
 
+function diceSection(): HTMLElement {
+  const stage = h('div', { class: 'pg-stage' });
+  const result = h('strong', { class: 'cg-num' }, '—');
+  const rollButton = h('button', { type: 'button', class: 'cg-btn cg-btn--primary' }, 'Roll');
+  const rng = createCryptoRng();
+  let roller: DiceRoller | undefined;
+
+  const onThrow = async (power: number) => {
+    rollButton.disabled = true;
+    const dice = rollDice(rng); // the engine decides; the roller only animates
+    await roller?.roll(dice, { power });
+    result.textContent = `${dice[0]} + ${dice[1]} = ${diceTotal(dice)}`;
+    roller?.arm();
+    rollButton.disabled = false;
+  };
+  void DiceRoller.create({
+    host: stage,
+    sound,
+    onThrow: (power) => void onThrow(power),
+  }).then((created) => {
+    roller = created;
+    roller.arm();
+  });
+  rollButton.addEventListener('click', () => roller?.requestThrow());
+
+  return section(
+    'dice',
+    'DiceRoller',
+    'Tap the felt to throw, or hold to shake and release: the longer the hold, the harder the ' +
+      'throw. 3D dice in PixiJS (lit, bevelled, perspective), landing exactly on the values the ' +
+      'engine rolled with the crypto RNG.',
+    stage,
+    h('div', { class: 'pg-row' }, rollButton, h('p', { class: 'pg-note' }, 'Last roll ', result)),
+  );
+}
+
 const app = document.getElementById('app')!;
 app.className = 'pg';
 app.append(
@@ -203,5 +243,12 @@ app.append(
         'this page only wires them to the controls.',
     ),
   ),
-  h('div', { class: 'pg-grid' }, bettingSection(), bankrollSection(), settingsSection()),
+  h(
+    'div',
+    { class: 'pg-grid' },
+    diceSection(),
+    bettingSection(),
+    bankrollSection(),
+    settingsSection(),
+  ),
 );
