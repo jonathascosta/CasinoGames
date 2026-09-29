@@ -1,0 +1,106 @@
+.pg {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: max(20px, env(safe-area-inset-top)) 16px 64px;
+}
+
+.pg-header {
+  display: grid;
+  gap: 6px;
+  padding: 12px 4px 20px;
+}
+
+.pg-header h1 {
+  font-size: clamp(28px, 6vw, 40px);
+}
+
+.pg-header p {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--ink-300);
+}
+
+.pg-header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.pg-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.pg-section {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  scroll-margin-top: 16px;
+}
+
+.pg-section > header {
+  display: grid;
+  gap: 4px;
+}
+
+.pg-section h2 {
+  font-size: 22px;
+}
+
+.pg-section > header p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-300);
+  max-width: 70ch;
+}
+
+.pg-demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: rgb(0 0 0 / 0.16);
+  border: 1px solid var(--line);
+}
+
+.pg-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pg-note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-400);
+  text-align: center;
+}
+
+.pg-note strong {
+  color: var(--ink-200);
+}
+
+.pg-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(260px, 62vw, 360px);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+@media (min-width: 880px) {
+  .pg-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pg-section--wide {
+    grid-column: 1 / -1;
+  }
+}

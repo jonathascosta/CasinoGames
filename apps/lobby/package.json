@@ -1,0 +1,23 @@
+{
+  "name": "@casinogames/lobby",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The demo site: a lobby of four original table games and a component playground.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@casinogames/engine": "workspace:*",
+    "@casinogames/ui": "workspace:*"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "vite": "^8.3.1"
+  }
+}
