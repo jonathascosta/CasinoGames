@@ -436,6 +436,51 @@ function modalsSection(): HTMLElement {
   );
 }
 
+const TOKEN_GROUPS: readonly (readonly [string, readonly string[]])[] = [
+  ['Felt', ['--felt-900', '--felt-700', '--felt-500', '--felt-glow']],
+  ['Brass', ['--gold-200', '--gold-300', '--gold-400', '--gold-500', '--gold-600']],
+  ['Ink', ['--ink-100', '--ink-300', '--ink-500']],
+  ['Signals', ['--win', '--lose', '--push', '--focus']],
+  ['Dice & cards', ['--die-face', '--die-pip-accent', '--card-face', '--card-red', '--card-back']],
+];
+
+function tokensSection(): HTMLElement {
+  return section(
+    'tokens',
+    'Theme tokens',
+    'Every colour, radius and duration is a CSS custom property (packages/ui/src/theme/tokens.css): ' +
+      'a table can be re-skinned without touching components. Turbo mode zeroes the duration tokens.',
+    ...TOKEN_GROUPS.map(([label, names]) =>
+      h(
+        'div',
+        { class: 'pg-swatches' },
+        h('span', { class: 'pg-swatches__label' }, label),
+        ...names.map((name) =>
+          h('span', {
+            class: 'pg-swatch',
+            style: `background: var(${name})`,
+            title: name,
+            'aria-label': name,
+            role: 'img',
+          }),
+        ),
+      ),
+    ),
+  );
+}
+
+const SECTIONS = [
+  ['dice', 'DiceRoller'],
+  ['cards', 'CardDealer'],
+  ['betting', 'ChipRail + BetSpot'],
+  ['bankroll', 'BankrollDisplay'],
+  ['rtp', 'RtpPanel'],
+  ['autoplay', 'AutoPlay'],
+  ['modals', 'Paytable + Info'],
+  ['settings', 'Turbo + Sound'],
+  ['tokens', 'Theme tokens'],
+] as const;
+
 const app = document.getElementById('app')!;
 app.className = 'pg';
 app.append(
@@ -450,6 +495,12 @@ app.append(
       'Every shared component of the table kit, live. The engine drives the outcomes; ' +
         'this page only wires them to the controls.',
     ),
+    h(
+      'nav',
+      { 'aria-label': 'Components' },
+      ...SECTIONS.map(([id, label]) => h('a', { href: `#${id}` }, label)),
+      h('a', { href: import.meta.env.BASE_URL }, '← Lobby'),
+    ),
   ),
   h(
     'div',
@@ -462,5 +513,6 @@ app.append(
     autoplaySection(),
     modalsSection(),
     settingsSection(),
+    tokensSection(),
   ),
 );
