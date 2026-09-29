@@ -42,6 +42,7 @@ export {
   type DieFace,
 } from './dice/dice.ts';
 export { EngineError, type EngineErrorCode } from './game/errors.ts';
+export { summarizeMath } from './game/math-summary.ts';
 export {
   isCents,
   odds,
@@ -51,6 +52,13 @@ export {
   type Cents,
   type Odds,
 } from './game/money.ts';
+export {
+  RoundBuilder,
+  continueRound,
+  startRound,
+  type EmittableEvent,
+  type GameInfo,
+} from './game/round.ts';
 export {
   settleLoss,
   settlePush,
@@ -62,6 +70,24 @@ export {
   type SettlementLine,
   type SettlementTotals,
 } from './game/settlement.ts';
+export type {
+  BetDefinition,
+  BetId,
+  BetKind,
+  BetMath,
+  Bets,
+  CustomEvent,
+  DecisionOption,
+  Game,
+  GameEvent,
+  GameEventType,
+  JackpotPayout,
+  MathSummary,
+  PaytableEntry,
+  RoundPhase,
+  RoundState,
+} from './game/types.ts';
+export { defineBets, validateBets } from './game/validation.ts';
 export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
 export { randomInt, shuffleInPlace, type Rng } from './rng/rng.ts';
 export { createSeededRng, type Seed } from './rng/seeded.ts';
