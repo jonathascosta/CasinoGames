@@ -28,6 +28,7 @@ body {
     radial-gradient(120% 70% at 50% 30%, rgb(44 124 83 / 0.34), transparent 64%),
     radial-gradient(140% 110% at 50% 115%, rgb(0 0 0 / 0.6), transparent 58%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.33'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat, repeat;
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -103,6 +104,7 @@ button {
   color: var(--ink-100);
   font-weight: 600;
   letter-spacing: 0.02em;
+  text-decoration: none;
   cursor: pointer;
   user-select: none;
   touch-action: manipulation;

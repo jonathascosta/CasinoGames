@@ -1,0 +1,48 @@
+import {
+  BankrollDisplay,
+  createSoundToggle,
+  createTurboToggle,
+  h,
+  type Child,
+} from '@casinogames/ui';
+import type { Services } from '../services.ts';
+
+/** Minimum stake of the demo tables; below it the balance offers a top-up. */
+const TOP_UP_BELOW = 50;
+
+/**
+ * The bar across the top of every page: `leading` on the left (the brand or
+ * a back link), then the balance and the turbo and sound switches.
+ */
+export function createTopBar(
+  services: Services,
+  leading: Child,
+): { element: HTMLElement; destroy: () => void } {
+  const bankroll = new BankrollDisplay({ bankroll: services.bankroll, topUpBelow: TOP_UP_BELOW });
+  const turbo = createTurboToggle(services.settings);
+  const sound = createSoundToggle(services.settings);
+  const element = h(
+    'header',
+    { class: 'topbar' },
+    h('div', { class: 'topbar__leading' }, leading),
+    h('div', { class: 'topbar__actions' }, bankroll.element, turbo.element, sound.element),
+  );
+  return {
+    element,
+    destroy: () => {
+      bankroll.destroy();
+      turbo.destroy();
+      sound.destroy();
+    },
+  };
+}
+
+/** The brand mark: a brass chip and the product name. */
+export function brand(href: string): HTMLAnchorElement {
+  return h(
+    'a',
+    { class: 'brand', href, 'aria-label': 'Original Table Games, lobby' },
+    h('span', { class: 'brand__chip', 'aria-hidden': 'true' }),
+    h('span', { class: 'brand__name' }, 'Original ', h('em', null, 'Table Games')),
+  );
+}
