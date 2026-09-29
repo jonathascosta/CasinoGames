@@ -17,7 +17,9 @@
     "test": "vitest run --project \"!math\"",
     "test:watch": "vitest --project \"!math\"",
     "test:math": "vitest run --project math",
-    "prepare": "husky"
+    "prepare": "husky",
+    "docs:sheets": "node scripts/sync-game-sheets.ts",
+    "docs:check": "node scripts/sync-game-sheets.ts --check"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

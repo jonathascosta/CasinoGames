@@ -96,6 +96,8 @@ export {
 } from './math/enumerate.ts';
 export { exactReturns, type ExactReport, type ExactReturn } from './math/exact.ts';
 export { Fraction } from './math/fraction.ts';
+export { MATH_END, MATH_START, renderMathSection, replaceMathSection } from './math/sheet.ts';
+export { GAMES } from './games/index.ts';
 export {
   roundsForTolerance,
   simulate,
