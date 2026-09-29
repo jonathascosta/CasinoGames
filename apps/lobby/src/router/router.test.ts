@@ -1,0 +1,149 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  appPath,
+  createRouter,
+  matchRoute,
+  normalizeBase,
+  type Page,
+  type Route,
+} from './router.ts';
+
+function page(title: string, onUnmount = () => undefined): Page {
+  return {
+    title,
+    mount(outlet) {
+      const heading = document.createElement('h1');
+      heading.textContent = title;
+      outlet.append(heading);
+      return onUnmount;
+    },
+  };
+}
+
+function setup(base = '/CasinoGames/') {
+  const outlet = document.createElement('main');
+  document.body.append(outlet);
+  const unmountLobby = vi.fn();
+  const routes: Route[] = [
+    { path: '/', load: () => page('Lobby', unmountLobby) },
+    { path: '/:slug', load: ({ params }) => Promise.resolve(page(`Game ${params.slug!}`)) },
+  ];
+  const router = createRouter({
+    routes,
+    outlet,
+    base,
+    notFound: () => page('Not found'),
+    titleSuffix: ' · Demo',
+  });
+  return { router, outlet, unmountLobby };
+}
+
+describe('router helpers', () => {
+  it('normalises bases and strips them from paths', () => {
+    expect(normalizeBase('/CasinoGames/')).toBe('/CasinoGames');
+    expect(normalizeBase('/')).toBe('');
+    expect(appPath('/CasinoGames/espelho/', '/CasinoGames')).toBe('/espelho');
+    expect(appPath('/CasinoGames/', '/CasinoGames')).toBe('/');
+    expect(appPath('/CasinoGames', '/CasinoGames')).toBe('/');
+    expect(appPath('/index.html', '')).toBe('/');
+  });
+
+  it('matches static and parameterised routes', () => {
+    const routes: Route[] = [
+      { path: '/', load: () => page('a') },
+      { path: '/:slug', load: () => page('b') },
+    ];
+    expect(matchRoute(routes, '/')?.route).toBe(routes[0]);
+    expect(matchRoute(routes, '/alvo-m%C3%B3vel')?.params).toEqual({ slug: 'alvo-móvel' });
+    expect(matchRoute(routes, '/a/b')).toBeNull();
+  });
+});
+
+describe('createRouter', () => {
+  beforeEach(() => {
+    vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.replaceChildren();
+    history.replaceState(null, '', '/');
+  });
+
+  it('renders the page for the current URL, with title and focus', async () => {
+    history.replaceState(null, '', '/CasinoGames/espelho');
+    const { router, outlet } = setup();
+    await router.start();
+    expect(outlet.textContent).toBe('Game espelho');
+    expect(document.title).toBe('Game espelho · Demo');
+    expect(document.activeElement).toBe(outlet.querySelector('h1'));
+    router.destroy();
+  });
+
+  it('navigates with pushState, unmounting the previous page', async () => {
+    history.replaceState(null, '', '/CasinoGames/');
+    const { router, outlet, unmountLobby } = setup();
+    await router.start();
+    await router.navigate('/trancar');
+    expect(location.pathname).toBe('/CasinoGames/trancar');
+    expect(outlet.textContent).toBe('Game trancar');
+    expect(unmountLobby).toHaveBeenCalledTimes(1);
+    expect(router.href('/')).toBe('/CasinoGames/');
+    router.destroy();
+  });
+
+  it('intercepts in-app links but not new tabs, other documents or other sites', async () => {
+    history.replaceState(null, '', '/CasinoGames/');
+    const { router, outlet } = setup();
+    await router.start();
+    const link = (href: string, attrs: Record<string, string> = {}) => {
+      const a = document.createElement('a');
+      a.href = href;
+      for (const [k, v] of Object.entries(attrs)) a.setAttribute(k, v);
+      document.body.append(a);
+      return a;
+    };
+    const click = (a: HTMLAnchorElement, init: MouseEventInit = {}) => {
+      const event = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        ...init,
+      });
+      a.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(click(link('/CasinoGames/alvo-movel'))).toBe(true);
+    await vi.waitFor(() => {
+      expect(outlet.textContent).toBe('Game alvo-movel');
+    });
+    expect(click(link('/CasinoGames/espelho'), { metaKey: true })).toBe(false);
+    expect(click(link('/CasinoGames/espelho', { target: '_blank' }))).toBe(false);
+    expect(click(link('/CasinoGames/dev.html'))).toBe(false);
+    expect(click(link('https://example.com/CasinoGames/espelho'))).toBe(false);
+    expect(click(link('/elsewhere/espelho'))).toBe(false);
+    router.destroy();
+  });
+
+  it('shows the not-found page for unknown paths and follows history', async () => {
+    history.replaceState(null, '', '/CasinoGames/a/b');
+    const { router, outlet } = setup();
+    await router.start();
+    expect(outlet.textContent).toBe('Not found');
+    history.replaceState(null, '', '/CasinoGames/');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    await vi.waitFor(() => {
+      expect(outlet.textContent).toBe('Lobby');
+    });
+    router.destroy();
+  });
+
+  it('works at the site root too', async () => {
+    history.replaceState(null, '', '/espelho/');
+    const { router, outlet } = setup('/');
+    await router.start();
+    expect(outlet.textContent).toBe('Game espelho');
+    expect(router.href('/espelho')).toBe('/espelho');
+    router.destroy();
+  });
+});
