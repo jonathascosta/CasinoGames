@@ -1,0 +1,223 @@
+.cg-bet-spot {
+  --spot-line: rgb(221 189 119 / 0.5);
+  --spot-glow: transparent;
+
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  align-items: center;
+  min-width: 112px;
+  min-height: 128px;
+  padding: 10px 12px 12px;
+  border: 1.5px solid var(--spot-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(90% 70% at 50% 45%, rgb(255 255 255 / 0.05), transparent 70%),
+    rgb(3 14 9 / 0.28);
+  box-shadow:
+    inset 0 0 0 5px rgb(3 14 9 / 0.35),
+    inset 0 0 0 6px rgb(221 189 119 / 0.14),
+    0 0 0 0 var(--spot-glow);
+  color: var(--ink-100);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out),
+    transform var(--dur-1) var(--ease-out);
+}
+
+.cg-bet-spot[data-variant='side'] {
+  min-width: 92px;
+  min-height: 112px;
+  border-style: dashed;
+  --spot-line: rgb(221 189 119 / 0.38);
+}
+
+.cg-bet-spot:hover:not([aria-disabled='true']) {
+  --spot-line: var(--gold-400);
+}
+
+.cg-bet-spot:active:not([aria-disabled='true']) {
+  transform: scale(0.985);
+}
+
+.cg-bet-spot[aria-disabled='true'] {
+  cursor: default;
+}
+
+.cg-bet-spot__text {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.cg-bet-spot__label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-300);
+}
+
+.cg-bet-spot__caption {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-400);
+}
+
+.cg-bet-spot__stack {
+  position: relative;
+  width: 48px;
+  height: 60px;
+  pointer-events: none;
+}
+
+.cg-bet-spot__stack .cg-chip {
+  --chip-size: 44px;
+  position: absolute;
+  left: 2px;
+  bottom: calc(var(--i) * 4px);
+  transform: rotate(var(--tilt));
+  animation: cg-chip-drop var(--dur-2) var(--ease-out) both;
+}
+
+.cg-bet-spot[data-state='empty'] .cg-bet-spot__stack::before {
+  content: '';
+  position: absolute;
+  inset: 8px 2px 6px;
+  border-radius: 50%;
+  border: 1.5px dashed rgb(221 189 119 / 0.22);
+}
+
+.cg-bet-spot__amount {
+  min-height: 18px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink-100);
+  pointer-events: none;
+}
+
+/* Long-press progress: a brass ring that fills while held. */
+.cg-bet-spot__press {
+  position: absolute;
+  inset: -4px;
+  border-radius: 24px;
+  pointer-events: none;
+  opacity: 0;
+  background: conic-gradient(var(--gold-300) calc(var(--press, 0) * 360deg), transparent 0);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  padding: 2px;
+}
+
+@property --press {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.cg-bet-spot.is-pressing[data-state='filled'] .cg-bet-spot__press {
+  opacity: 1;
+  animation: cg-press-fill var(--press-ms) linear forwards;
+}
+
+@keyframes cg-press-fill {
+  to {
+    --press: 1;
+  }
+}
+
+/* Results */
+.cg-bet-spot__result {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  translate: -50% 0;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 750;
+  color: #0b2416;
+  background: var(--win);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.4);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cg-bet-spot[data-result='win'] {
+  --spot-line: var(--win);
+  --spot-glow: rgb(91 214 145 / 0.35);
+  box-shadow:
+    inset 0 0 0 5px rgb(3 14 9 / 0.35),
+    inset 0 0 0 6px rgb(91 214 145 / 0.3),
+    0 0 28px 2px var(--spot-glow);
+}
+
+.cg-bet-spot[data-result='win'] .cg-bet-spot__result:not(:empty) {
+  animation: cg-result-pop var(--dur-3) var(--ease-spring) forwards;
+}
+
+.cg-bet-spot[data-result='lose'] {
+  --spot-line: rgb(255 131 115 / 0.55);
+}
+
+.cg-bet-spot[data-result='lose'] .cg-bet-spot__stack .cg-chip {
+  animation: cg-chip-collect var(--dur-3) var(--ease-out) forwards;
+}
+
+.cg-bet-spot[data-result='push'] {
+  --spot-line: var(--push);
+}
+
+.cg-bet-spot.is-rejected {
+  animation: cg-shake 320ms var(--ease-out);
+}
+
+@keyframes cg-chip-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) rotate(var(--tilt)) scale(1.08);
+  }
+}
+
+@keyframes cg-chip-collect {
+  to {
+    opacity: 0;
+    transform: translateY(-40px) rotate(var(--tilt)) scale(0.85);
+  }
+}
+
+@keyframes cg-result-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cg-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}

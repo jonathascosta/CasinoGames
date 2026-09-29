@@ -1,0 +1,66 @@
+.cg-chip-rail {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(6px, 2.4vw, 14px);
+  padding: 10px 12px 8px;
+}
+
+.cg-chip-rail__item {
+  --lift: 0px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: var(--tap);
+  min-height: calc(var(--tap) + 8px);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transform: translateY(var(--lift));
+  transition:
+    transform var(--dur-2) var(--ease-spring),
+    opacity var(--dur-2) var(--ease-out),
+    filter var(--dur-2) var(--ease-out);
+}
+
+.cg-chip-rail__item .cg-chip {
+  --chip-size: clamp(44px, 12.5vw, 56px);
+  transition: box-shadow var(--dur-2) var(--ease-out);
+}
+
+.cg-chip-rail__item:hover:not(:disabled) {
+  --lift: -3px;
+}
+
+.cg-chip-rail__item[aria-checked='true'] {
+  --lift: -9px;
+}
+
+/* Brass halo around the selected chip. */
+.cg-chip-rail__item[aria-checked='true'] .cg-chip {
+  box-shadow:
+    inset 0 0 0 1.5px rgb(0 0 0 / 0.28),
+    inset 0 2px 0 rgb(255 255 255 / 0.28),
+    inset 0 -3px 5px rgb(0 0 0 / 0.32),
+    0 0 0 2.5px var(--felt-900),
+    0 0 0 4.5px var(--gold-400),
+    0 10px 22px rgb(0 0 0 / 0.55),
+    0 0 26px rgb(221 189 119 / 0.45);
+}
+
+.cg-chip-rail__item:disabled {
+  opacity: 0.32;
+  filter: grayscale(0.6);
+  cursor: not-allowed;
+}
+
+.cg-chip-rail__item:focus-visible {
+  outline: none;
+}
+
+.cg-chip-rail__item:focus-visible .cg-chip {
+  outline: 2px solid var(--focus);
+  outline-offset: 6px;
+}

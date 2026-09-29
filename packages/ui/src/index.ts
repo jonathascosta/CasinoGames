@@ -28,3 +28,6 @@ export {
   type KeyValueBackend,
   type SafeStorage,
 } from './storage/storage.ts';
+export { BetSpot, type BetRejection, type BetSpotOptions } from './bet-spot/BetSpot.ts';
+export { ChipRail, type ChipRailOptions } from './chips/ChipRail.ts';
+export { CHIP_DENOMINATIONS, breakIntoChips, chipTone, createChip } from './chips/chips.ts';
