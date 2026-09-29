@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { chiSquareUniform } from '../testing/chi-square.ts';
 import { createScriptedRng, scriptForInts, uint32ToUnit } from '../testing/scripted-rng.ts';
-import { randomInt, shuffleInPlace } from './rng.ts';
+import { randomInt, shuffleInPlace, type IntegerRng } from './rng.ts';
 import { createSeededRng } from './seeded.ts';
 
 describe('randomInt', () => {
@@ -52,6 +52,21 @@ describe('randomInt', () => {
 
   it.each([0, -1, 1.5, Number.NaN, 2 ** 32 + 1])('rejects the invalid range size %s', (n) => {
     expect(() => randomInt(createSeededRng(1), n)).toThrow(RangeError);
+  });
+
+  it('delegates to nextInt when the Rng can draw integers itself', () => {
+    const calls: number[] = [];
+    const rng = {
+      next: () => 0.5,
+      nextInt: (n: number) => {
+        calls.push(n);
+        return n - 1;
+      },
+    };
+    expect(randomInt(rng, 6)).toBe(5);
+    expect(calls).toEqual([6]);
+    const outOfRange: IntegerRng = { next: () => 0, nextInt: () => 6 };
+    expect(() => randomInt(outOfRange, 6)).toThrow(RangeError);
   });
 
   it.each([1, -0.1, Number.NaN])('rejects an Rng that returns %s', (value) => {

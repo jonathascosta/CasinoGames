@@ -13,6 +13,17 @@ export interface Rng {
   next(): number;
 }
 
+/**
+ * Optional capability: an Rng that draws integers directly. When present,
+ * {@link randomInt} delegates to it — this is how the exhaustive enumerator
+ * (engine/math) branches on every possible draw, and how a server could plug
+ * an RNG service that performs its own certified scaling.
+ */
+export interface IntegerRng extends Rng {
+  /** A uniformly distributed integer in [0, n). */
+  nextInt(n: number): number;
+}
+
 const TWO_POW_32 = 0x1_0000_0000;
 
 /**
@@ -28,6 +39,13 @@ export function randomInt(rng: Rng, n: number): number {
   if (!Number.isInteger(n) || n < 1 || n > TWO_POW_32) {
     throw new RangeError(`randomInt: n must be an integer in [1, 2^32], got ${n}`);
   }
+  if (isIntegerRng(rng)) {
+    const value = rng.nextInt(n);
+    if (!Number.isInteger(value) || value < 0 || value >= n) {
+      throw new RangeError(`Rng.nextInt(${n}) returned ${value}`);
+    }
+    return value;
+  }
   const limit = TWO_POW_32 - (TWO_POW_32 % n);
   for (;;) {
     const u = rng.next();
@@ -37,6 +55,10 @@ export function randomInt(rng: Rng, n: number): number {
     const x = Math.floor(u * TWO_POW_32);
     if (x < limit) return x % n;
   }
+}
+
+function isIntegerRng(rng: Rng): rng is IntegerRng {
+  return typeof (rng as Partial<IntegerRng>).nextInt === 'function';
 }
 
 /**

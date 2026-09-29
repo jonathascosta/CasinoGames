@@ -88,11 +88,26 @@ export type {
   RoundState,
 } from './game/types.ts';
 export { defineBets, validateBets } from './game/validation.ts';
+export { playRound, type Strategy } from './game/play.ts';
+export {
+  enumerateOutcomes,
+  type EnumerateOptions,
+  type WeightedOutcome,
+} from './math/enumerate.ts';
+export { exactReturns, type ExactReport, type ExactReturn } from './math/exact.ts';
+export { Fraction } from './math/fraction.ts';
+export {
+  roundsForTolerance,
+  simulate,
+  type BetStatistics,
+  type SimulationOptions,
+  type SimulationReport,
+} from './math/simulate.ts';
 export {
   ProgressiveJackpot,
   type ProgressiveOptions,
   type ProgressiveSnapshot,
 } from './progressive/progressive.ts';
 export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
-export { randomInt, shuffleInPlace, type Rng } from './rng/rng.ts';
+export { randomInt, shuffleInPlace, type IntegerRng, type Rng } from './rng/rng.ts';
 export { createSeededRng, type Seed } from './rng/seeded.ts';
