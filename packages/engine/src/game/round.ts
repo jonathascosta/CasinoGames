@@ -219,26 +219,24 @@ export class RoundBuilder<
     if (line.stake !== stake) {
       throw new EngineError('INVALID_STAKE', `"${betId}" stake is ${stake}¢, not ${line.stake}¢`);
     }
-    this.#settlement[betId] = line;
-    this.#push({ type: 'bet-settled', betId, ...line });
-    return this;
+    return this.#record(betId, line);
   }
 
   win(betId: BetId, odds: Odds, entryId?: string): this {
-    return this.settle(betId, settleWin(this.#unsettledStake(betId), odds, entryId));
+    return this.#record(betId, settleWin(this.#unsettledStake(betId), odds, entryId));
   }
 
   lose(betId: BetId, entryId?: string): this {
-    return this.settle(betId, settleLoss(this.#unsettledStake(betId), entryId));
+    return this.#record(betId, settleLoss(this.#unsettledStake(betId), entryId));
   }
 
   push(betId: BetId, entryId?: string): this {
-    return this.settle(betId, settlePush(this.#unsettledStake(betId), entryId));
+    return this.#record(betId, settlePush(this.#unsettledStake(betId), entryId));
   }
 
   /** Settles a bet for an explicit total payout (jackpots, surrenders…). */
   payout(betId: BetId, payout: Cents, entryId?: string): this {
-    return this.settle(betId, settleWithPayout(this.#unsettledStake(betId), payout, entryId));
+    return this.#record(betId, settleWithPayout(this.#unsettledStake(betId), payout, entryId));
   }
 
   /** Pauses the round until the player picks one of `options`. */
@@ -299,6 +297,18 @@ export class RoundBuilder<
       throw new EngineError('BET_ALREADY_SETTLED', `"${betId}" is already settled`);
     }
     return stake;
+  }
+
+  /** Stores a validated line and records it as a bet-settled event. */
+  #record(betId: BetId, line: SettlementLine): this {
+    this.#settlement[betId] = line;
+    const { stake, payout, net, outcome, entryId } = line;
+    this.#push(
+      entryId === undefined
+        ? { type: 'bet-settled', betId, stake, payout, net, outcome }
+        : { type: 'bet-settled', betId, stake, payout, net, outcome, entryId },
+    );
+    return this;
   }
 
   /** Appends an event whose invariants the builder itself guarantees. */

@@ -2,6 +2,26 @@ import { EngineError } from './errors.ts';
 import { isCents, type Cents } from './money.ts';
 import type { BetDefinition, BetId, Bets } from './types.ts';
 
+interface DefinitionIndex {
+  readonly byId: ReadonlyMap<BetId, BetDefinition>;
+  readonly hasMainBets: boolean;
+}
+
+/** Built once per definitions array: validation runs on every round. */
+const indexes = new WeakMap<readonly BetDefinition[], DefinitionIndex>();
+
+function indexOf(definitions: readonly BetDefinition[]): DefinitionIndex {
+  let index = indexes.get(definitions);
+  if (index === undefined) {
+    index = {
+      byId: new Map(definitions.map((definition) => [definition.id, definition])),
+      hasMainBets: definitions.some((definition) => definition.kind === 'main'),
+    };
+    indexes.set(definitions, index);
+  }
+  return index;
+}
+
 /**
  * Checks a bet map against the game's definitions and returns only the
  * placed bets (zero stakes are dropped). Rules: every id is known, stakes are
@@ -10,10 +30,13 @@ import type { BetDefinition, BetId, Bets } from './types.ts';
  * bet, as at a real table).
  */
 export function validateBets(definitions: readonly BetDefinition[], bets: Bets): Bets {
-  const byId = new Map(definitions.map((definition) => [definition.id, definition]));
-  const placed: [BetId, Cents][] = [];
+  const { byId, hasMainBets } = indexOf(definitions);
+  const placed: Record<BetId, Cents> = {};
+  let count = 0;
+  let mainPlaced = false;
 
-  for (const [betId, stake] of Object.entries(bets)) {
+  for (const betId of Object.keys(bets)) {
+    const stake = bets[betId];
     const definition = byId.get(betId);
     if (definition === undefined) {
       throw new EngineError('UNKNOWN_BET', `Unknown bet "${betId}"`);
@@ -28,15 +51,16 @@ export function validateBets(definitions: readonly BetDefinition[], bets: Bets):
     if (stake > definition.max) {
       throw new EngineError('STAKE_ABOVE_MAX', `"${betId}" maximum is ${definition.max}¢`);
     }
-    placed.push([betId, stake]);
+    placed[betId] = stake;
+    count++;
+    if (definition.kind === 'main') mainPlaced = true;
   }
 
-  if (placed.length === 0) throw new EngineError('NO_BETS', 'No bets placed');
-  const hasMainBets = definitions.some((definition) => definition.kind === 'main');
-  if (hasMainBets && !placed.some(([betId]) => byId.get(betId)?.kind === 'main')) {
+  if (count === 0) throw new EngineError('NO_BETS', 'No bets placed');
+  if (hasMainBets && !mainPlaced) {
     throw new EngineError('MAIN_BET_REQUIRED', 'Side bets require a main bet');
   }
-  return Object.fromEntries(placed);
+  return placed;
 }
 
 /**
