@@ -13,7 +13,10 @@
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "tsc -p tsconfig.json && pnpm -r typecheck",
+    "test": "vitest run --project \"!math\"",
+    "test:watch": "vitest --project \"!math\"",
+    "test:math": "vitest run --project math"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -23,6 +26,7 @@
     "globals": "^17.12.0",
     "prettier": "^3.9.9",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.71.0"
+    "typescript-eslint": "^8.71.0",
+    "vitest": "^4.1.11"
   }
 }
