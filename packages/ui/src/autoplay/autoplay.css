@@ -1,0 +1,76 @@
+.cg-autoplay {
+  position: relative;
+  display: inline-block;
+}
+
+.cg-autoplay__toggle {
+  --progress: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Progress fills the running Stop button from the left. */
+.cg-autoplay[data-running='true'] .cg-autoplay__toggle {
+  border-color: var(--gold-400);
+  background:
+    linear-gradient(90deg, rgb(221 189 119 / 0.22) calc(var(--progress) * 100%), transparent 0),
+    var(--surface-2);
+}
+
+.cg-autoplay__count {
+  font-size: 12px;
+  color: var(--gold-200);
+}
+
+.cg-autoplay__menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(4, var(--tap));
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--felt-800);
+  box-shadow: var(--shadow-2);
+  animation: cg-menu-in var(--dur-2) var(--ease-out);
+}
+
+.cg-autoplay__hint {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--ink-400);
+  text-align: center;
+}
+
+.cg-autoplay__hint:first-child {
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cg-autoplay__choice {
+  min-height: var(--tap);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: rgb(0 0 0 / 0.2);
+  color: var(--ink-100);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cg-autoplay__choice:hover,
+.cg-autoplay__choice:focus-visible {
+  border-color: var(--gold-400);
+  background: rgb(221 189 119 / 0.14);
+}
+
+@keyframes cg-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

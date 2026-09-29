@@ -19,6 +19,8 @@ import {
   type Odds,
 } from '@casinogames/engine';
 import {
+  AutoPlay,
+  AutoPlayController,
   Bankroll,
   BankrollDisplay,
   BetSpot,
@@ -39,6 +41,7 @@ import {
   formatCents,
   h,
   motion,
+  wait,
   type Child,
   type SoundName,
 } from '@casinogames/ui';
@@ -357,10 +360,13 @@ function sampleRound(rng: ReturnType<typeof createCryptoRng>): Record<string, Se
   };
 }
 
+const sampleTracker = new RtpTracker({ gameId: 'playground-sample' });
+const sampleRng = createCryptoRng();
+
 function rtpSection(): HTMLElement {
-  const tracker = new RtpTracker({ gameId: 'playground-sample' });
+  const tracker = sampleTracker;
   const panel = new RtpPanel({ tracker, math: SAMPLE_MATH });
-  const rng = createCryptoRng();
+  const rng = sampleRng;
   const play = (rounds: number) => () => {
     for (let i = 0; i < rounds; i++) tracker.record(sampleRound(rng));
   };
@@ -376,6 +382,39 @@ function rtpSection(): HTMLElement {
       button('+100 rounds', play(100)),
       button('+10,000 rounds', play(10_000)),
       button('+250,000 rounds', play(250_000)),
+    ),
+  );
+}
+
+function autoplaySection(): HTMLElement {
+  const stake = 5_00;
+  const controller = new AutoPlayController({
+    canContinue: () => bankroll.canAfford(stake),
+    playRound: async () => {
+      bankroll.debit(stake);
+      const round = sampleRound(sampleRng);
+      const over = { ...round.over!, stake, payout: round.over!.payout * (stake / 100) };
+      sampleTracker.record({ over: { ...over, net: over.payout - stake } });
+      await wait(motion.duration(350));
+      if (over.payout > 0) {
+        bankroll.credit(over.payout);
+        sound.play('chip-stack');
+      }
+      await wait(motion.duration(150));
+    },
+  });
+  const autoplay = new AutoPlay({ controller });
+  return section(
+    'autoplay',
+    'AutoPlay',
+    'Plays N rounds of the sample "Over 7" bet at 5.00 from the balance above, feeding the RTP ' +
+      'monitor. It checks the balance before every round and stops when it cannot cover the ' +
+      'bet; turn on turbo to see it fly.',
+    autoplay.element,
+    h(
+      'p',
+      { class: 'pg-note' },
+      'Use "Drain" in the BankrollDisplay section to see the stop reason.',
     ),
   );
 }
@@ -420,6 +459,7 @@ app.append(
     bettingSection(),
     bankrollSection(),
     rtpSection(),
+    autoplaySection(),
     modalsSection(),
     settingsSection(),
   ),

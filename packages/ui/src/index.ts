@@ -71,3 +71,11 @@ export {
   type RtpTrackerOptions,
 } from './rtp/RtpTracker.ts';
 export { renderSparkline, type SparklineOptions } from './rtp/sparkline.ts';
+export { AutoPlay, type AutoPlayOptions } from './autoplay/AutoPlay.ts';
+export {
+  AutoPlayController,
+  type AutoPlayControllerOptions,
+  type AutoPlayState,
+  type AutoPlayStopReason,
+} from './autoplay/AutoPlayController.ts';
+export { replayEvents, type EventHandlers } from './replay/replay.ts';
