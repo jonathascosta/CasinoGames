@@ -5,6 +5,8 @@
 import {
   createCryptoRng,
   createSeededRng,
+  defineBets,
+  summarizeMath,
   diceTotal,
   odds,
   rollDice,
@@ -24,7 +26,9 @@ import {
   DiceRoller,
   SoundEngine,
   applySettings,
+  createInfoModal,
   createMemoryBackend,
+  createPaytableModal,
   createSafeStorage,
   createSettingsStore,
   createSoundToggle,
@@ -289,6 +293,75 @@ function cardsSection(): HTMLElement {
   );
 }
 
+/**
+ * Sample data for the modals only: a two-dice table whose figures are
+ * internally consistent (exact odds), not one of the demo's four games.
+ */
+const SAMPLE_MATH = summarizeMath({
+  id: 'sample',
+  name: 'Sample Table',
+  bets: defineBets([
+    {
+      id: 'over',
+      label: 'Over 7',
+      kind: 'main',
+      min: 50,
+      max: 100_00,
+      rtp: 30 / 36,
+      standardDeviation: Math.sqrt(35 / 36),
+      paytable: [{ id: 'win', label: 'Dice total 8–12', odds: odds(1), probability: 15 / 36 }],
+    },
+    {
+      id: 'doubles',
+      label: 'Doubles',
+      kind: 'side',
+      min: 50,
+      max: 25_00,
+      rtp: 11 / 12,
+      standardDeviation: 5.5 * Math.sqrt(5 / 36),
+      paytable: [{ id: 'double', label: 'Any double', odds: odds(9, 2), probability: 1 / 6 }],
+    },
+  ]),
+});
+
+const SAMPLE_RULES = `
+# Object of the game
+Beat the dealer by rolling **higher** with two dice. This text is Markdown,
+rendered safely (no HTML is ever parsed).
+
+## How a round works
+1. Place a main bet; side bets are optional.
+2. Tap or hold the felt to roll.
+3. Bets settle as shown in the paytable:
+   - wins pay the listed odds *plus* your stake;
+   - pushes return the stake.
+
+## Paytable
+| Outcome | Pays |
+|:--|--:|
+| Dice total 8–12 | 1 to 1 |
+| Any double | 9 to 2 |
+
+> Figures come from \`mathSummary()\`, never typed by hand.
+`;
+
+function modalsSection(): HTMLElement {
+  const paytable = createPaytableModal(SAMPLE_MATH);
+  const rules = createInfoModal({ title: 'How to play', markdown: SAMPLE_RULES });
+  return section(
+    'modals',
+    'Paytable and Info modals',
+    'Native <dialog> (focus trap, Esc, backdrop click, focus restore); a bottom sheet on ' +
+      'phones. The paytable is generated from a MathSummary; the rules are Markdown.',
+    button('Paytable', () => {
+      paytable.open();
+    }),
+    button('Rules', () => {
+      rules.open();
+    }),
+  );
+}
+
 const app = document.getElementById('app')!;
 app.className = 'pg';
 app.append(
@@ -311,6 +384,7 @@ app.append(
     cardsSection(),
     bettingSection(),
     bankrollSection(),
+    modalsSection(),
     settingsSection(),
   ),
 );
