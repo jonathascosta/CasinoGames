@@ -39,14 +39,22 @@ export class DiceRoller {
   readonly #options: DiceRollerOptions;
   readonly #view: DiceView;
   readonly #motion: Motion;
+  /** Outside the tray: a role="button" hides its descendants from assistive tech. */
+  readonly #announcer: HTMLSpanElement;
   readonly #disposer = new Disposer();
   #armed = false;
   #hold: { start: number; frame: number; lastShake: number } | null = null;
 
-  private constructor(options: DiceRollerOptions, element: HTMLDivElement, view: DiceView) {
+  private constructor(
+    options: DiceRollerOptions,
+    element: HTMLDivElement,
+    view: DiceView,
+    announcer: HTMLSpanElement,
+  ) {
     this.#options = options;
     this.element = element;
     this.#view = view;
+    this.#announcer = announcer;
     this.#motion = options.motion ?? defaultMotion;
     this.#bindEvents();
     this.disarm();
@@ -67,7 +75,8 @@ export class DiceRoller {
       stage,
       hint,
     );
-    options.host.append(element);
+    const announcer = h('span', { class: 'cg-sr-only', 'aria-live': 'polite' });
+    options.host.append(element, announcer);
 
     let view: DiceView | null = null;
     if (options.renderer !== 'dom') {
@@ -79,7 +88,7 @@ export class DiceRoller {
       }
     }
     view ??= createDomDiceView(stage, initial, cosmetic);
-    return new DiceRoller(options, element, view);
+    return new DiceRoller(options, element, view, announcer);
   }
 
   get armed(): boolean {
@@ -109,7 +118,7 @@ export class DiceRoller {
     this.#options.onThrow?.(power);
   }
 
-  /** Animates the dice to the engine's result. */
+  /** Animates the dice to the engine's result, then announces it. */
   async roll(dice: DicePair, { power = 0.55 }: { power?: number } = {}): Promise<void> {
     const level = this.#motion.level;
     const sound = this.#options.sound;
@@ -120,6 +129,7 @@ export class DiceRoller {
       onBounce: (intensity) => sound?.play('dice-bounce', { intensity }),
     });
     if (level !== 'full') sound?.play('dice-bounce', { intensity: 0.6 });
+    this.#announcer.textContent = `Rolled ${dice[0]} and ${dice[1]}`;
   }
 
   /** Shows the dice at rest without animation. */
@@ -132,6 +142,7 @@ export class DiceRoller {
     this.#disposer.dispose();
     this.#view.destroy();
     this.element.remove();
+    this.#announcer.remove();
   }
 
   #bindEvents(): void {

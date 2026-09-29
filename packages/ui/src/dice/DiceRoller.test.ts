@@ -95,6 +95,15 @@ describe('DiceRoller', () => {
     expect(faces(roller)).toEqual(['6', '1']);
   });
 
+  it('announces the result outside the button, whose children are hidden from screen readers', async () => {
+    const { roller, host } = await create('none');
+    const live = host.querySelector('[aria-live]')!;
+    expect(roller.element.contains(live)).toBe(false);
+    expect(live.textContent).toBe('');
+    await roller.roll([6, 1]);
+    expect(live.textContent).toBe('Rolled 6 and 1');
+  });
+
   it('animates to the given result', async () => {
     const { roller } = await create('full');
     let settled = false;
