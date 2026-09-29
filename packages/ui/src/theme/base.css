@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+/* Components set display on their own classes; keep [hidden] authoritative. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;

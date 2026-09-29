@@ -12,13 +12,21 @@ import {
 } from '@casinogames/engine';
 import {
   Bankroll,
+  BankrollDisplay,
   BetSpot,
   ChipRail,
+  SoundEngine,
+  applySettings,
   createMemoryBackend,
   createSafeStorage,
+  createSettingsStore,
+  createSoundToggle,
+  createTurboToggle,
   formatCents,
   h,
+  motion,
   type Child,
+  type SoundName,
 } from '@casinogames/ui';
 import '@casinogames/ui/theme.css';
 import './playground.css';
@@ -26,6 +34,16 @@ import './playground.css';
 const storage = createSafeStorage('playground', createMemoryBackend());
 const bankroll = new Bankroll({ storage, initial: 250_00 });
 const cosmeticRng = createSeededRng('playground');
+const settings = createSettingsStore(storage);
+const sound = new SoundEngine();
+sound.unlockOnFirstGesture();
+applySettings(settings, { motion, sound });
+
+function button(label: string, onClick: () => void, variant = ''): HTMLButtonElement {
+  const element = h('button', { type: 'button', class: `cg-btn ${variant}`.trim() }, label);
+  element.addEventListener('click', onClick);
+  return element;
+}
 
 function section(id: string, title: string, description: string, ...demo: Child[]): HTMLElement {
   return h(
@@ -104,6 +122,72 @@ function bettingSection(): HTMLElement {
   );
 }
 
+function bankrollSection(): HTMLElement {
+  const display = new BankrollDisplay({ bankroll, topUpBelow: 50 });
+  return section(
+    'bankroll',
+    'BankrollDisplay',
+    'Counts to each new balance with a floating delta. Below the table minimum it offers a ' +
+      'top-up to the starting balance. Persisted in localStorage in the real lobby.',
+    display.element,
+    h(
+      'div',
+      { class: 'pg-row' },
+      button('Win 25.00', () => {
+        bankroll.credit(25_00);
+        sound.play('win');
+      }),
+      button('Lose 5.00', () => {
+        bankroll.debit(Math.min(5_00, bankroll.balance));
+      }),
+      button('Drain', () => {
+        bankroll.debit(bankroll.balance);
+      }),
+    ),
+  );
+}
+
+function settingsSection(): HTMLElement {
+  const sounds: SoundName[] = [
+    'chip',
+    'chip-stack',
+    'dice-shake',
+    'dice-bounce',
+    'card-slide',
+    'card-flip',
+    'shuffle',
+    'win',
+    'big-win',
+    'lose',
+    'click',
+  ];
+  return section(
+    'settings',
+    'Turbo mode, sound toggle and synthesiser',
+    'Turbo zeroes every animation duration; sound is synthesised with Web Audio (no audio ' +
+      'files). Tap a pad to audition each effect.',
+    h(
+      'div',
+      { class: 'pg-row' },
+      createTurboToggle(settings, { showLabel: true }).element,
+      createSoundToggle(settings, { showLabel: true }).element,
+    ),
+    h(
+      'div',
+      { class: 'pg-row' },
+      ...sounds.map((name) =>
+        button(
+          name,
+          () => {
+            sound.play(name, { intensity: 0.8 });
+          },
+          'cg-btn--ghost',
+        ),
+      ),
+    ),
+  );
+}
+
 const app = document.getElementById('app')!;
 app.className = 'pg';
 app.append(
@@ -119,5 +203,5 @@ app.append(
         'this page only wires them to the controls.',
     ),
   ),
-  h('div', { class: 'pg-grid' }, bettingSection()),
+  h('div', { class: 'pg-grid' }, bettingSection(), bankrollSection(), settingsSection()),
 );

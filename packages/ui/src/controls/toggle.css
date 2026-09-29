@@ -1,0 +1,43 @@
+.cg-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  color: var(--ink-400);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+.cg-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.cg-toggle:hover {
+  color: var(--ink-200);
+  border-color: var(--line-strong);
+}
+
+.cg-toggle[aria-checked='true'] {
+  color: var(--gold-300);
+  border-color: var(--line-strong);
+  background: rgb(221 189 119 / 0.12);
+  box-shadow: 0 0 18px rgb(221 189 119 / 0.18);
+}
+
+.cg-toggle__label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}

@@ -31,3 +31,24 @@ export {
 export { BetSpot, type BetRejection, type BetSpotOptions } from './bet-spot/BetSpot.ts';
 export { ChipRail, type ChipRailOptions } from './chips/ChipRail.ts';
 export { CHIP_DENOMINATIONS, breakIntoChips, chipTone, createChip } from './chips/chips.ts';
+export { SoundEngine, type SoundName, type SoundOptions } from './audio/SoundEngine.ts';
+export { BankrollDisplay, type BankrollDisplayOptions } from './bankroll/BankrollDisplay.ts';
+export {
+  Toggle,
+  applySettings,
+  createSoundToggle,
+  createTurboToggle,
+  type ToggleOptions,
+} from './controls/Toggle.ts';
+export {
+  Motion,
+  easeInOutCubic,
+  easeOutBack,
+  easeOutCubic,
+  motion,
+  prefersReducedMotion,
+  tween,
+  wait,
+  type Easing,
+  type MotionLevel,
+} from './motion/motion.ts';
