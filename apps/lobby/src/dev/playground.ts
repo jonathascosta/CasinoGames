@@ -15,6 +15,7 @@ import {
   oddsLabel,
   settleLoss,
   settleWin,
+  type SettlementLine,
   type Odds,
 } from '@casinogames/engine';
 import {
@@ -24,6 +25,8 @@ import {
   CardDealer,
   ChipRail,
   DiceRoller,
+  RtpPanel,
+  RtpTracker,
   SoundEngine,
   applySettings,
   createInfoModal,
@@ -345,6 +348,38 @@ rendered safely (no HTML is ever parsed).
 > Figures come from \`mathSummary()\`, never typed by hand.
 `;
 
+/** Settles one round of the sample table (playground only). */
+function sampleRound(rng: ReturnType<typeof createCryptoRng>): Record<string, SettlementLine> {
+  const dice = rollDice(rng);
+  return {
+    over: diceTotal(dice) >= 8 ? settleWin(100, odds(1), 'win') : settleLoss(100),
+    doubles: dice[0] === dice[1] ? settleWin(100, odds(9, 2), 'double') : settleLoss(100),
+  };
+}
+
+function rtpSection(): HTMLElement {
+  const tracker = new RtpTracker({ gameId: 'playground-sample' });
+  const panel = new RtpPanel({ tracker, math: SAMPLE_MATH });
+  const rng = createCryptoRng();
+  const play = (rounds: number) => () => {
+    for (let i = 0; i < rounds; i++) tracker.record(sampleRound(rng));
+  };
+  return section(
+    'rtp',
+    'RtpPanel',
+    'Live RTP per bet against the declared value, with a log-scale convergence sparkline and ' +
+      'the 95% band. Fed here by the sample table; in a game, by each settled round.',
+    panel.element,
+    h(
+      'div',
+      { class: 'pg-row' },
+      button('+100 rounds', play(100)),
+      button('+10,000 rounds', play(10_000)),
+      button('+250,000 rounds', play(250_000)),
+    ),
+  );
+}
+
 function modalsSection(): HTMLElement {
   const paytable = createPaytableModal(SAMPLE_MATH);
   const rules = createInfoModal({ title: 'How to play', markdown: SAMPLE_RULES });
@@ -384,6 +419,7 @@ app.append(
     cardsSection(),
     bettingSection(),
     bankrollSection(),
+    rtpSection(),
     modalsSection(),
     settingsSection(),
   ),

@@ -87,6 +87,10 @@
   color: var(--ink-200);
 }
 
+.pg-demo > .cg-rtp {
+  width: 100%;
+}
+
 .pg-stage {
   position: relative;
   width: 100%;

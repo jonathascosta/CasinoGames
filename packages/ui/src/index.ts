@@ -60,3 +60,14 @@ export { renderMarkdown, isSafeHref, type MarkdownOptions } from './markdown/mar
 export { createInfoModal, type InfoModalOptions } from './modal/InfoModal.ts';
 export { Modal, type ModalOptions } from './modal/Modal.ts';
 export { createPaytable, createPaytableModal } from './modal/PaytableModal.ts';
+export { RtpPanel, type RtpPanelOptions } from './rtp/RtpPanel.ts';
+export {
+  RtpTracker,
+  nextCheckpoint,
+  parseStats,
+  type BetTally,
+  type RtpSample,
+  type RtpStats,
+  type RtpTrackerOptions,
+} from './rtp/RtpTracker.ts';
+export { renderSparkline, type SparklineOptions } from './rtp/sparkline.ts';
