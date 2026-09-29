@@ -40,7 +40,7 @@ const SAVE_DELAY_MS = 400;
 /**
  * Accumulates what was actually wagered and paid per bet, so the RtpPanel can
  * compare the live RTP with the declared one. History is sampled at round
- * counts growing ~20% at a time: a few hundred bytes cover millions of rounds.
+ * counts growing ~20% at a time: about 3 kB per bet covers a million rounds.
  */
 export class RtpTracker {
   readonly #store: Store<RtpStats>;
