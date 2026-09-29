@@ -41,6 +41,27 @@ export {
   type DicePair,
   type DieFace,
 } from './dice/dice.ts';
+export { EngineError, type EngineErrorCode } from './game/errors.ts';
+export {
+  isCents,
+  odds,
+  oddsLabel,
+  oddsMultiplier,
+  winnings,
+  type Cents,
+  type Odds,
+} from './game/money.ts';
+export {
+  settleLoss,
+  settlePush,
+  settleWin,
+  settleWithPayout,
+  settlementTotals,
+  type Outcome,
+  type Settlement,
+  type SettlementLine,
+  type SettlementTotals,
+} from './game/settlement.ts';
 export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
 export { randomInt, shuffleInPlace, type Rng } from './rng/rng.ts';
 export { createSeededRng, type Seed } from './rng/seeded.ts';
