@@ -7,11 +7,11 @@ import { createTopBar } from '../shell/topbar.ts';
 import { siteFooter } from './lobby.ts';
 import './game.css';
 
-/** Game sheets from docs/games, loaded on demand as the in-game rules text. */
-const SHEETS = import.meta.glob<string>('../../../../docs/games/*.md', {
-  query: '?raw',
-  import: 'default',
-});
+/** Game sheets from docs/games (not the _TEMPLATE), loaded on demand as the in-game rules text. */
+const SHEETS = import.meta.glob<string>(
+  ['../../../../docs/games/*.md', '!../../../../docs/games/_*.md'],
+  { query: '?raw', import: 'default' },
+);
 
 async function loadSheet(slug: string): Promise<string> {
   const load = Object.entries(SHEETS).find(([path]) => path.endsWith(`/${slug}.md`))?.[1];
