@@ -1,0 +1,19 @@
+{
+  "name": "casinogames",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Client-side demo lobby of four original casino table games: dice rolled by the player, cards dealt by the dealer.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": "^20.19.0 || >=22.13.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "typescript": "~6.0.3"
+  }
+}
