@@ -1,3 +1,4 @@
+import type { DieFace } from '../dice/dice.ts';
 import type { Rng } from '../rng/rng.ts';
 
 const TWO_POW_32 = 0x1_0000_0000;
@@ -41,4 +42,9 @@ export function uint32ToUnit(k: number): number {
  */
 export function scriptForInts(results: readonly number[]): number[] {
   return results.map(uint32ToUnit);
+}
+
+/** Script values that make successive `rollDie` calls land on `faces`. */
+export function scriptForDice(faces: readonly DieFace[]): number[] {
+  return scriptForInts(faces.map((face) => face - 1));
 }
