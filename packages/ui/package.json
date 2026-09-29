@@ -1,0 +1,27 @@
+{
+  "name": "@casinogames/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared UI kit for the demo tables: DOM chrome components plus a PixiJS animation layer for dice and cards.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme.css": "./src/theme/theme.css"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@casinogames/engine": "workspace:*",
+    "pixi.js": "8.21.0"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "vite": "^8.3.1"
+  }
+}

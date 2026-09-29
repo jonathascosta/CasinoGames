@@ -1,0 +1,121 @@
+/*
+ * Design tokens. Every colour, size and duration used by the kit lives here
+ * so a table can be re-skinned by overriding custom properties.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Felt: deep emerald, lit from above. */
+  --felt-950: #020b07;
+  --felt-900: #05150e;
+  --felt-800: #092116;
+  --felt-700: #0d2f20;
+  --felt-600: #13402b;
+  --felt-500: #1a5438;
+  --felt-glow: #2c7c53;
+
+  /* Brass accents. */
+  --gold-200: #f7ebc8;
+  --gold-300: #efd9a1;
+  --gold-400: #ddbd77;
+  --gold-500: #c39e57;
+  --gold-600: #9b7a3d;
+  --gold-700: #6b5226;
+
+  /* Ivory type. */
+  --ink-100: #f7f2e7;
+  --ink-200: #e7e0d0;
+  --ink-300: #c8c0ad;
+  --ink-400: #a19a88;
+  --ink-500: #7a7465;
+
+  /* Result signals. */
+  --win: #5bd691;
+  --lose: #ff8373;
+  --push: #a9c3da;
+  --focus: #ffe28f;
+
+  /* Surfaces layered over the felt. */
+  --surface-1: rgb(5 21 14 / 0.62);
+  --surface-2: rgb(9 33 22 / 0.88);
+  --surface-3: rgb(15 47 32 / 0.94);
+  --line: rgb(221 189 119 / 0.16);
+  --line-strong: rgb(221 189 119 / 0.42);
+
+  /* Chip colours (face, edge inserts, label). */
+  --chip-50-face: #6f8fcb;
+  --chip-50-edge: #e9eef9;
+  --chip-50-ink: #0f1830;
+  --chip-100-face: #f1ece0;
+  --chip-100-edge: #2f5fa8;
+  --chip-100-ink: #1b2233;
+  --chip-500-face: #c3303b;
+  --chip-500-edge: #f6eee0;
+  --chip-500-ink: #fff8ee;
+  --chip-2500-face: #1d8752;
+  --chip-2500-edge: #f6eee0;
+  --chip-2500-ink: #f4fff7;
+  --chip-10000-face: #1c1b20;
+  --chip-10000-edge: #d9b56c;
+  --chip-10000-ink: #f3dfae;
+
+  /* Dice and cards, read by the Pixi renderers at start-up. */
+  --die-body: #e9dfcb;
+  --die-face: #fbf6ea;
+  --die-pip: #19150f;
+  --die-pip-accent: #a8182a;
+  --card-face: #fbf8f0;
+  --card-edge: #d8cfbd;
+  --card-red: #bd2537;
+  --card-black: #16151a;
+  --card-back: #5a1422;
+  --card-back-accent: #d9b56c;
+
+  /* Type. System stacks only: no font downloads. */
+  --font-display:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'URW Palladio L', P052,
+    Georgia, serif;
+  --font-ui:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+
+  /* Spacing, radii, elevation. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.45), 0 6px 16px rgb(0 0 0 / 0.28);
+  --shadow-2: 0 2px 6px rgb(0 0 0 / 0.5), 0 18px 40px rgb(0 0 0 / 0.42);
+  --glow-gold: 0 0 0 1px var(--line-strong), 0 0 28px rgb(221 189 119 / 0.2);
+
+  /* Minimum touch target. */
+  --tap: 44px;
+
+  /* Motion. Turbo mode and reduced motion zero these out. */
+  --dur-1: 120ms;
+  --dur-2: 220ms;
+  --dur-3: 420ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:root[data-motion='turbo'] {
+  --dur-1: 0ms;
+  --dur-2: 0ms;
+  --dur-3: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+  }
+}
