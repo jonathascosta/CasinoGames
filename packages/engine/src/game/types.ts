@@ -107,9 +107,10 @@ export interface BetDefinition {
   readonly max: Cents;
   readonly paytable: readonly PaytableEntry[];
   /**
-   * Declared return to player: the long-run total returned ÷ total wagered
-   * on this bet (additional stakes made during a round included). The house
-   * edge is 1 − rtp. Proven by each game's exact and Monte Carlo tests.
+   * Declared return to player: the long-run total returned, less any fees
+   * charged against the bet, ÷ total wagered on it (additional stakes made
+   * during a round included). The house edge is 1 − rtp. Proven by each
+   * game's exact and Monte Carlo tests.
    */
   readonly rtp: number;
   /**
@@ -131,6 +132,12 @@ export interface DecisionOption<TChoice extends string = string> {
   readonly label: string;
   /** A stake the choice commits (e.g. a raise); taken when it is chosen. */
   readonly additionalStake?: { readonly betId: BetId; readonly amount: Cents };
+  /**
+   * What the choice costs (e.g. a re-roll), charged against a placed bet:
+   * taken when it is chosen and never returned, whatever the result. A fee
+   * is not a stake: nothing pays on it, and it lowers the bet's return.
+   */
+  readonly fee?: { readonly betId: BetId; readonly amount: Cents };
 }
 
 /**
@@ -160,6 +167,7 @@ export type GameEvent =
   | { readonly type: 'decision-requested'; readonly options: readonly DecisionOption[] }
   | { readonly type: 'decision-made'; readonly choice: string }
   | { readonly type: 'stake-added'; readonly betId: BetId; readonly amount: Cents }
+  | { readonly type: 'fee-charged'; readonly betId: BetId; readonly amount: Cents }
   | {
       readonly type: 'jackpot-won';
       readonly jackpotId: string;
@@ -171,6 +179,9 @@ export type GameEvent =
       readonly type: 'round-settled';
       readonly totalStake: Cents;
       readonly totalPayout: Cents;
+      /** Fees charged during the round; present only when there were any. */
+      readonly totalFees?: Cents;
+      /** totalPayout − totalStake − totalFees. */
       readonly net: Cents;
     };
 
@@ -197,6 +208,8 @@ export interface RoundState<
   readonly phase: RoundPhase;
   /** Current stakes per bet, including stakes added by decisions. */
   readonly bets: Bets;
+  /** Fees charged per bet so far (see DecisionOption.fee); empty when none were. */
+  readonly fees: Readonly<Record<BetId, Cents>>;
   readonly events: readonly (GameEvent | TEvent)[];
   /** Lines for the bets settled so far; complete once phase is 'settled'. */
   readonly settlement: Settlement;
@@ -325,4 +338,63 @@ export interface MathSummary {
   readonly bets: readonly BetMath[];
   /** Names the table's shoe (e.g. "six-deck shoe") when bets declare finite-shoe figures. */
   readonly finiteShoe?: string;
+  /** The reference strategy and what it returns, for a game with decisions. */
+  readonly decisions?: DecisionSummary;
+}
+
+/**
+ * A game's decisions: the reference strategy the declared figures assume,
+ * situation by situation, and what it returns under the table's rules and
+ * under variants of them.
+ */
+export interface DecisionSummary {
+  /** What the player decides and what it costs, in a sentence or two. */
+  readonly description: string;
+  readonly card: StrategyCard;
+  /** The table's rules first, then any variants, for comparison. */
+  readonly figures: readonly StrategyFigures[];
+}
+
+/** The value of every choice in each situation, and the best one. */
+export interface StrategyCard {
+  /** What a row is, e.g. "Roll". */
+  readonly situation: string;
+  /** The choices compared, e.g. ["Ficar", "Trancar"]. */
+  readonly choices: readonly string[];
+  /** What the values measure, e.g. "net result per unit of the main bet, fees included". */
+  readonly measure: string;
+  readonly rows: readonly StrategyRow[];
+}
+
+export interface StrategyRow {
+  /** e.g. "6-2". */
+  readonly situation: string;
+  /** Chance per round of this situation. */
+  readonly probability: number;
+  /** The expected value of each choice, in the order of StrategyCard.choices. */
+  readonly values: readonly number[];
+  /** The best choice: an index into StrategyCard.choices. */
+  readonly best: number;
+  /** How to play it, e.g. "Lock the 6, re-roll the 2". */
+  readonly play: string;
+}
+
+/** What the reference strategy returns under one set of rules. */
+export interface StrategyFigures {
+  /** e.g. "These rules" or "Without the free 1-1". */
+  readonly label: string;
+  readonly rtp: number;
+  readonly houseEdge: number;
+  /** The loss per unit of everything the player pays: stakes and fees. */
+  readonly elementOfRisk: number;
+  /** Chance per round that the main bet wins. */
+  readonly hitFrequency: number;
+  /** Standard deviation of the net result per unit of the main bet, fees included. */
+  readonly standardDeviation: number;
+  /** How often the strategy makes each choice other than standing, e.g. "Trancar". */
+  readonly choiceFrequencies: readonly { readonly choice: string; readonly frequency: number }[];
+  /** Chance per round of paying a fee. */
+  readonly feeFrequency: number;
+  /** Average fee per round, per unit of the main bet. */
+  readonly averageFee: number;
 }

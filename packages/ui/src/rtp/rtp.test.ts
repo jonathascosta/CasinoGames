@@ -6,13 +6,15 @@ import {
   settleLoss,
   settleWin,
   summarizeMath,
+  withFee,
+  type DecisionSummary,
   type Settlement,
 } from '@casinogames/engine';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from '../state/store.ts';
 import { createMemoryBackend, createSafeStorage } from '../storage/storage.ts';
 import { RtpPanel } from './RtpPanel.ts';
-import { RtpTracker, nextCheckpoint, parseStats } from './RtpTracker.ts';
+import { RtpTracker, liveRtp, nextCheckpoint, parseStats } from './RtpTracker.ts';
 import { renderSparkline } from './sparkline.ts';
 
 const MATH = summarizeMath({
@@ -94,6 +96,38 @@ describe('RtpTracker', () => {
     expect(new RtpTracker({ gameId: 'other', storage }).stats.rounds).toBe(0);
     tracker.reset();
     expect(new RtpTracker({ gameId: 'g', storage }).stats.rounds).toBe(0);
+  });
+
+  it('tallies fees apart and counts them against the return', () => {
+    const tracker = new RtpTracker({ gameId: 'g' });
+    tracker.record({ main: withFee(settleWin(100, odds(1)), 40) });
+    tracker.record({ main: withFee(settleLoss(100), 40) });
+    tracker.record(win());
+    expect(tracker.stats).toMatchObject({ rounds: 3, staked: 300, returned: 400, fees: 80 });
+    expect(tracker.stats.bets.main).toMatchObject({
+      staked: 300,
+      returned: 400,
+      fees: 80,
+      wins: 2,
+    });
+    // (4.00 − 0.80) ÷ 3.00, sampled the same way.
+    expect(liveRtp(tracker.stats)).toBeCloseTo(320 / 300, 12);
+    expect(tracker.stats.bets.main!.history.at(-1)!.rtp).toBeCloseTo(320 / 300, 12);
+    expect(liveRtp({ staked: 0, returned: 0, fees: 0 })).toBeNaN();
+  });
+
+  it('reads stats stored before fees existed as fee-free', () => {
+    const stored = {
+      rounds: 1,
+      staked: 100,
+      returned: 200,
+      bets: { main: { rounds: 1, staked: 100, returned: 200, wins: 1, history: [] } },
+    };
+    expect(parseStats(stored)).toMatchObject({ fees: 0, bets: { main: { fees: 0 } } });
+    expect(parseStats({ ...stored, fees: -1 })).toBeUndefined();
+    expect(
+      parseStats({ ...stored, bets: { main: { ...stored.bets.main, fees: 0.5 } } }),
+    ).toBeUndefined();
   });
 
   it('ignores empty settlements and rejects malformed stored stats', () => {
@@ -246,6 +280,55 @@ describe('RtpPanel', () => {
     panel.destroy();
   });
 
+  it('shows the fees of a game whose choices cost one, and counts them against the return', () => {
+    const decisions: DecisionSummary = {
+      description: 'Re-roll for 40% of the bet.',
+      card: {
+        situation: 'Roll',
+        choices: ['Stand', 'Re-roll'],
+        measure: 'net result',
+        rows: [{ situation: 'Any', probability: 1, values: [0, 0.1], best: 1, play: 'Re-roll' }],
+      },
+      figures: [
+        {
+          label: 'These rules',
+          rtp: 0.5,
+          houseEdge: 0.5,
+          elementOfRisk: 0.4,
+          hitFrequency: 0.5,
+          standardDeviation: 1,
+          choiceFrequencies: [{ choice: 'Re-roll', frequency: 1 }],
+          feeFrequency: 1,
+          averageFee: 0.4,
+        },
+      ],
+    };
+    const tracker = new RtpTracker({ gameId: 'g' });
+    const panel = new RtpPanel({
+      tracker,
+      math: summarizeMath({ id: 'g', name: 'G', bets: MATH.bets.map(toDefinition), decisions }),
+    });
+    const text = (selector: string) => panel.element.querySelector(selector)!.textContent;
+    expect(text('.cg-rtp__totals')).toBe('Rounds0Wagered0.00Won0.00Fees0.00Net0.00');
+    expect(text('.cg-rtp__note')).toContain('Live RTP = (total won − fees) ÷ total wagered');
+    tracker.record({ main: withFee(settleWin(100, odds(1)), 40) });
+    tracker.record({ main: withFee(settleLoss(100), 40) });
+    vi.advanceTimersToNextFrame();
+    expect(text('.cg-rtp__headline')).toBe('60.00% · 2 rounds');
+    expect(text('.cg-rtp__totals')).toBe('Rounds2Wagered2.00Won2.00Fees0.80Net−0.80');
+    expect(panel.element.querySelector('.cg-rtp__bet')!.textContent).toContain(
+      'Main2 roundsLive60.00%+10.00 ppDeclared50.00%',
+    );
+    // A game without fees keeps the plain note and no Fees total.
+    const plain = new RtpPanel({ tracker: new RtpTracker({ gameId: 'h' }), math: MATH });
+    expect(plain.element.querySelector('.cg-rtp__totals')!.textContent).not.toContain('Fees');
+    expect(plain.element.querySelector('.cg-rtp__note')!.textContent).toMatch(
+      /^Live RTP = total won ÷ total wagered/,
+    );
+    panel.destroy();
+    plain.destroy();
+  });
+
   it('resets the stats from its button and can start collapsed', () => {
     const tracker = new RtpTracker({ gameId: 'g' });
     tracker.record(win());
@@ -256,3 +339,17 @@ describe('RtpPanel', () => {
     panel.destroy();
   });
 });
+
+/** A bet definition back from its summary, to build variants of MATH. */
+function toDefinition(bet: (typeof MATH.bets)[number]) {
+  return {
+    id: bet.betId,
+    label: bet.label,
+    kind: bet.kind,
+    min: bet.min,
+    max: bet.max,
+    rtp: bet.rtp,
+    paytable: bet.paytable,
+    ...(bet.standardDeviation === undefined ? {} : { standardDeviation: bet.standardDeviation }),
+  };
+}

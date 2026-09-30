@@ -215,6 +215,99 @@ describe('renderMathSection with a progressive bet and a finite shoe', () => {
   });
 });
 
+describe('renderMathSection with decisions', () => {
+  const summary = summarizeMath({
+    id: 'swap',
+    name: 'Swap',
+    bets: createDiceFixture().bets,
+    decisions: {
+      description: 'After the deal, hold the card or swap it for 20% of the bet.',
+      card: {
+        situation: 'Card',
+        choices: ['Hold', 'Swap'],
+        measure: 'net result per unit of the bet, fees included',
+        rows: [
+          { situation: 'High', probability: 0.5, values: [0.5, -0.2], best: 0, play: 'Hold' },
+          { situation: 'Low', probability: 0.5, values: [-0.5, -0.2], best: 1, play: 'Swap it' },
+        ],
+      },
+      figures: [
+        {
+          label: 'These rules',
+          rtp: 0.85,
+          houseEdge: 0.15,
+          elementOfRisk: 0.15 / 1.1,
+          hitFrequency: 0.5,
+          standardDeviation: 0.9,
+          choiceFrequencies: [{ choice: 'Swap', frequency: 0.5 }],
+          feeFrequency: 0.5,
+          averageFee: 0.1,
+        },
+        {
+          label: 'Free swaps',
+          rtp: 0.95,
+          houseEdge: 0.05,
+          elementOfRisk: 0.05,
+          hitFrequency: 0.5,
+          standardDeviation: 0.8,
+          choiceFrequencies: [],
+          feeFrequency: 0,
+          averageFee: 0,
+        },
+      ],
+    },
+  });
+  const section = renderMathSection(summary);
+
+  it('says the figures assume the strategy and count fees against the return', () => {
+    expect(section).toContain(
+      `${LEGEND} The figures assume the strategy below, and count any fee paid for a choice ` +
+        'against the return: a fee is never returned, and it is not a stake.',
+    );
+  });
+
+  it('writes the strategy card, the play first and the best choice in bold', () => {
+    expect(section).toContain(
+      [
+        '### Strategy',
+        'After the deal, hold the card or swap it for 20% of the bet.',
+        [
+          '| Card | Play | Hold | Swap | Chance |',
+          '| :-- | :-- | --: | --: | --: |',
+          '| High | Hold | **+0.500** | −0.200 | 50.00% |',
+          '| Low | Swap it | −0.500 | **−0.200** | 50.00% |',
+        ].join('\n'),
+        'Each value is the expected net result per unit of the bet, fees included. The best ' +
+          'choice is in bold: it is the strategy the declared figures assume.',
+      ].join('\n\n'),
+    );
+  });
+
+  it('compares what the strategy returns under the rules and each variant', () => {
+    expect(
+      section.endsWith(
+        [
+          '### What the strategy returns',
+          [
+            '| Figure | These rules | Free swaps |',
+            '| :-- | --: | --: |',
+            '| RTP | 85.00% | 95.00% |',
+            '| House edge | 15.00% | 5.00% |',
+            '| Element of risk | 13.64% | 5.00% |',
+            '| Win frequency | 50.00% | 50.00% |',
+            '| Swap, share of rounds | 50.00% | — |',
+            '| Fee paid, share of rounds | 50.00% | 0.00% |',
+            '| Average fee per round | 10.00% of the bet | 0.00% of the bet |',
+            '| Volatility index | 0.900 | 0.800 |',
+          ].join('\n'),
+          'The house edge is the loss per unit of the main bet, fees included. The element of ' +
+            'risk divides the same loss by everything the player pays: the bet and the fees.',
+        ].join('\n\n'),
+      ),
+    ).toBe(true);
+  });
+});
+
 describe('replaceMathSection', () => {
   const sheet = `# Game\n\n## Bets\n\n${MATH_START}\n\nold text\n\n${MATH_END}\n\n## Math\n`;
 

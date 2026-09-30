@@ -15,6 +15,8 @@ export interface BetTally {
   readonly staked: number;
   /** Total returned, in cents, stakes included. */
   readonly returned: number;
+  /** Total fees charged against the bet (a re-roll, say), in cents; never returned. */
+  readonly fees: number;
   readonly wins: number;
   /** Samples at geometrically spaced round counts (for the convergence chart). */
   readonly history: readonly RtpSample[];
@@ -24,7 +26,20 @@ export interface RtpStats {
   readonly rounds: number;
   readonly staked: number;
   readonly returned: number;
+  readonly fees: number;
   readonly bets: Readonly<Record<BetId, BetTally>>;
+}
+
+/**
+ * The live RTP of a tally: what came back, less the fees, per unit staked,
+ * which is how the declared RTP counts a fee. NaN before anything is staked.
+ */
+export function liveRtp(tally: {
+  readonly staked: number;
+  readonly returned: number;
+  readonly fees: number;
+}): number {
+  return tally.staked === 0 ? Number.NaN : (tally.returned - tally.fees) / tally.staked;
 }
 
 export interface RtpTrackerOptions {
@@ -33,14 +48,15 @@ export interface RtpTrackerOptions {
   readonly storage?: SafeStorage;
 }
 
-const EMPTY: RtpStats = { rounds: 0, staked: 0, returned: 0, bets: {} };
+const EMPTY: RtpStats = { rounds: 0, staked: 0, returned: 0, fees: 0, bets: {} };
 const MAX_SAMPLES = 160;
 const SAVE_DELAY_MS = 400;
 
 /**
- * Accumulates what was actually wagered and paid per bet, so the RtpPanel can
- * compare the live RTP with the declared one. History is sampled at round
- * counts growing ~20% at a time: about 3 kB per bet covers a million rounds.
+ * Accumulates what was actually wagered, paid and charged in fees per bet,
+ * so the RtpPanel can compare the live RTP with the declared one. History is
+ * sampled at round counts growing ~20% at a time: about 3 kB per bet covers
+ * a million rounds.
  */
 export class RtpTracker {
   readonly #store: Store<RtpStats>;
@@ -64,16 +80,20 @@ export class RtpTracker {
     const bets: Record<BetId, BetTally> = { ...current.bets };
     let staked = 0;
     let returned = 0;
+    let fees = 0;
     for (const [betId, line] of Object.entries(settlement)) {
-      bets[betId] = tally(bets[betId], line.stake, line.payout, line.outcome === 'win');
+      const fee = line.fee ?? 0;
+      bets[betId] = tally(bets[betId], line.stake, line.payout, fee, line.outcome === 'win');
       staked += line.stake;
       returned += line.payout;
+      fees += fee;
     }
     if (staked === 0) return;
     this.#store.set({
       rounds: current.rounds + 1,
       staked: current.staked + staked,
       returned: current.returned + returned,
+      fees: current.fees + fees,
       bets,
     });
     this.#scheduleSave();
@@ -107,17 +127,20 @@ function tally(
   previous: BetTally | undefined,
   stake: number,
   payout: number,
+  fee: number,
   won: boolean,
 ): BetTally {
   const rounds = (previous?.rounds ?? 0) + 1;
   const staked = (previous?.staked ?? 0) + stake;
   const returned = (previous?.returned ?? 0) + payout;
+  const fees = (previous?.fees ?? 0) + fee;
   let history = previous?.history ?? [];
   const last = history.at(-1);
   if (last === undefined || rounds >= nextCheckpoint(last.rounds)) {
-    history = thin([...history, { rounds, rtp: returned / staked }]);
+    history = thin([...history, { rounds, rtp: liveRtp({ staked, returned, fees }) }]);
   }
-  return { rounds, staked, returned, wins: (previous?.wins ?? 0) + (won ? 1 : 0), history };
+  const wins = (previous?.wins ?? 0) + (won ? 1 : 0);
+  return { rounds, staked, returned, fees, wins, history };
 }
 
 /** 1, 2, 3, 4, 5, 6, then about 20% further each time. */
@@ -135,10 +158,17 @@ function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
+/** Fees arrived with Trancar: stats stored before then have none, which reads as zero. */
+function parseFees(fees: unknown): number | undefined {
+  return fees === undefined ? 0 : isCount(fees) ? fees : undefined;
+}
+
 function parseTally(value: unknown): BetTally | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
   const { rounds, staked, returned, wins, history } = value as Record<string, unknown>;
+  const fees = parseFees((value as Record<string, unknown>).fees);
   if (![rounds, staked, returned, wins].every(isCount) || !Array.isArray(history)) return undefined;
+  if (fees === undefined) return undefined;
   const samples: RtpSample[] = [];
   for (const sample of history as unknown[]) {
     if (typeof sample !== 'object' || sample === null) return undefined;
@@ -150,6 +180,7 @@ function parseTally(value: unknown): BetTally | undefined {
     rounds: rounds as number,
     staked: staked as number,
     returned: returned as number,
+    fees,
     wins: wins as number,
     history: samples,
   };
@@ -159,7 +190,8 @@ function parseTally(value: unknown): BetTally | undefined {
 export function parseStats(value: unknown): RtpStats | undefined {
   if (typeof value !== 'object' || value === null) return undefined;
   const { rounds, staked, returned, bets } = value as Record<string, unknown>;
-  if (![rounds, staked, returned].every(isCount)) return undefined;
+  const fees = parseFees((value as Record<string, unknown>).fees);
+  if (![rounds, staked, returned].every(isCount) || fees === undefined) return undefined;
   if (typeof bets !== 'object' || bets === null) return undefined;
   const parsed: Record<BetId, BetTally> = {};
   for (const [betId, raw] of Object.entries(bets)) {
@@ -171,6 +203,7 @@ export function parseStats(value: unknown): RtpStats | undefined {
     rounds: rounds as number,
     staked: staked as number,
     returned: returned as number,
+    fees,
     bets: parsed,
   };
 }

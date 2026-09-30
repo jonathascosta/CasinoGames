@@ -115,8 +115,57 @@ describe('DiceRoller', () => {
     expect(faces(roller)).toEqual(['2', '5']);
   });
 
+  it('re-rolls one die while the other stays where it lies', async () => {
+    const { roller, host } = await create('full');
+    const first = roller.roll([2, 5], { power: 0.5 });
+    await vi.runAllTimersAsync();
+    await first;
+    const dice = [...roller.element.querySelectorAll<HTMLElement>('.cg-die')];
+    const kept = dice[1]!.innerHTML;
+    const rolling = roller.roll([6, 5], { keep: [false, true] });
+    await vi.advanceTimersByTimeAsync(200);
+    // While the first die tumbles through faces, the second is locked and still.
+    expect(dice[1]!.classList.contains('is-kept')).toBe(true);
+    expect(dice[1]!.innerHTML).toBe(kept);
+    await vi.runAllTimersAsync();
+    await rolling;
+    expect(faces(roller)).toEqual(['6', '5']);
+    expect(dice[1]!.classList.contains('is-kept')).toBe(false);
+    expect(host.querySelector('[aria-live]')!.textContent).toBe('Kept the 5, rolled 6');
+  });
+
+  it('offers each die as a button, and marks the held die with a padlock', async () => {
+    const { roller, host } = await create();
+    const onPick = vi.fn();
+    roller.offerDice({ onPick, label: (index) => `Lock die ${String(index + 1)}` });
+    const buttons = [...host.querySelectorAll<HTMLButtonElement>('.cg-die-pick')];
+    // Beside the tray, which is itself a button, not inside it.
+    expect(buttons).toHaveLength(2);
+    expect(roller.element.contains(buttons[0]!)).toBe(false);
+    expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
+      'Lock die 1',
+      'Lock die 2',
+    ]);
+    // A tap target of at least 48 px, even over small dice.
+    expect(parseFloat(buttons[0]!.style.width)).toBeGreaterThanOrEqual(48);
+    buttons[1]!.click();
+    expect(onPick).toHaveBeenCalledWith(1);
+    roller.setHeld([false, true]);
+    expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
+    expect(buttons[1]!.classList.contains('is-held')).toBe(true);
+    expect(buttons[1]!.querySelector('.cg-icon--lock')).not.toBeNull();
+    // Once the choice is made, the padlock stays and the buttons stop responding.
+    roller.setHeld([false, true], { final: true });
+    expect(buttons.map((button) => button.disabled)).toEqual([true, true]);
+    expect(buttons[1]!.classList.contains('is-held')).toBe(true);
+    roller.withdrawDice();
+    expect(host.querySelector('.cg-die-picks')).toBeNull();
+    roller.setHeld([true, true]); // nothing to mark: no error
+  });
+
   it('removes itself on destroy', async () => {
     const { roller, host } = await create();
+    roller.offerDice({ onPick: vi.fn(), label: () => 'Lock' });
     roller.destroy();
     expect(host.childElementCount).toBe(0);
   });

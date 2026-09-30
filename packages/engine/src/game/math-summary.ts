@@ -4,6 +4,7 @@ import type {
   BetDefinition,
   BetMath,
   BreakdownRow,
+  DecisionSummary,
   MathSummary,
   PaytableEntry,
   ProgressiveMath,
@@ -21,16 +22,47 @@ export function summarizeMath(game: {
   readonly bets: readonly BetDefinition[];
   /** Names the table's shoe (e.g. "six-deck shoe") when bets declare finite-shoe figures. */
   readonly finiteShoe?: string;
+  /** For a game with decisions: its reference strategy and what it returns. */
+  readonly decisions?: DecisionSummary;
 }): MathSummary {
   if (game.finiteShoe === undefined && game.bets.some((bet) => bet.finiteShoe !== undefined)) {
     throw new TypeError(`${game.id}: bets declare finite-shoe figures, but the shoe is not named`);
   }
+  if (game.decisions !== undefined) checkDecisions(game.id, game.decisions);
   return {
     gameId: game.id,
     gameName: game.name,
     bets: game.bets.map(summarizeBet),
     ...(game.finiteShoe === undefined ? {} : { finiteShoe: game.finiteShoe }),
+    ...(game.decisions === undefined ? {} : { decisions: game.decisions }),
   };
+}
+
+/**
+ * A strategy card must be complete and consistent: a value for every choice
+ * in every row, the best choice among them (no other choice worth more),
+ * situations whose chances add up to 1, and at least the table's figures.
+ */
+function checkDecisions(gameId: string, { card, figures }: DecisionSummary): void {
+  const where = `${gameId}: strategy card`;
+  if (card.choices.length < 2 || card.rows.length === 0) {
+    throw new TypeError(`${where} needs at least two choices and one situation`);
+  }
+  let total = 0;
+  for (const row of card.rows) {
+    const best = row.values[row.best];
+    if (row.values.length !== card.choices.length || best === undefined) {
+      throw new TypeError(`${where}, ${row.situation}: one value per choice, and a best choice`);
+    }
+    if (row.values.some((value) => value > best)) {
+      throw new TypeError(`${where}, ${row.situation}: the best choice is not the most valuable`);
+    }
+    total += row.probability;
+  }
+  if (Math.abs(total - 1) > 1e-9) {
+    throw new TypeError(`${where}: the situations' chances add up to ${total}, not 1`);
+  }
+  if (figures.length === 0) throw new TypeError(`${gameId}: the strategy needs its figures`);
 }
 
 function summarizeBet(bet: BetDefinition): BetMath {

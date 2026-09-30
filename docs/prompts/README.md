@@ -11,3 +11,4 @@ exactly as written.
 | 002 | [Entre Dados](002-entre-dados.md)  | 2026-09-30 | The first game: rules, exact and Monte Carlo math, game sheet, the table |
 | 003 | [Alvo Móvel](003-alvo-movel.md)    | 2026-09-30 | The second game: rules, exact and Monte Carlo math with the finite shoe's shift, game sheet, the table |
 | 004 | [Espelho](004-espelho.md)          | 2026-09-30 | The third game: rules, a progressive meter, exact math on both shoes, Monte Carlo and card counting, game sheet, the table |
+| 005 | [Trancar](005-trancar.md)          | 2026-09-30 | The fourth game, with a decision: fees on choices, the strategy by expected value, exact math on both shoes, Monte Carlo with a strategy bot, game sheet, the table |

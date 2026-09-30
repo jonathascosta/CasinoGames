@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Shoe } from '../cards/shoe.ts';
 import { createDiceFixture } from '../fixtures/dice-fixture.ts';
+import { createRerollFixture, rerollBelowEight } from '../fixtures/reroll-fixture.ts';
 import { createWarFixture, raiseOnEightOrBetter } from '../fixtures/war-fixture.ts';
 import { createSeededRng } from '../rng/seeded.ts';
 import { roundsForTolerance, simulate } from './simulate.ts';
@@ -48,6 +49,23 @@ describe('simulate', () => {
     expect(report.bets.play!.rounds / 20_000).toBeCloseTo(6 / 13, 1);
     // The ante pushes when the player raises and the ranks tie: 6/13 × 1/13.
     expect(report.bets.ante!.pushFrequency).toBeCloseTo(6 / 169, 2);
+  });
+
+  it('counts fees against the return (a re-roll for 60% of the stake)', () => {
+    const report = simulate(createRerollFixture(), {
+      rounds: 20_000,
+      rng: createSeededRng('fee-sim'),
+      bets: { main: 100 },
+      strategy: rerollBelowEight,
+    });
+    const main = report.bets.main!;
+    expect(main.staked).toBe(20_000 * 100);
+    expect(main.fees % 60).toBe(0);
+    expect(main.fees / 60 / 20_000).toBeCloseTo(7 / 12, 1);
+    expect(main.rtp).toBe((main.returned - main.fees) / main.staked);
+    expect(report.total.fees).toBe(main.fees);
+    expect(Math.abs(main.rtp - 349 / 360)).toBeLessThan(4 * main.standardError);
+    expect(main.hitFrequency).toBeCloseTo(95 / 144, 1);
   });
 
   it('shows every settled round to an observer', () => {

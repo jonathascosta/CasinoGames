@@ -8,7 +8,13 @@ import { Disposer, h } from '../dom/h.ts';
 import { icon } from '../dom/icons.ts';
 import { formatCents, formatCount, formatPercent, formatPoints } from '../format/format.ts';
 import type { Store } from '../state/store.ts';
-import type { BetTally, RtpSample, RtpStats, RtpTracker } from './RtpTracker.ts';
+import {
+  liveRtp,
+  type BetTally,
+  type RtpSample,
+  type RtpStats,
+  type RtpTracker,
+} from './RtpTracker.ts';
 import { renderSparkline } from './sparkline.ts';
 import './rtp-panel.css';
 
@@ -29,18 +35,23 @@ export interface RtpPanelOptions {
  * Live RTP monitor: rounds, wagered, won, and per bet the live RTP next to
  * the declared value with a convergence sparkline. It makes the math visible:
  * anyone can play a few hundred rounds (or autoplay) and watch each bet
- * settle into its band.
+ * settle into its band. In a game whose choices cost a fee (Trancar's
+ * re-roll), the fees show beside the totals and count against the return,
+ * as they do in the declared RTP.
  */
 export class RtpPanel {
   readonly element: HTMLDetailsElement;
   readonly #options: RtpPanelOptions;
   readonly #body: HTMLDivElement;
   readonly #headline: HTMLSpanElement;
+  /** Whether the game's choices can cost a fee: its figures and the live RTP count them. */
+  readonly #fees: boolean;
   readonly #disposer = new Disposer();
   #frame = 0;
 
   constructor(options: RtpPanelOptions) {
     this.#options = options;
+    this.#fees = options.math.decisions?.figures.some((rules) => rules.averageFee > 0) ?? false;
     this.#headline = h('span', { class: 'cg-rtp__headline cg-num' });
     this.#body = h('div', { class: 'cg-rtp__body' });
     const reset = h(
@@ -66,7 +77,12 @@ export class RtpPanel {
         h(
           'p',
           { class: 'cg-rtp__note' },
-          'Live RTP = total won ÷ total wagered. The shaded band is where it should sit 95% of the time after n rounds (declared ± 1.96·σ/√n).',
+          this.#fees
+            ? 'Live RTP = (total won − fees) ÷ total wagered: a fee is never returned, and it is ' +
+                'not a wager. The shaded band is where it should sit 95% of the time after n ' +
+                'rounds (declared ± 1.96·σ/√n).'
+            : 'Live RTP = total won ÷ total wagered. The shaded band is where it should sit 95% ' +
+                'of the time after n rounds (declared ± 1.96·σ/√n).',
         ),
         reset,
       ),
@@ -98,11 +114,11 @@ export class RtpPanel {
   }
 
   #render(stats: RtpStats): void {
-    const liveRtp = stats.staked === 0 ? Number.NaN : stats.returned / stats.staked;
     this.#headline.textContent =
       stats.rounds === 0
         ? 'No rounds yet'
-        : `${formatPercent(liveRtp)} · ${formatCount(stats.rounds, 'round')}`;
+        : `${formatPercent(liveRtp(stats))} · ${formatCount(stats.rounds, 'round')}`;
+    const fees = this.#fees || stats.fees > 0;
     this.#body.replaceChildren(
       h(
         'dl',
@@ -110,7 +126,8 @@ export class RtpPanel {
         total('Rounds', formatCount(stats.rounds)),
         total('Wagered', formatCents(stats.staked)),
         total('Won', formatCents(stats.returned)),
-        total('Net', formatCents(stats.returned - stats.staked, { sign: true })),
+        fees ? total('Fees', formatCents(stats.fees)) : null,
+        total('Net', formatCents(stats.returned - stats.staked - stats.fees, { sign: true })),
       ),
       h(
         'ul',
@@ -141,8 +158,7 @@ interface BetExtras {
 
 function renderBet(bet: BetMath, tally: BetTally | undefined, extras: BetExtras): HTMLElement {
   const rounds = tally?.rounds ?? 0;
-  const live =
-    tally === undefined || tally.staked === 0 ? Number.NaN : tally.returned / tally.staked;
+  const live = tally === undefined ? Number.NaN : liveRtp(tally);
   const samples: RtpSample[] = [...(tally?.history ?? [])];
   if (tally !== undefined && (samples.at(-1)?.rounds ?? 0) < rounds)
     samples.push({ rounds, rtp: live });

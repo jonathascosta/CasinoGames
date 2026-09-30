@@ -27,7 +27,9 @@ export interface BetStatistics {
   readonly staked: number;
   /** Total returned, in cents, stakes included. */
   readonly returned: number;
-  /** returned ÷ staked. */
+  /** Total fees charged, in cents. */
+  readonly fees: number;
+  /** (returned − fees) ÷ staked. */
   readonly rtp: number;
   readonly houseEdge: number;
   /** Share of rounds the bet won. */
@@ -70,15 +72,17 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
     const { settlement } = round;
     let stake = 0;
     let payout = 0;
+    let fee = 0;
     for (const betId in settlement) {
       const line = settlement[betId]!;
       let accumulator = perBet.get(betId);
       if (accumulator === undefined) perBet.set(betId, (accumulator = new RatioAccumulator()));
-      accumulator.add(line.stake, line.payout);
+      accumulator.add(line.stake, line.payout, line.fee ?? 0);
       stake += line.stake;
       payout += line.payout;
+      fee += line.fee ?? 0;
     }
-    total.add(stake, payout);
+    total.add(stake, payout, fee);
   }
 
   return {
@@ -96,10 +100,10 @@ function picker(bets: Bets | ((round: number) => Bets)): (round: number) => Bets
 }
 
 /**
- * Streams (stake, payout) pairs and estimates the ratio Σpayout ÷ Σstake with
- * its delta-method standard error, which stays valid when stakes vary from
- * round to round (raises). Values are scaled by the first stake seen to keep
- * the sums of squares well inside double precision.
+ * Streams (stake, payout, fee) and estimates the ratio Σ(payout − fee) ÷
+ * Σstake with its delta-method standard error, which stays valid when stakes
+ * vary from round to round (raises). Values are scaled by the first stake
+ * seen to keep the sums of squares well inside double precision.
  */
 class RatioAccumulator {
   #n = 0;
@@ -107,32 +111,33 @@ class RatioAccumulator {
   #pushes = 0;
   #scale = 0;
   #stake = 0;
-  #payout = 0;
   #stake2 = 0;
   #payout2 = 0;
   #cross = 0;
   #stakeCents = 0;
   #payoutCents = 0;
+  #feeCents = 0;
 
-  add(stake: number, payout: number): void {
+  add(stake: number, payout: number, fee = 0): void {
     if (this.#scale === 0) this.#scale = stake;
     const s = stake / this.#scale;
-    const p = payout / this.#scale;
+    const p = (payout - fee) / this.#scale;
     this.#n++;
     if (payout > stake) this.#wins++;
     else if (payout === stake) this.#pushes++;
     this.#stake += s;
-    this.#payout += p;
     this.#stake2 += s * s;
     this.#payout2 += p * p;
     this.#cross += s * p;
     this.#stakeCents += stake;
     this.#payoutCents += payout;
+    this.#feeCents += fee;
   }
 
   statistics(): BetStatistics {
     const n = this.#n;
-    const rtp = this.#payout / this.#stake;
+    // From the whole cents, exact up to the division.
+    const rtp = (this.#payoutCents - this.#feeCents) / this.#stakeCents;
     const residual = Math.max(
       0,
       (this.#payout2 - 2 * rtp * this.#cross + rtp * rtp * this.#stake2) / (n - 1),
@@ -142,6 +147,7 @@ class RatioAccumulator {
       rounds: n,
       staked: this.#stakeCents,
       returned: this.#payoutCents,
+      fees: this.#feeCents,
       rtp,
       houseEdge: 1 - rtp,
       hitFrequency: this.#wins / n,

@@ -146,6 +146,12 @@
   text-align: left;
 }
 
+/* A column of text keeps a readable width: short of room, the table scrolls
+   sideways rather than wrapping it a word per line. */
+.cg-md-table .cg-md-table__prose {
+  min-width: 12ch;
+}
+
 .cg-md-table th,
 .cg-table th {
   font-size: 11px;

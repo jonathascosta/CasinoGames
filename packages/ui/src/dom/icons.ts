@@ -17,7 +17,9 @@ export type IconName =
   | 'autoplay'
   | 'reset'
   | 'play'
-  | 'stop';
+  | 'stop'
+  | 'lock'
+  | 'hint';
 
 const PATHS: Readonly<Record<IconName, readonly string[]>> = {
   back: ['M15 5l-7 7 7 7'],
@@ -47,6 +49,16 @@ const PATHS: Readonly<Record<IconName, readonly string[]>> = {
   play: ['M8 5l11 7-11 7z'],
   stop: [
     'M8.5 7h7a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 15.5v-7A1.5 1.5 0 0 1 8.5 7z',
+  ],
+  lock: [
+    'M7 11h10a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 17 20H7a1.5 1.5 0 0 1-1.5-1.5v-6A1.5 1.5 0 0 1 7 11z',
+    'M8.5 11V8a3.5 3.5 0 0 1 7 0v3',
+    'M12 14.5v2',
+  ],
+  hint: [
+    'M9.5 17.5h5',
+    'M10.5 20.5h3',
+    'M12 3.5a5.5 5.5 0 0 0-3.2 10c.6.4.9 1 .9 1.7v.3h4.6v-.3c0-.7.3-1.3.9-1.7A5.5 5.5 0 0 0 12 3.5z',
   ],
 };
 

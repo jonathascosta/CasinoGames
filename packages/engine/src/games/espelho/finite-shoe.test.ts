@@ -16,51 +16,14 @@
  * long run on the real shoe).
  */
 import { describe, expect, it } from 'vitest';
-import type { Rank } from '../../cards/card.ts';
-import type { CardSource } from '../../cards/shoe.ts';
 import type { Bets } from '../../game/types.ts';
 import { exactReturns } from '../../math/exact.ts';
 import { Fraction } from '../../math/fraction.ts';
 import { ProgressiveJackpot } from '../../progressive/progressive.ts';
-import { randomInt } from '../../rng/rng.ts';
+import { createFullShoePairSource } from '../../testing/full-shoe-pairs.ts';
 import { ESPELHO_BETS, ESPELHO_MATH, SEIS_SEIS_FIXED_RTP } from './bets.ts';
 import { ESPELHO_CONFIG } from './config.ts';
 import { createEspelho } from './game.ts';
-
-/**
- * A full shoe for every round, dealt without replacement. Its first card is
- * equally likely to be any value (24 of each among 144), so it is drawn as a
- * value: 6 branches. The second is drawn among the 143 cards left, 23 of
- * them the first card's value: 143 branches, one per card. Suits never
- * matter, so every draw is dealt as a spade.
- */
-function freshShoe(decks: number): CardSource {
-  const perValue = 4 * decks;
-  let first: number | null = null;
-  return {
-    beginRound: () => {
-      first = null;
-      return false;
-    },
-    draw: (rng) => {
-      if (first === null) {
-        first = 1 + randomInt(rng, 6);
-        return { rank: first as Rank, suit: 'spades' };
-      }
-      // Cards left, value by value: perValue − 1 of the first card's value, perValue of the others.
-      let card = randomInt(rng, 6 * perValue - 1);
-      for (let value = 1; value <= 6; value++) {
-        const left = value === first ? perValue - 1 : perValue;
-        if (card < left) return { rank: value as Rank, suit: 'spades' };
-        card -= left;
-      }
-      throw new Error('unreachable');
-    },
-    remaining: () => 6 * perValue - (first === null ? 0 : 1),
-    size: () => 6 * perValue,
-    shuffleCount: () => 0,
-  };
-}
 
 const BETS: Bets = Object.fromEntries(ESPELHO_BETS.map(({ id }) => [id, 100]));
 const KEYS: readonly [string, keyof typeof ESPELHO_MATH][] = [
@@ -76,7 +39,7 @@ describe('Espelho — every round of the six-deck shoe, exactly', () => {
   const report = exactReturns(
     () =>
       createEspelho({
-        source: freshShoe(ESPELHO_CONFIG.decks),
+        source: createFullShoePairSource(ESPELHO_CONFIG.decks),
         // The fixed pays alone, as in the declared figures.
         jackpot: new ProgressiveJackpot({ id: 'espelho', seed: 0, contributionRate: 0 }),
       }),

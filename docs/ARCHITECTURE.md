@@ -52,17 +52,17 @@ because a server would consume it as plain JavaScript. `publishConfig` points th
 
 ### Module map
 
-| Module         | Contents                                                                                                            |
-| :------------- | :------------------------------------------------------------------------------------------------------------------ |
-| `rng/`         | `Rng`, `IntegerRng`, `createSeededRng`, `createCryptoRng`, `randomInt`, `shuffleInPlace`                            |
-| `dice/`        | `rollDie`, `rollDice`, `diceTotal`, `DieFace`, `DicePair`                                                           |
-| `cards/`       | `Card`, `Rank`, `Suit`, `RANK_SETS`, card codes (`'TH'`), `CardSource`, `Shoe`                                      |
-| `game/`        | `Game`, `RoundState`, `GameEvent`, `BetDefinition`; `RoundBuilder`; money; settlement; validation; `playRound`      |
-| `progressive/` | `ProgressiveJackpot`                                                                                                |
-| `math/`        | `Fraction`, `enumerateOutcomes`, `exactReturns`, `simulate`, `roundsForTolerance`, sheet rendering                  |
-| `games/`       | The games (`entre-dados/`, `alvo-movel/`, `espelho/`: rules, bet definitions, the game) and `GAMES`, their registry |
-| `testing/`     | Scripted RNGs and card sources, chi-square tests (`@casinogames/engine/testing`)                                    |
-| `fixtures/`    | Two toy games that exercise the engine and its math tooling in tests                                                |
+| Module         | Contents                                                                                                             |
+| :------------- | :------------------------------------------------------------------------------------------------------------------- |
+| `rng/`         | `Rng`, `IntegerRng`, `createSeededRng`, `createCryptoRng`, `randomInt`, `shuffleInPlace`                             |
+| `dice/`        | `rollDie`, `rollDice`, `diceTotal`, `DieFace`, `DicePair`                                                            |
+| `cards/`       | `Card`, `Rank`, `Suit`, `RANK_SETS`, card codes (`'TH'`), `CardSource`, `Shoe`                                       |
+| `game/`        | `Game`, `RoundState`, `GameEvent`, `BetDefinition`; `RoundBuilder`; money; settlement; validation; `playRound`       |
+| `progressive/` | `ProgressiveJackpot`                                                                                                 |
+| `math/`        | `Fraction`, `enumerateOutcomes`, `exactReturns`, `simulate`, `roundsForTolerance`, sheet rendering                   |
+| `games/`       | The games (`entre-dados/`, `alvo-movel/`, `espelho/`, `trancar/`: rules, bets, the game) and `GAMES`, their registry |
+| `testing/`     | Scripted RNGs and card sources, chi-square tests (`@casinogames/engine/testing`)                                     |
+| `fixtures/`    | Three toy games (dice, war, re-roll) that exercise the engine and its math tooling in tests                          |
 
 ### Randomness
 
@@ -133,9 +133,11 @@ reshuffle, so the UI can play the shuffle animation at the right moment.
 - **All money is integer cents** (`Cents`, a safe integer). Bets are `{ [betId]: cents }`.
 - Odds use "to" notation: `odds(3, 2)` is "3 to 2". A winning stake returns the stake plus
   `floor(stake × to / per)`, and the fraction of a cent (breakage) stays with the house.
-- A `SettlementLine` is `{ stake, payout, net, outcome, entryId? }`. `payout` is everything handed
-  back, stake included: 0 on a loss, the stake on a push. The outcome is derived from `net`, so a
-  surrender that returns half the stake is a loss. RTP is Σ payout ÷ Σ stake.
+- A `SettlementLine` is `{ stake, payout, fee?, net, outcome, entryId? }`. `payout` is everything
+  handed back, stake included: 0 on a loss, the stake on a push. `fee` is what choices cost during
+  the round (Trancar's re-roll), never returned; `net` is payout − stake − fee. The outcome is
+  derived from `net`, so a surrender that returns half the stake is a loss. RTP is
+  Σ (payout − fee) ÷ Σ stake: a fee is not a stake, it lowers the return.
 
 ### Bets
 
@@ -158,6 +160,11 @@ fixed pays' plus the contribution rate, the return excluding the seed, since the
 every contribution in the long run. The summary derives the meter's economics from the terms (RTP
 at the seed, break-even meter, cycle, seed cost, exposure), and `progressiveRtpAtMeter` gives one
 round's RTP at any meter.
+
+A game with decisions declares them in its summary (`decisions`): its reference strategy as a
+card, the value of every choice in each situation and the best one, and what the strategy returns
+under the table's rules and under variants of them (RTP, house edge, element of risk, how often
+each choice is made, the fees). The declared figures assume that strategy.
 
 A bet may also declare `finiteShoe`: its exact figures on the table's own shoe. They exist when a
 game deals the same number of cards every round, as Espelho does, so that every round's cards are
@@ -201,15 +208,16 @@ stateDiagram-v2
 
 A `RoundState` is an immutable snapshot:
 
-| Field        | Meaning                                                                                |
-| :----------- | :------------------------------------------------------------------------------------- |
-| `phase`      | `'awaiting-decision'` or `'settled'`                                                   |
-| `bets`       | Current stakes, including stakes added by decisions                                    |
-| `events`     | The ordered event log since `round-started`                                            |
-| `settlement` | Lines for the bets settled so far; complete once `phase` is `'settled'`                |
-| `options`    | The choices `decide()` accepts (empty once settled), each with an optional added stake |
-| `data`       | Game-private continuation state: hidden cards, kept dice…                              |
-| `rng`        | The round's `Rng`, carried so `decide()` keeps drawing from the same stream            |
+| Field        | Meaning                                                                                        |
+| :----------- | :--------------------------------------------------------------------------------------------- |
+| `phase`      | `'awaiting-decision'` or `'settled'`                                                           |
+| `bets`       | Current stakes, including stakes added by decisions                                            |
+| `fees`       | Fees charged per bet so far by the choices made                                                |
+| `events`     | The ordered event log since `round-started`                                                    |
+| `settlement` | Lines for the bets settled so far; complete once `phase` is `'settled'`                        |
+| `options`    | The choices `decide()` accepts (empty once settled), each with an optional added stake and fee |
+| `data`       | Game-private continuation state: hidden cards, kept dice…                                      |
+| `rng`        | The round's `Rng`, carried so `decide()` keeps drawing from the same stream                    |
 
 Games are written against `RoundBuilder`, obtained from `startRound(game, bets, rng)` or
 `continueRound(state, choice)`. The builder owns the invariants, so no game can break them:
@@ -217,28 +225,32 @@ Games are written against `RoundBuilder`, obtained from `startRound(game, bets, 
 - Stakes are validated before anything is drawn. Every placed bet is settled **exactly once**, and
   `finish()` refuses to close a round with unsettled bets (`UNSETTLED_BETS`).
 - Settling an unplaced bet, settling twice, or adding stake to a settled bet all throw.
-- Choosing an option applies its `additionalStake` (a raise, a double) as a `stake-added` event.
+- Choosing an option applies its `additionalStake` (a raise, a double) as a `stake-added` event,
+  then charges its `fee` (a re-roll) as a `fee-charged` event. A fee is charged against a placed,
+  unsettled bet, and the bet's settlement line carries it.
 - A closed step cannot be modified (`ROUND_CLOSED`). Each `decide()` returns a new snapshot, and
   earlier snapshots are never mutated.
-- Lifecycle events (`round-started`, `decision-*`, `stake-added`, `bet-settled`, `round-settled`)
-  can only be emitted by the builder. Games emit the rest (`dice-rolled`, `card-dealt`, their own
-  custom events) through `emit()` or the `rollDice()` / `dealCard()` helpers.
+- Lifecycle events (`round-started`, `decision-*`, `stake-added`, `fee-charged`, `bet-settled`,
+  `round-settled`) can only be emitted by the builder. Games emit the rest (`dice-rolled`,
+  `card-dealt`, their own custom events) through `emit()` or the `rollDice()` / `dealCard()`
+  helpers.
 
 ### Event catalogue
 
-| Event                | Payload                               | Emitted by                                          |
-| :------------------- | :------------------------------------ | :-------------------------------------------------- |
-| `round-started`      | `bets` (validated stakes)             | builder                                             |
-| `shoe-shuffled`      | `cards` in the new stack              | `prepareCards`, `dealCard`                          |
-| `dice-rolled`        | `dice: [d1, d2]`                      | `rollDice`                                          |
-| `card-dealt`         | `card`, `to` (hand id), `faceUp`      | `dealCard`                                          |
-| `card-revealed`      | `card`, `to`, `index` within the hand | `revealCard`                                        |
-| `decision-requested` | `options`                             | builder (`awaitDecision`)                           |
-| `decision-made`      | `choice`                              | builder (`continueRound`)                           |
-| `stake-added`        | `betId`, `amount`                     | builder (`addStake`)                                |
-| `jackpot-won`        | `jackpotId`, `betId`, `amount`        | game                                                |
-| `bet-settled`        | `betId` and the settlement line       | builder (`win`, `lose`, `push`, `payout`, `settle`) |
-| `round-settled`      | `totalStake`, `totalPayout`, `net`    | builder (`finish`)                                  |
+| Event                | Payload                                                    | Emitted by                                          |
+| :------------------- | :--------------------------------------------------------- | :-------------------------------------------------- |
+| `round-started`      | `bets` (validated stakes)                                  | builder                                             |
+| `shoe-shuffled`      | `cards` in the new stack                                   | `prepareCards`, `dealCard`                          |
+| `dice-rolled`        | `dice: [d1, d2]`                                           | `rollDice`                                          |
+| `card-dealt`         | `card`, `to` (hand id), `faceUp`                           | `dealCard`                                          |
+| `card-revealed`      | `card`, `to`, `index` within the hand                      | `revealCard`                                        |
+| `decision-requested` | `options`                                                  | builder (`awaitDecision`)                           |
+| `decision-made`      | `choice`                                                   | builder (`continueRound`)                           |
+| `stake-added`        | `betId`, `amount`                                          | builder (`addStake`)                                |
+| `fee-charged`        | `betId`, `amount`                                          | builder (`chargeFee`)                               |
+| `jackpot-won`        | `jackpotId`, `betId`, `amount`                             | game                                                |
+| `bet-settled`        | `betId` and the settlement line                            | builder (`win`, `lose`, `push`, `payout`, `settle`) |
+| `round-settled`      | `totalStake`, `totalPayout`, `totalFees` (when any), `net` | builder (`finish`)                                  |
 
 Games may add custom events (a moving marker, a locked die) through the `TEvent` type parameter.
 Their `type` must not clash with the core events.
@@ -331,6 +343,29 @@ the code the tests verify, and `pnpm docs:check` fails CI when a sheet is stale.
   every pair of cards a full six-deck shoe can deal, check the meter's pay and accounts, simulate
   both shoes and measure the card counting exposure.
 
+### A game: Trancar
+
+`games/trancar` is the game with a decision, in the engine's `awaiting-decision` phase:
+
+- `config.ts` holds the shoe, the limits, the payout and the re-roll's rules: its fee (40% of the
+  bet, rounded up to the cent) and the free 1-1.
+- `rules.ts` names the choices (`ficar`, `trancar-0`, `trancar-1`: stand, or lock that die and
+  re-roll the other), prices them and compares the totals. It also marks the extension point for
+  _Trancar e Dobrar_ (re-roll and double the bet), which this version does not offer.
+- `strategy.ts` values every choice on every roll exactly, for any rules and any dealer card
+  source, and computes the best one: the reference strategy is derived, never typed in.
+  `strategyMath` gives what a strategy returns, fees included.
+- `bets.ts` declares the bet and the strategy card from those computations, with the rules priced
+  with and without the free 1-1 and on the six-deck shoe.
+- `game.ts`: `start()` rolls and awaits the decision, offering Ficar and Trancar on either die with
+  its fee; `decide()` charges the fee, re-rolls the unlocked die (`die-rerolled`), deals two cards
+  face up and settles. `trancarStrategy()` is the reference strategy as a player, which autoplay,
+  the simulations and the exact tests all use.
+- The tests derive the best choice on each of the 21 rolls from scratch by expected value and check
+  it against the published strategy, enumerate the game with that strategy on an infinite shoe
+  and on every pair of cards from a full six-deck shoe, simulate both shoes with the bot deciding,
+  and measure the card counting exposure.
+
 ## UI kit
 
 ### Two layers
@@ -354,19 +389,19 @@ so a hidden card is never put on the page.
 
 ### Components
 
-| Component               | Purpose                                                                                                                                                                                           |
-| :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ChipRail`              | Chip selector (0.50 / 1 / 5 / 25 / 100): a radio group with roving focus that steps down when the balance cannot cover the chip                                                                   |
-| `BetSpot`               | Tap to add the selected chip, long-press (with a progress ring), right-click or Delete to clear; shows rejections and results                                                                     |
-| `DiceRoller`            | Tap, or hold and release to throw harder; 3D tumble with bounces in Pixi, CSS dice as fallback                                                                                                    |
-| `CardDealer`            | Deals from a shoe with slide and flip, shows the shoe counter and the cut card, announces cards to screen readers                                                                                 |
-| `BankrollDisplay`       | Balance with a count-up and a floating win or loss delta; offers a top-up below the table minimum                                                                                                 |
-| Paytable modal          | Built from `mathSummary()`: odds, probabilities, RTP, house edge, standard deviation, limits                                                                                                      |
-| Info modal              | Renders a game sheet (Markdown) as the Rules dialog                                                                                                                                               |
-| `RtpPanel`              | Rounds, wagered, returned, and live versus declared RTP per bet, with a convergence sparkline and its 95% band; a progressive bet's RTP at the current meter, and the figures on the table's shoe |
-| `AutoPlay`              | Runs 10 to 100 rounds; stops on request, on error, or before a round the balance cannot cover                                                                                                     |
-| Turbo and sound toggles | Switches that persist settings; turbo sets the motion level to `none`                                                                                                                             |
-| `ProgressiveMeter`      | A progressive meter that counts up as stakes feed it and flashes when a hit pays from it                                                                                                          |
+| Component               | Purpose                                                                                                                                                                                                                                       |
+| :---------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ChipRail`              | Chip selector (0.50 / 1 / 5 / 25 / 100): a radio group with roving focus that steps down when the balance cannot cover the chip                                                                                                               |
+| `BetSpot`               | Tap to add the selected chip, long-press (with a progress ring), right-click or Delete to clear; shows rejections and results                                                                                                                 |
+| `DiceRoller`            | Tap, or hold and release to throw harder; 3D tumble with bounces in Pixi, CSS dice as fallback. Can lay a button over each die (Trancar's lock, with a padlock) and re-roll one die while the other stays                                     |
+| `CardDealer`            | Deals from a shoe with slide and flip, shows the shoe counter and the cut card, announces cards to screen readers                                                                                                                             |
+| `BankrollDisplay`       | Balance with a count-up and a floating win or loss delta; offers a top-up below the table minimum                                                                                                                                             |
+| Paytable modal          | Built from `mathSummary()`: odds, probabilities, RTP, house edge, standard deviation, limits, and a game's strategy card                                                                                                                      |
+| Info modal              | Renders a game sheet (Markdown) as the Rules dialog                                                                                                                                                                                           |
+| `RtpPanel`              | Rounds, wagered, returned (and fees), and live versus declared RTP per bet, fees counted against the return, with a convergence sparkline and its 95% band; a progressive bet's RTP at the current meter, and the figures on the table's shoe |
+| `AutoPlay`              | Runs 10 to 100 rounds; stops on request, on error, or before a round the balance cannot cover                                                                                                                                                 |
+| Turbo and sound toggles | Switches that persist settings; turbo sets the motion level to `none`                                                                                                                                                                         |
+| `ProgressiveMeter`      | A progressive meter that counts up as stakes feed it and flashes when a hit pays from it                                                                                                                                                      |
 
 ### Motion
 
@@ -413,19 +448,23 @@ their colours from the same tokens at runtime, so the canvas matches the chrome.
 
 - **Routing.** A small History API router with base-path support (`/CasinoGames/` on Pages)
   intercepts in-app links, moves focus, sets titles and loads pages lazily. Table pages and PixiJS
-  load on demand: the lobby itself downloads about 27 kB of JavaScript and neither of them.
+  load on demand: the lobby itself downloads about 28 kB of JavaScript and neither of them.
 - **Routes.** `/` is the lobby and `/:slug` serves one of the four game slugs (anything else gets
   the not-found page). Games with rules load their table from the `tables/` registry; the others
   show a placeholder page. Each table opens its rules sheet from `docs/games/<slug>.md`, loaded
   through `import.meta.glob` so the docs are the single source.
 - **Tables.** What every table shares lives in `tables/`: `DiceTable` runs the chips, balance,
   actions, autoplay, bet spots and a round's life (stakes debited on the roll, the engine's events
-  replayed, payouts credited at settlement, even when the page closes mid-round); `table-page.ts`
-  builds the page around it (rules, paytable, RTP monitor); `table.css` styles the table surface,
-  the felt and the controls. A game brings its view, its felt layout and the replay of its own
-  events: Entre Dados its 1–6 strip, Alvo Móvel its target board, Espelho its mirror (the cards
-  above, the dice below, the glass tilting toward the winner) and its meter. A table with a meter
-  hands it to the RTP monitor, and the lobby shows the stored meter on the table's card.
+  replayed step by step, a choice's fee debited when it is made, payouts credited at settlement,
+  even when the page closes mid-round, when a round awaiting a decision ends with the choice that
+  costs nothing); `table-page.ts` builds the page around it (rules, paytable, RTP monitor);
+  `table.css` styles the table surface, the felt and the controls. A game brings its view, its felt
+  layout and the replay of its own events: Entre Dados its 1–6 strip, Alvo Móvel its target board,
+  Espelho its mirror (the cards above, the dice below, the glass tilting toward the winner) and its
+  meter, Trancar its decision (the dice as lock buttons, Ficar and "Trancar · +0.40", a strategy
+  hint marked as a demo feature, autoplay deciding with the reference strategy) and the two totals
+  side by side. A table with a meter hands it to the RTP monitor, and the lobby shows the stored
+  meter on the table's card.
 - **Static hosting.** At build time a small Vite plugin copies `index.html` into each game's folder
   and to `404.html`, so deep links load directly on GitHub Pages.
 - **Services.** `createServices()` builds the page-wide state once (storage, settings, bankroll,
@@ -452,7 +491,8 @@ sequenceDiagram
   Table->>Kit: replayEvents(new events): DiceRoller.roll, CardDealer.deal…
   alt phase = awaiting-decision
     Table->>Player: offer state.options
-    Player->>Table: choice
+    Player->>Table: choice (autoplay: the reference strategy)
+    Table->>Table: Bankroll.debit(the choice's fee and added stake)
     Table->>Engine: game.decide(state, choice)
     Engine-->>Table: next RoundState
     Table->>Kit: replay the events added since the last snapshot
@@ -469,16 +509,16 @@ resources) is listed in the [README](../README.md#moving-the-engine-server-side)
 
 ## Testing strategy
 
-| Layer        | What is tested                                                                                                                                                                                                                                                                       | How                                                   |
-| :----------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------- |
-| RNG          | Reference vectors (xoshiro128\*\* and SplitMix64), reproducibility, seed handling, uniformity of `randomInt`, shuffles and dice                                                                                                                                                      | Vitest; seeded chi-square tests, so they cannot flake |
-| Shoe         | Composition, penetration and cut card, reshuffle rules, mid-round exhaustion, infinite mode                                                                                                                                                                                          | Vitest with seeded and scripted RNGs                  |
-| Rounds       | Builder invariants, validation, error codes, settlement arithmetic, decisions and added stakes                                                                                                                                                                                       | Vitest with scripted dice and cards                   |
-| Math tooling | Enumeration (including non-determinism detection), fractions, simulator statistics, sheet rendering                                                                                                                                                                                  | Vitest                                                |
-| Game math    | Exact RTP, probabilities and variance equal the declared fractions (for Alvo Móvel, via a memoised recursion too; for Espelho, on the six-deck shoe as well); a progressive meter's pay and accounts; Monte Carlo within ±0.15 pp; the six-deck shoe's shift; card counting exposure | `pnpm test` (exact), `pnpm test:math` (Monte Carlo)   |
-| UI kit       | Components' DOM, keyboard and pointer behaviour, persistence, motion, audio gating, autoplay stops, RTP statistics                                                                                                                                                                   | Vitest in jsdom, with the DOM renderers               |
-| Lobby        | Router: base paths, link interception, not-found handling, focus and titles; every table plays rounds that match the engine's settlement, including one interrupted by leaving; the target board; the mirror; the meter stored, carried on and shown in the lobby                    | Vitest in jsdom                                       |
-| Visuals      | Layout at 360 px, 390 px, landscape phones and desktop; the Pixi renderers                                                                                                                                                                                                           | Manual review in headless Chromium with screenshots   |
+| Layer        | What is tested                                                                                                                                                                                                                                                                                                                                          | How                                                   |
+| :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------- |
+| RNG          | Reference vectors (xoshiro128\*\* and SplitMix64), reproducibility, seed handling, uniformity of `randomInt`, shuffles and dice                                                                                                                                                                                                                         | Vitest; seeded chi-square tests, so they cannot flake |
+| Shoe         | Composition, penetration and cut card, reshuffle rules, mid-round exhaustion, infinite mode                                                                                                                                                                                                                                                             | Vitest with seeded and scripted RNGs                  |
+| Rounds       | Builder invariants, validation, error codes, settlement arithmetic, decisions, added stakes and fees                                                                                                                                                                                                                                                    | Vitest with scripted dice and cards                   |
+| Math tooling | Enumeration (including non-determinism detection), fractions, simulator statistics, sheet rendering                                                                                                                                                                                                                                                     | Vitest                                                |
+| Game math    | Exact RTP, probabilities and variance equal the declared fractions (for Alvo Móvel, via a memoised recursion too; for Espelho and Trancar, on the six-deck shoe as well); Trancar's strategy derived by expected value; a progressive meter's pay and accounts; Monte Carlo within ±0.15 pp; the six-deck shoe's shift; card counting exposure          | `pnpm test` (exact), `pnpm test:math` (Monte Carlo)   |
+| UI kit       | Components' DOM, keyboard and pointer behaviour, persistence, motion, audio gating, autoplay stops, RTP statistics                                                                                                                                                                                                                                      | Vitest in jsdom, with the DOM renderers               |
+| Lobby        | Router: base paths, link interception, not-found handling, focus and titles; every table plays rounds that match the engine's settlement, including one interrupted by leaving; the target board; the mirror; the meter stored, carried on and shown in the lobby; Trancar's decision, fee and hint, and autoplay matching the engine with its strategy | Vitest in jsdom                                       |
+| Visuals      | Layout at 360 px, 390 px, landscape phones and desktop; the Pixi renderers                                                                                                                                                                                                                                                                              | Manual review in headless Chromium with screenshots   |
 
 ## Decisions
 
@@ -493,6 +533,8 @@ resources) is listed in the [README](../README.md#moving-the-engine-server-side)
 | Monte Carlo rounds sized from σ           | A fixed 2,000,000 rounds is too few for volatile bets. Sizing from the bet's standard deviation keeps a correct implementation's failure probability below 0.1%.              |
 | Integer cents, floored breakage           | No floating-point drift between client, server and ledger; the rounding rule is explicit and conventional.                                                                    |
 | Builder-owned lifecycle events            | Games cannot forget to settle a bet, settle twice or skip `round-settled`; every game gets the same audit log.                                                                |
+| Fees count against the return             | A fee pays nothing and is never returned, so it is not a stake: RTP is (payout − fee) ÷ stake, and the element of risk (loss ÷ stake and fees) is published beside it.        |
+| Strategies computed, not written down     | Trancar's best play comes from exact expected values, so retuning the fee retunes the strategy, the declared figures and the sheet together.                                  |
 | Paytables and sheets generated from code  | One source for declared figures; stale docs fail CI.                                                                                                                          |
 | DOM chrome, Pixi only for dice and cards  | Accessibility and layout come free with the DOM. Pixi is used only where a canvas is actually needed, and it is loaded lazily with a DOM fallback.                            |
 | Render-on-demand Pixi hosts               | Idle tables cost nothing on battery-powered phones.                                                                                                                           |

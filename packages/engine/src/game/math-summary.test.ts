@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDiceFixture } from '../fixtures/dice-fixture.ts';
 import { expectedMeterAtHit, progressiveRtpAtMeter, summarizeMath } from './math-summary.ts';
 import { odds } from './money.ts';
-import type { BetDefinition } from './types.ts';
+import type { BetDefinition, DecisionSummary } from './types.ts';
 import { defineBets } from './validation.ts';
 
 /** Pays 499 to 1 plus a stake's share of a 5,000.00 meter fed by 10% of every stake. */
@@ -181,5 +181,59 @@ describe('summarizeMath', () => {
 
   it('needs the shoe named when bets declare finite-shoe figures', () => {
     expect(() => summarizeMath({ id: 'p', name: 'P', bets: [METER_BET] })).toThrow(TypeError);
+  });
+});
+
+/** Two situations, Hold or Swap in each: Hold is best on a high card, Swap on a low one. */
+const DECISIONS: DecisionSummary = {
+  description: 'After the deal, hold the card or swap it for 20% of the bet.',
+  card: {
+    situation: 'Card',
+    choices: ['Hold', 'Swap'],
+    measure: 'net result per unit of the bet',
+    rows: [
+      { situation: 'High', probability: 0.5, values: [0.5, -0.2], best: 0, play: 'Hold' },
+      { situation: 'Low', probability: 0.5, values: [-0.5, -0.2], best: 1, play: 'Swap' },
+    ],
+  },
+  figures: [
+    {
+      label: 'These rules',
+      rtp: 0.85,
+      houseEdge: 0.15,
+      elementOfRisk: 0.15 / 1.1,
+      hitFrequency: 0.5,
+      standardDeviation: 0.9,
+      choiceFrequencies: [{ choice: 'Swap', frequency: 0.5 }],
+      feeFrequency: 0.5,
+      averageFee: 0.1,
+    },
+  ],
+};
+
+describe('summarizeMath with decisions', () => {
+  const summarize = (decisions: DecisionSummary) =>
+    summarizeMath({ id: 'swap', name: 'Swap', bets: createDiceFixture().bets, decisions });
+
+  it('carries the strategy card and the figures through', () => {
+    expect(summarize(DECISIONS).decisions).toBe(DECISIONS);
+    expect(createDiceFixture().mathSummary()).not.toHaveProperty('decisions');
+  });
+
+  it('refuses a card whose best choice is not the most valuable', () => {
+    const [high, low] = DECISIONS.card.rows;
+    const card = { ...DECISIONS.card, rows: [high!, { ...low!, best: 0 }] };
+    expect(() => summarize({ ...DECISIONS, card })).toThrow(/not the most valuable/);
+  });
+
+  it('refuses incomplete cards, chances that do not add up, and missing figures', () => {
+    const [high] = DECISIONS.card.rows;
+    const short = { ...DECISIONS.card, rows: [{ ...high!, values: [0.5] }] };
+    expect(() => summarize({ ...DECISIONS, card: short })).toThrow(/one value per choice/);
+    const half = { ...DECISIONS.card, rows: [high!] };
+    expect(() => summarize({ ...DECISIONS, card: half })).toThrow(/add up to 0.5/);
+    const lone = { ...DECISIONS.card, choices: ['Hold'] };
+    expect(() => summarize({ ...DECISIONS, card: lone })).toThrow(/two choices/);
+    expect(() => summarize({ ...DECISIONS, figures: [] })).toThrow(/needs its figures/);
   });
 });

@@ -3,10 +3,12 @@ import { oddsLabel } from '../game/money.ts';
 import type {
   BetBreakdown,
   BetMath,
+  DecisionSummary,
   JackpotPayout,
   MathSummary,
   PaytableEntry,
   ProgressiveMath,
+  StrategyRow,
 } from '../game/types.ts';
 
 export const MATH_START = '<!-- math:start -->';
@@ -22,9 +24,10 @@ export function renderMathSection(summary: MathSummary): string {
   const blocks = [
     `<!-- Generated from mathSummary() of ${summary.gameId} by pnpm docs:sheets. Do not edit by hand. -->`,
     renderOverview(summary.bets),
-    renderLegend(summary.bets),
+    renderLegend(summary.bets, summary.decisions !== undefined),
     ...(summary.finiteShoe === undefined ? [] : renderFiniteShoe(summary.bets, summary.finiteShoe)),
     ...summary.bets.map((bet) => renderBet(bet, summary.finiteShoe)),
+    ...(summary.decisions === undefined ? [] : renderDecisions(summary.decisions)),
   ];
   return blocks.join('\n\n');
 }
@@ -79,9 +82,13 @@ function renderOverview(bets: readonly BetMath[]): string {
   ].join('\n');
 }
 
-function renderLegend(bets: readonly BetMath[]): string {
+function renderLegend(bets: readonly BetMath[], decisions: boolean): string {
   const push = bets.some((bet) => bet.pushFrequency !== undefined)
     ? ' Push is the chance that the stake is simply returned.'
+    : '';
+  const strategy = decisions
+    ? ' The figures assume the strategy below, and count any fee paid for a choice against the ' +
+      'return: a fee is never returned, and it is not a stake.'
     : '';
   const progressive = bets.some((bet) => bet.progressive !== undefined)
     ? " A progressive bet's RTP excludes the seed of its meter, which the house funds, and its " +
@@ -90,8 +97,64 @@ function renderLegend(bets: readonly BetMath[]): string {
   return (
     `RTP and house edge are per unit staked, pushes included. Hit frequency is the chance that a ` +
     `bet wins in a round.${push} Max exposure is the largest net win per unit staked. The ` +
-    `volatility index is the standard deviation of the net result per unit staked.${progressive}`
+    `volatility index is the standard deviation of the net result per unit staked.${progressive}` +
+    strategy
   );
+}
+
+/**
+ * A game's decisions: the strategy card, one row per situation with the
+ * value of every choice (the best in bold), then what the strategy returns
+ * under the table's rules and under each variant.
+ */
+function renderDecisions({ description, card, figures }: DecisionSummary): string[] {
+  const values = (situation: StrategyRow) =>
+    situation.values.map((value, index) =>
+      index === situation.best ? `**${signed(value)}**` : signed(value),
+    );
+  const across = (label: string, cell: (figures: DecisionSummary['figures'][number]) => string) =>
+    row([label, ...figures.map(cell)]);
+  const choices = figures[0]?.choiceFrequencies.map(({ choice }) => choice) ?? [];
+  return [
+    '### Strategy',
+    description,
+    [
+      row([card.situation, 'Play', ...card.choices, 'Chance']),
+      row([':--', ':--', ...card.choices.map(() => '--:'), '--:']),
+      ...card.rows.map((situation) =>
+        row([
+          situation.situation,
+          situation.play,
+          ...values(situation),
+          percent(situation.probability, 2),
+        ]),
+      ),
+    ].join('\n'),
+    `Each value is the expected ${card.measure}. The best choice is in bold: it is the strategy ` +
+      'the declared figures assume.',
+    '### What the strategy returns',
+    [
+      row(['Figure', ...figures.map((rules) => rules.label)]),
+      row([':--', ...figures.map(() => '--:')]),
+      across('RTP', (rules) => percent(rules.rtp, 2)),
+      across('House edge', (rules) => percent(rules.houseEdge, 2)),
+      across('Element of risk', (rules) => percent(rules.elementOfRisk, 2)),
+      across('Win frequency', (rules) => percent(rules.hitFrequency, 2)),
+      ...choices.map((choice) =>
+        across(`${choice}, share of rounds`, (rules) =>
+          optional(
+            rules.choiceFrequencies.find((frequency) => frequency.choice === choice)?.frequency,
+            (value) => percent(value, 2),
+          ),
+        ),
+      ),
+      across('Fee paid, share of rounds', (rules) => percent(rules.feeFrequency, 2)),
+      across('Average fee per round', (rules) => `${percent(rules.averageFee, 2)} of the bet`),
+      across('Volatility index', (rules) => rules.standardDeviation.toFixed(3)),
+    ].join('\n'),
+    'The house edge is the loss per unit of the main bet, fees included. The element of risk ' +
+      'divides the same loss by everything the player pays: the bet and the fees.',
+  ];
 }
 
 /** The bets' exact figures on the table's own shoe, beside the declared ones. */
@@ -289,6 +352,12 @@ function optional(value: number | undefined, format: (value: number) => string):
 function percent(ratio: number, digits: number): string {
   const text = (Math.abs(ratio) * 100).toFixed(digits);
   return `${ratio < 0 && Number(text) !== 0 ? '−' : ''}${text}%`;
+}
+
+/** 0.0815 → "+0.082", −1 → "−1.000". */
+function signed(value: number, digits = 3): string {
+  const text = Math.abs(value).toFixed(digits);
+  return `${value < 0 && Number(text) !== 0 ? '−' : '+'}${text}`;
 }
 
 /** −0.0057 → "−0.57 pp", 0.0301 → "+3.01 pp". */
