@@ -2,6 +2,7 @@ import {
   oddsLabel,
   type BetBreakdown,
   type BetMath,
+  type JackpotPayout,
   type MathSummary,
   type PaytableEntry,
 } from '@casinogames/engine';
@@ -66,7 +67,8 @@ function renderBet(bet: BetMath): HTMLElement {
       stat('House edge', formatPercent(bet.houseEdge)),
       bet.hitFrequency === undefined
         ? null
-        : stat('Hit frequency', formatPercent(bet.hitFrequency)),
+        : // Rare hits keep a third decimal: 0.077%, not 0.08%.
+          stat('Hit frequency', formatPercent(bet.hitFrequency, bet.hitFrequency < 0.01 ? 3 : 2)),
       bet.pushFrequency === undefined ? null : stat('Push', formatPercent(bet.pushFrequency)),
       bet.maxExposure === undefined
         ? null
@@ -104,7 +106,11 @@ function renderLines(bet: BetMath): HTMLElement {
           'tr',
           null,
           h('td', null, entry.label),
-          h('td', { class: 'cg-num' }, pays(entry)),
+          h(
+            'td',
+            { class: 'jackpot' in entry ? 'cg-num cg-paytable__meter-pays' : 'cg-num' },
+            pays(entry),
+          ),
           withProbability
             ? h(
                 'td',
@@ -161,10 +167,17 @@ function renderBreakdown({ by, rows }: BetBreakdown): HTMLElement {
 }
 
 function pays(entry: PaytableEntry): string {
-  if ('odds' in entry) return oddsLabel(entry.odds);
   if ('push' in entry) return 'Push';
-  const share = entry.jackpot.share === 1 ? '' : `${formatPercent(entry.jackpot.share, 0)} of `;
-  return `${share}${entry.jackpot.jackpotId} jackpot`;
+  const jackpot = entry.jackpot === undefined ? undefined : jackpotLabel(entry.jackpot);
+  if (!('odds' in entry)) return jackpot ?? '';
+  return jackpot === undefined ? oddsLabel(entry.odds) : `${oddsLabel(entry.odds)} + ${jackpot}`;
+}
+
+function jackpotLabel({ jackpotId, share, fullShareStake }: JackpotPayout): string {
+  const part = share === 1 ? '' : `${formatPercent(share, 0)} of `;
+  return fullShareStake === undefined
+    ? `${part}${jackpotId} jackpot`
+    : `stake ÷ ${formatCents(fullShareStake)} of ${part}the meter`;
 }
 
 function stat(label: string, value: string): HTMLElement {

@@ -1,5 +1,13 @@
+import { expectedMeterAtHit } from '../game/math-summary.ts';
 import { oddsLabel } from '../game/money.ts';
-import type { BetBreakdown, BetMath, MathSummary, PaytableEntry } from '../game/types.ts';
+import type {
+  BetBreakdown,
+  BetMath,
+  JackpotPayout,
+  MathSummary,
+  PaytableEntry,
+  ProgressiveMath,
+} from '../game/types.ts';
 
 export const MATH_START = '<!-- math:start -->';
 export const MATH_END = '<!-- math:end -->';
@@ -15,7 +23,8 @@ export function renderMathSection(summary: MathSummary): string {
     `<!-- Generated from mathSummary() of ${summary.gameId} by pnpm docs:sheets. Do not edit by hand. -->`,
     renderOverview(summary.bets),
     renderLegend(summary.bets),
-    ...summary.bets.map(renderBet),
+    ...(summary.finiteShoe === undefined ? [] : renderFiniteShoe(summary.bets, summary.finiteShoe)),
+    ...summary.bets.map((bet) => renderBet(bet, summary.finiteShoe)),
   ];
   return blocks.join('\n\n');
 }
@@ -74,19 +83,147 @@ function renderLegend(bets: readonly BetMath[]): string {
   const push = bets.some((bet) => bet.pushFrequency !== undefined)
     ? ' Push is the chance that the stake is simply returned.'
     : '';
+  const progressive = bets.some((bet) => bet.progressive !== undefined)
+    ? " A progressive bet's RTP excludes the seed of its meter, which the house funds, and its " +
+      'volatility index is taken with the meter at the seed; its terms follow its paytable.'
+    : '';
   return (
     `RTP and house edge are per unit staked, pushes included. Hit frequency is the chance that a ` +
     `bet wins in a round.${push} Max exposure is the largest net win per unit staked. The ` +
-    `volatility index is the standard deviation of the net result per unit staked.`
+    `volatility index is the standard deviation of the net result per unit staked.${progressive}`
   );
 }
 
-function renderBet(bet: BetMath): string {
+/** The bets' exact figures on the table's own shoe, beside the declared ones. */
+function renderFiniteShoe(bets: readonly BetMath[], shoe: string): string[] {
+  const rows = bets.flatMap((bet) =>
+    bet.finiteShoe === undefined
+      ? []
+      : [
+          row([
+            bet.label,
+            percent(bet.finiteShoe.hitFrequency, 2),
+            percent(bet.finiteShoe.rtp, 2),
+            percent(1 - bet.finiteShoe.rtp, 2),
+            points(1 - bet.finiteShoe.rtp - bet.houseEdge),
+          ]),
+        ],
+  );
+  return [
+    `On the table's ${shoe}, every round returns exactly:`,
+    [
+      row(['Bet', 'Hit frequency', 'RTP', 'House edge', 'Edge vs declared']),
+      row([':--', '--:', '--:', '--:', '--:']),
+      ...rows,
+    ].join('\n'),
+  ];
+}
+
+function renderBet(bet: BetMath, shoe: string | undefined): string {
   return [
     `### ${bet.label} (${bet.kind === 'main' ? 'main bet' : 'side bet'})`,
     ...(bet.description === undefined ? [] : [bet.description]),
     ...(bet.breakdown === undefined ? [renderPaytable(bet)] : renderBreakdown(bet.breakdown)),
+    ...(bet.progressive === undefined ? [] : renderProgressive(bet, bet.progressive, shoe)),
   ].join('\n\n');
+}
+
+/** A progressive bet's meter: how it is funded and paid, and what it is worth. */
+function renderProgressive(
+  bet: BetMath,
+  meter: ProgressiveMath,
+  shoe: string | undefined,
+): string[] {
+  const { fixedOdds, fixedRtp, fullShareStake, hitProbability, seed } = meter;
+  const finite = shoe === undefined ? undefined : bet.finiteShoe;
+  // The same figure on the table's shoe, when the bet declares its figures there.
+  const onShoe = (text: (hit: number, fixed: number, rtp: number) => string): string =>
+    finite === undefined || shoe === undefined
+      ? ''
+      : `; ${shoe}: ${text(finite.hitFrequency, finite.rtp - meter.contributionRate, finite.rtp)}`;
+  const chance = (p: number) => `${percent(p, 4)} (1 in ${count(1 / p)})`;
+  const stakes = [...new Set([bet.min, 100, 500, fullShareStake])]
+    .filter((stake) => stake >= bet.min && stake <= fullShareStake)
+    .sort((a, b) => a - b);
+  const multiple = fixedOdds.to / fixedOdds.per;
+  const terms: [string, string][] = [
+    ['Hit chance per round', chance(hitProbability) + onShoe((hit) => chance(hit))],
+    [
+      'Fixed pays alone',
+      `${oddsLabel(fixedOdds)}: RTP ${percent(fixedRtp, 2)}, house edge ` +
+        percent(1 - fixedRtp, 2) +
+        onShoe((_, fixed) => `RTP ${percent(fixed, 2)}`),
+    ],
+    [
+      'Contribution to the meter',
+      `${percent(meter.contributionRate, Number.isInteger(meter.contributionRate * 100) ? 0 : 2)} ` +
+        'of every stake',
+    ],
+    [
+      'RTP excluding the seed',
+      `${percent(meter.rtpExcludingSeed, 2)} (house edge ` +
+        `${percent(1 - meter.rtpExcludingSeed, 2)}): the fixed pays plus the contributions, ` +
+        'which the meter pays out in the long run' +
+        onShoe((_, __, rtp) => percent(rtp, 2)),
+    ],
+    [
+      'Meter share of a hit',
+      `stake ÷ ${amount(fullShareStake)} of the meter (the whole meter at ` +
+        `${amount(fullShareStake)})`,
+    ],
+    [
+      'RTP with the meter at M',
+      `${percent(fixedRtp, 2)} + M ÷ ${amount(fullShareStake / hitProbability)}, for any stake`,
+    ],
+    [
+      `RTP with the meter at its seed (${amount(seed)})`,
+      percent(meter.rtpAtSeed, 2) +
+        onShoe((hit, fixed) => percent(fixed + (hit * seed) / fullShareStake, 2)),
+    ],
+    [
+      'Break-even meter',
+      amount(meter.breakEvenMeter) +
+        onShoe((hit, fixed) => amount(((1 - fixed) * fullShareStake) / hit)),
+    ],
+    [
+      'Average cycle',
+      `${count(meter.cycleRounds)} rounds from hit to hit` +
+        onShoe((hit) => `${count(1 / hit)} rounds`),
+    ],
+    [
+      'Meter at a hit, on average',
+      `${amount(seed)} + ${trim(meter.contributionRate * meter.cycleRounds)} × the mean stake: ` +
+        stakes
+          .map((stake) => `${amount(expectedMeterAtHit(meter, stake))} at ${amount(stake)}`)
+          .join(', '),
+    ],
+    [
+      'Seed cost to the house',
+      `${amount(meter.seedCostPerRound)} per round at ${amount(fullShareStake)} ` +
+        `(${percent(meter.seedCostPerRound / fullShareStake, 2)} of the stake): a cost, not ` +
+        'part of the RTP',
+    ],
+    [
+      'Max exposure per round',
+      `${trim(multiple)} × ${amount(fullShareStake)} + the meter: ` +
+        `${amount(multiple * fullShareStake + seed)} with the meter at its seed, unbounded as ` +
+        'it grows',
+    ],
+    [
+      'Volatility index at the seed',
+      bet.standardDeviation === undefined ? '—' : bet.standardDeviation.toFixed(3),
+    ],
+  ];
+  return [
+    [
+      row(['Meter', 'Value']),
+      row([':--', ':--']),
+      ...terms.map(([term, value]) => row([term, value])),
+    ].join('\n'),
+    `The meter at a hit is exact on average when every cycle starts at the seed, as it does at ` +
+      `${amount(fullShareStake)}, where each hit takes the whole meter; smaller stakes leave part ` +
+      'of it behind, so their average is a little higher.',
+  ];
 }
 
 function renderPaytable(bet: BetMath): string {
@@ -127,10 +264,17 @@ function renderBreakdown({ by, rows }: BetBreakdown): string[] {
 }
 
 function pays(entry: PaytableEntry): string {
-  if ('odds' in entry) return oddsLabel(entry.odds);
   if ('push' in entry) return 'Push';
-  const share = entry.jackpot.share === 1 ? '' : `${percent(entry.jackpot.share, 0)} of `;
-  return `${share}${entry.jackpot.jackpotId} jackpot`;
+  const jackpot = entry.jackpot === undefined ? undefined : jackpotLabel(entry.jackpot);
+  if (!('odds' in entry)) return jackpot ?? '';
+  return jackpot === undefined ? oddsLabel(entry.odds) : `${oddsLabel(entry.odds)} + ${jackpot}`;
+}
+
+function jackpotLabel({ jackpotId, share, fullShareStake }: JackpotPayout): string {
+  const part = share === 1 ? '' : `${percent(share, 0)} of `;
+  return fullShareStake === undefined
+    ? `${part}${jackpotId} jackpot`
+    : `stake ÷ ${amount(fullShareStake)} of ${part}the meter`;
 }
 
 function row(cells: readonly string[]): string {
@@ -145,6 +289,17 @@ function optional(value: number | undefined, format: (value: number) => string):
 function percent(ratio: number, digits: number): string {
   const text = (Math.abs(ratio) * 100).toFixed(digits);
   return `${ratio < 0 && Number(text) !== 0 ? '−' : ''}${text}%`;
+}
+
+/** −0.0057 → "−0.57 pp", 0.0301 → "+3.01 pp". */
+function points(difference: number): string {
+  const text = Math.abs(difference * 100).toFixed(2);
+  return `${difference < 0 && Number(text) !== 0 ? '−' : '+'}${text} pp`;
+}
+
+/** 1295.6 → "1,296". */
+function count(value: number): string {
+  return Math.round(value).toLocaleString('en-US');
 }
 
 /** 4 → "4", 0.5 → "0.5", 1/3 → "0.33". */

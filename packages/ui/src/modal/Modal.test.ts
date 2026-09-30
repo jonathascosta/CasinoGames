@@ -100,6 +100,45 @@ describe('paytable', () => {
     );
   });
 
+  it('adds a meter share to fixed odds, and keeps a third decimal for rare hits', () => {
+    const summary = summarizeMath({
+      id: 'm',
+      name: 'M',
+      bets: defineBets([
+        {
+          id: 'meter',
+          label: 'Meter',
+          kind: 'side',
+          min: 50,
+          max: 2_500,
+          rtp: 0.6,
+          progressive: {
+            jackpotId: 'house',
+            seed: 500_000,
+            contributionRate: 0.1,
+            fullShareStake: 2_500,
+            hitProbability: 0.001,
+            fixedRtp: 0.5,
+          },
+          paytable: [
+            {
+              id: 'hit',
+              label: 'Hit',
+              odds: odds(499),
+              jackpot: { jackpotId: 'house', share: 1, fullShareStake: 2_500 },
+              probability: 0.001,
+            },
+          ],
+        },
+      ]),
+    });
+    const bet = createPaytable(summary).querySelector('.cg-paytable__bet')!;
+    const pays = bet.querySelector('tbody td:nth-child(2)')!;
+    expect(pays.textContent).toBe('499 to 1 + stake ÷ 25.00 of the meter');
+    expect(pays.classList.contains('cg-paytable__meter-pays')).toBe(true);
+    expect(bet.querySelector('dl')!.textContent).toContain('Hit frequency0.100%');
+  });
+
   it('describes jackpot payouts and omits unknown probabilities', () => {
     const grand = createPaytable(SUMMARY).querySelectorAll('.cg-paytable__bet')[1]!;
     expect(

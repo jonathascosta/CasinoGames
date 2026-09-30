@@ -95,6 +95,67 @@ describe('defineBets', () => {
     expect(() => defineBets([{ ...valid, ...override }])).toThrow(TypeError);
   });
 
+  describe('progressive bets', () => {
+    const meterLine = (fullShareStake = 2_500): PaytableEntry => ({
+      id: 'hit',
+      label: 'Hit',
+      odds: odds(499),
+      jackpot: { jackpotId: 'house', share: 1, fullShareStake },
+      probability: 0.001,
+    });
+    const meter: BetDefinition = {
+      id: 'meter',
+      label: 'Meter',
+      kind: 'side',
+      min: 50,
+      max: 2_500,
+      rtp: 0.6,
+      progressive: {
+        jackpotId: 'house',
+        seed: 500_000,
+        contributionRate: 0.1,
+        fullShareStake: 2_500,
+        hitProbability: 0.001,
+        fixedRtp: 0.5,
+      },
+      paytable: [meterLine()],
+    };
+    const terms = meter.progressive!;
+
+    it('accepts one fixed-odds line paying the meter, with the RTP excluding the seed', () => {
+      expect(() => defineBets([meter])).not.toThrow();
+    });
+
+    it.each<[string, Partial<BetDefinition>]>([
+      ['no line paying the meter', { paytable: [{ id: 'x', label: 'X', odds: odds(499) }] }],
+      ['two lines paying it', { paytable: [meterLine(), { ...meterLine(), id: 'again' }] }],
+      [
+        'a line paying the meter alone',
+        {
+          paytable: [
+            {
+              id: 'hit',
+              label: 'Hit',
+              jackpot: { jackpotId: 'house', share: 1, fullShareStake: 2_500 },
+            },
+          ],
+        },
+      ],
+      ['a line with another full-share stake', { paytable: [meterLine(5_000)] }],
+      ['a full-share stake below the maximum', { max: 5_000 }],
+      ['an RTP other than the fixed pays plus the contributions', { rtp: 0.5 }],
+      ['a negative seed', { progressive: { ...terms, seed: -1 } }],
+      [
+        'a contribution rate of 100%',
+        { progressive: { ...terms, contributionRate: 1, fixedRtp: -0.4 } },
+      ],
+      ["a hit chance other than the line's", { progressive: { ...terms, hitProbability: 0.002 } }],
+      ['implausible finite-shoe figures', { finiteShoe: { rtp: 0.58, hitFrequency: 0 } }],
+    ])('rejects %s', (_, override) => {
+      expect(() => defineBets([{ ...meter, ...override }])).toThrow(TypeError);
+    });
+  });
+
   describe('lines paid under a condition', () => {
     const target = (value: string, probability: number) => ({ name: 'Target', value, probability });
     const line = (id: string, probability: number, given?: PaytableCondition): PaytableEntry => ({

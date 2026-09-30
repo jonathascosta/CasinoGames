@@ -61,6 +61,14 @@ export { createInfoModal, type InfoModalOptions } from './modal/InfoModal.ts';
 export { Modal, type ModalOptions } from './modal/Modal.ts';
 export { createPaytable, createPaytableModal } from './modal/PaytableModal.ts';
 export { RtpPanel, type RtpPanelOptions } from './rtp/RtpPanel.ts';
+export { ProgressiveMeter, type ProgressiveMeterOptions } from './jackpot/ProgressiveMeter.ts';
+export {
+  jackpotKey,
+  parseJackpotState,
+  readJackpotState,
+  storedMeterAmount,
+  writeJackpotState,
+} from './jackpot/jackpot-storage.ts';
 export {
   RtpTracker,
   nextCheckpoint,

@@ -3,6 +3,7 @@
  * development and review aid, deliberately free of Storybook.
  */
 import {
+  ProgressiveJackpot,
   createCryptoRng,
   createSeededRng,
   defineBets,
@@ -27,6 +28,7 @@ import {
   CardDealer,
   ChipRail,
   DiceRoller,
+  ProgressiveMeter,
   RtpPanel,
   RtpTracker,
   SoundEngine,
@@ -37,6 +39,7 @@ import {
   createSafeStorage,
   createSettingsStore,
   createSoundToggle,
+  createStore,
   createTurboToggle,
   formatCents,
   h,
@@ -159,6 +162,40 @@ function bankrollSection(): HTMLElement {
       }),
       button('Drain', () => {
         bankroll.debit(bankroll.balance);
+      }),
+    ),
+  );
+}
+
+function meterSection(): HTMLElement {
+  // A real engine pool: 5,000.00 seed, fed by 10% of each stake, a hit paying a stake's share.
+  const pool = new ProgressiveJackpot({ id: 'playground', seed: 500_000, contributionRate: 0.1 });
+  const store = createStore(pool.amount);
+  const meter = new ProgressiveMeter({
+    store,
+    label: 'Playground progressive',
+    caption: '10% of every stake · seed 5,000.00',
+  });
+  return section(
+    'meter',
+    'ProgressiveMeter',
+    'Counts up as stakes feed the pool and flashes when a hit pays from it; the pool is the ' +
+      "engine's ProgressiveJackpot, which tops itself back up to the seed.",
+    meter.element,
+    h(
+      'div',
+      { class: 'pg-row' },
+      button('Stake 25.00', () => {
+        pool.contribute(25_00);
+        store.set(pool.amount);
+      }),
+      button('Hit at 0.50', () => {
+        pool.awardFraction(50, 25_00);
+        store.set(pool.amount);
+      }),
+      button('Hit at 25.00', () => {
+        pool.awardFraction(25_00, 25_00);
+        store.set(pool.amount);
       }),
     ),
   );
@@ -474,6 +511,7 @@ const SECTIONS = [
   ['cards', 'CardDealer'],
   ['betting', 'ChipRail + BetSpot'],
   ['bankroll', 'BankrollDisplay'],
+  ['meter', 'ProgressiveMeter'],
   ['rtp', 'RtpPanel'],
   ['autoplay', 'AutoPlay'],
   ['modals', 'Paytable + Info'],
@@ -509,6 +547,7 @@ app.append(
     cardsSection(),
     bettingSection(),
     bankrollSection(),
+    meterSection(),
     rtpSection(),
     autoplaySection(),
     modalsSection(),

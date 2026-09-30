@@ -1,8 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { createDiceFixture } from '../fixtures/dice-fixture.ts';
-import { summarizeMath } from './math-summary.ts';
+import { expectedMeterAtHit, progressiveRtpAtMeter, summarizeMath } from './math-summary.ts';
 import { odds } from './money.ts';
+import type { BetDefinition } from './types.ts';
 import { defineBets } from './validation.ts';
+
+/** Pays 499 to 1 plus a stake's share of a 5,000.00 meter fed by 10% of every stake. */
+const METER_BET: BetDefinition = {
+  id: 'meter',
+  label: 'Meter',
+  kind: 'side',
+  min: 50,
+  max: 2_500,
+  rtp: 0.6,
+  standardDeviation: 20,
+  progressive: {
+    jackpotId: 'house',
+    seed: 500_000,
+    contributionRate: 0.1,
+    fullShareStake: 2_500,
+    hitProbability: 0.001,
+    fixedRtp: 0.5,
+  },
+  finiteShoe: { rtp: 0.58, hitFrequency: 0.0008 },
+  paytable: [
+    {
+      id: 'hit',
+      label: 'Hit',
+      odds: odds(499),
+      jackpot: { jackpotId: 'house', share: 1, fullShareStake: 2_500 },
+      probability: 0.001,
+    },
+  ],
+};
 
 describe('summarizeMath', () => {
   it('derives the declared figures per bet from the definitions', () => {
@@ -122,5 +152,34 @@ describe('summarizeMath', () => {
     expect(high!.houseEdge).toBeCloseTo(0.25, 15);
     // The rows weighted by their chance give the bet's RTP.
     expect(0.4 * low!.rtp + 0.6 * high!.rtp).toBeCloseTo(bet!.rtp, 15);
+  });
+
+  it("derives a progressive bet's economics from its terms", () => {
+    const summary = summarizeMath({
+      id: 'p',
+      name: 'P',
+      bets: defineBets([METER_BET]),
+      finiteShoe: 'test shoe',
+    });
+    expect(summary.finiteShoe).toBe('test shoe');
+    const [bet] = summary.bets;
+    expect(bet!.maxExposure).toBeUndefined(); // the meter sets it
+    expect(bet!.finiteShoe).toEqual({ rtp: 0.58, hitFrequency: 0.0008 });
+    const meter = bet!.progressive!;
+    expect(meter.fixedOdds).toEqual({ to: 499, per: 1 });
+    expect(meter.rtpExcludingSeed).toBeCloseTo(0.6, 15);
+    expect(meter.rtpAtSeed).toBeCloseTo(0.5 + 0.001 * 200, 15); // 200 per unit at the seed
+    expect(meter.breakEvenMeter).toBeCloseTo(1_250_000, 6); // 12,500.00: 0.5 = 0.001 × M ÷ 2,500
+    expect(meter.cycleRounds).toBeCloseTo(1_000, 9);
+    expect(meter.seedCostPerRound).toBeCloseTo(500, 9); // 5.00 per round
+    expect(meter.maxExposureAtSeed).toBeCloseTo(699, 12);
+    expect(progressiveRtpAtMeter(meter, meter.breakEvenMeter)).toBeCloseTo(1, 12);
+    // Seed plus a cycle of contributions: 10% × 1,000 rounds × the mean stake.
+    expect(expectedMeterAtHit(meter, 100)).toBeCloseTo(510_000, 6);
+    expect(expectedMeterAtHit(meter, 2_500)).toBeCloseTo(750_000, 6);
+  });
+
+  it('needs the shoe named when bets declare finite-shoe figures', () => {
+    expect(() => summarizeMath({ id: 'p', name: 'P', bets: [METER_BET] })).toThrow(TypeError);
   });
 });

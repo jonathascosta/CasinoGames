@@ -112,8 +112,58 @@ export function defineBets<const T extends readonly BetDefinition[]>(definitions
       throw new TypeError(`${where}: entry probabilities add up to more than 1`);
     }
     checkConditions(where, bet);
+    checkProgressive(where, bet);
+    const shoe = bet.finiteShoe;
+    if (
+      shoe !== undefined &&
+      !(shoe.rtp > 0 && shoe.rtp < 2 && shoe.hitFrequency > 0 && shoe.hitFrequency <= 1)
+    ) {
+      throw new TypeError(`${where}: implausible finite-shoe figures`);
+    }
   }
   return definitions;
+}
+
+/**
+ * A progressive bet (BetDefinition.progressive): one fixed-odds line pays
+ * its meter, a stake up to the table maximum wins at most the whole meter,
+ * and the declared RTP is the fixed pays' RTP plus the contribution rate.
+ */
+function checkProgressive(where: string, bet: BetDefinition): void {
+  const terms = bet.progressive;
+  if (terms === undefined) return;
+  const lines = bet.paytable.filter(
+    (entry) => 'jackpot' in entry && entry.jackpot.jackpotId === terms.jackpotId,
+  );
+  const [line] = lines;
+  if (line === undefined || lines.length !== 1 || !('odds' in line)) {
+    throw new TypeError(
+      `${where}: exactly one fixed-odds line must pay the ${terms.jackpotId} meter`,
+    );
+  }
+  if (line.jackpot?.fullShareStake !== terms.fullShareStake) {
+    throw new TypeError(`${where}: the line and the terms disagree on the full-share stake`);
+  }
+  if (!Number.isSafeInteger(terms.fullShareStake) || terms.fullShareStake < bet.max) {
+    throw new TypeError(
+      `${where}: the full-share stake must be integer cents, at least the maximum`,
+    );
+  }
+  if (!Number.isSafeInteger(terms.seed) || terms.seed < 0) {
+    throw new TypeError(`${where}: the seed must be integer cents`);
+  }
+  if (!(terms.contributionRate >= 0 && terms.contributionRate < 1)) {
+    throw new TypeError(`${where}: the contribution rate must be in [0, 1)`);
+  }
+  if (!(terms.hitProbability > 0 && terms.hitProbability <= 1)) {
+    throw new TypeError(`${where}: the hit probability must be in (0, 1]`);
+  }
+  if (line.probability !== undefined && line.probability !== terms.hitProbability) {
+    throw new TypeError(`${where}: the line and the terms disagree on the hit probability`);
+  }
+  if (Math.abs(bet.rtp - (terms.fixedRtp + terms.contributionRate)) > 1e-12) {
+    throw new TypeError(`${where}: the RTP must be the fixed pays' RTP plus the contribution rate`);
+  }
 }
 
 /**

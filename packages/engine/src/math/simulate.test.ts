@@ -67,6 +67,18 @@ describe('simulate', () => {
     expect(doubles / rounds).toBe(report.bets.doubles!.hitFrequency);
   });
 
+  it('plays stakes chosen per round', () => {
+    const stakes = [Object.freeze({ over: 100 }), Object.freeze({ over: 300, doubles: 50 })];
+    const report = simulate(createDiceFixture(), {
+      rounds: 1_000,
+      rng: createSeededRng('mixed-stakes'),
+      bets: (round) => stakes[round % 2]!,
+    });
+    expect(report.bets.over!.rounds).toBe(1_000);
+    expect(report.bets.over!.staked).toBe(500 * 100 + 500 * 300);
+    expect(report.bets.doubles!.rounds).toBe(500);
+  });
+
   it('rejects silly round counts', () => {
     expect(() => run('x', 1)).toThrow(RangeError);
   });

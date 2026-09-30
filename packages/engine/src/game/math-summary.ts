@@ -6,6 +6,8 @@ import type {
   BreakdownRow,
   MathSummary,
   PaytableEntry,
+  ProgressiveMath,
+  ProgressiveTerms,
 } from './types.ts';
 
 /**
@@ -17,8 +19,18 @@ export function summarizeMath(game: {
   readonly id: string;
   readonly name: string;
   readonly bets: readonly BetDefinition[];
+  /** Names the table's shoe (e.g. "six-deck shoe") when bets declare finite-shoe figures. */
+  readonly finiteShoe?: string;
 }): MathSummary {
-  return { gameId: game.id, gameName: game.name, bets: game.bets.map(summarizeBet) };
+  if (game.finiteShoe === undefined && game.bets.some((bet) => bet.finiteShoe !== undefined)) {
+    throw new TypeError(`${game.id}: bets declare finite-shoe figures, but the shoe is not named`);
+  }
+  return {
+    gameId: game.id,
+    gameName: game.name,
+    bets: game.bets.map(summarizeBet),
+    ...(game.finiteShoe === undefined ? {} : { finiteShoe: game.finiteShoe }),
+  };
 }
 
 function summarizeBet(bet: BetDefinition): BetMath {
@@ -30,6 +42,8 @@ function summarizeBet(bet: BetDefinition): BetMath {
     ? undefined
     : Math.max(0, ...wins.map((entry) => ('odds' in entry ? entry.odds.to / entry.odds.per : 0)));
   const breakdown = breakdownOf(bet.paytable);
+  const progressive =
+    bet.progressive === undefined ? undefined : progressiveMath(bet, bet.progressive);
   return {
     betId: bet.id,
     label: bet.label,
@@ -43,6 +57,8 @@ function summarizeBet(bet: BetDefinition): BetMath {
     ...(pushFrequency === undefined ? {} : { pushFrequency }),
     ...(maxExposure === undefined ? {} : { maxExposure }),
     ...(breakdown === undefined ? {} : { breakdown }),
+    ...(progressive === undefined ? {} : { progressive }),
+    ...(bet.finiteShoe === undefined ? {} : { finiteShoe: bet.finiteShoe }),
     ...(bet.description === undefined ? {} : { description: bet.description }),
     paytable: bet.paytable,
   };
@@ -104,5 +120,48 @@ function breakdownOf(paytable: readonly PaytableEntry[]): BetBreakdown | undefin
         paytable: lines,
       };
     }),
+  };
+}
+
+/**
+ * One round's RTP when a hit would pay from a meter of `meter` cents: the
+ * fixed pays, plus the meter's share per unit staked (meter ÷ fullShareStake)
+ * weighted by the chance of the hit. The meter already holds what earlier
+ * stakes contributed, so the contribution rate is not added again.
+ */
+export function progressiveRtpAtMeter(terms: ProgressiveTerms, meter: number): number {
+  return terms.fixedRtp + (terms.hitProbability * meter) / terms.fullShareStake;
+}
+
+/**
+ * The meter's average value at a hit for a player who stakes `meanStake`
+ * cents per round on the bet: the seed plus a cycle's contributions,
+ * seed + contributionRate × meanStake ÷ hitProbability. It is exact when
+ * every cycle starts at the seed, as it does at the full-share stake, where
+ * each hit takes the whole meter. Smaller stakes leave part of the meter
+ * behind after a hit, so their average is a little higher.
+ */
+export function expectedMeterAtHit(terms: ProgressiveTerms, meanStake: number): number {
+  return terms.seed + (terms.contributionRate * meanStake) / terms.hitProbability;
+}
+
+/** The economics of a progressive bet, from its terms and the line that pays the meter. */
+function progressiveMath(bet: BetDefinition, terms: ProgressiveTerms): ProgressiveMath {
+  const line = bet.paytable.find(
+    (entry) => 'odds' in entry && entry.jackpot?.jackpotId === terms.jackpotId,
+  );
+  if (line === undefined || !('odds' in line)) {
+    throw new TypeError(`${bet.id}: no fixed-odds line pays the ${terms.jackpotId} meter`);
+  }
+  const cycleRounds = 1 / terms.hitProbability;
+  return {
+    ...terms,
+    fixedOdds: line.odds,
+    rtpExcludingSeed: terms.fixedRtp + terms.contributionRate,
+    rtpAtSeed: progressiveRtpAtMeter(terms, terms.seed),
+    breakEvenMeter: (1 - terms.fixedRtp) * terms.fullShareStake * cycleRounds,
+    cycleRounds,
+    seedCostPerRound: terms.seed * terms.hitProbability,
+    maxExposureAtSeed: line.odds.to / line.odds.per + terms.seed / terms.fullShareStake,
   };
 }

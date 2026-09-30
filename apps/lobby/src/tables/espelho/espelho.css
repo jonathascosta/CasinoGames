@@ -1,0 +1,283 @@
+/* Espelho: the mirror (the dealer's cards above, the player's dice below and
+   the glass between them) and the felt with the progressive meter across the
+   top. The shared table styles are in ../table.css. Every transition runs on
+   the duration tokens, so turbo mode shows the result at once. */
+
+.es-view {
+  gap: 8px;
+}
+
+.es-mirror {
+  display: grid;
+  gap: 6px;
+  perspective: 700px;
+}
+
+.es-half {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  transition:
+    opacity var(--dur-3) var(--ease-out),
+    filter var(--dur-3) var(--ease-out);
+}
+
+.es-box {
+  height: clamp(112px, 16svh, 170px);
+  transition:
+    border-color var(--dur-3) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+
+/* A hand's label: the same for the dice and the cards. */
+.es-hand {
+  justify-self: center;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 3px 14px 4px;
+  border: 1px solid rgb(221 189 119 / 0.3);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 0.28);
+}
+
+.es-hand__who {
+  color: var(--gold-400);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.es-hand__value {
+  min-width: 9ch;
+  color: var(--ink-100);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.es-hand[data-kind='pair'] .es-hand__value {
+  color: var(--gold-200);
+}
+
+.es-hand[data-kind='partial'] .es-hand__value,
+.es-hand[data-kind='none'] .es-hand__value {
+  color: var(--ink-400);
+}
+
+/* The glass: a silvered band between the two hands. */
+.es-glass {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.3),
+    rgb(205 222 235 / 0.14) 46%,
+    rgb(255 255 255 / 0.05) 54%,
+    rgb(190 208 224 / 0.22)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 4px 14px rgb(0 0 0 / 0.35);
+  transform: translateY(0) rotateX(0deg);
+  transition:
+    transform calc(var(--dur-3) * 1.6) var(--ease-spring),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+
+/* A sheen across the glass. */
+.es-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.32) 45%,
+    transparent 60%
+  );
+  transform: translateX(-60%);
+  transition: transform calc(var(--dur-3) * 2) var(--ease-out);
+}
+
+.es-glass__verdict {
+  position: relative;
+  color: var(--ink-100);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+  text-transform: uppercase;
+}
+
+/* The result: the glass turns its face toward the winning hand, which lights
+   up while the other dims. A tie leaves it level, and the house wins. */
+.es-mirror[data-tilt='dice'] .es-glass {
+  transform: translateY(4px) rotateX(-34deg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 14px 24px rgb(91 214 145 / 0.4);
+}
+
+.es-mirror[data-tilt='cards'] .es-glass {
+  transform: translateY(-4px) rotateX(34deg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 -14px 24px rgb(255 131 115 / 0.35);
+}
+
+.es-mirror[data-tilt='dice'] .es-glass::before,
+.es-mirror[data-tilt='cards'] .es-glass::before,
+.es-mirror[data-tilt='level'] .es-glass::before {
+  transform: translateX(60%);
+}
+
+.es-mirror[data-tilt='dice'] .es-half--cards,
+.es-mirror[data-tilt='cards'] .es-half--dice,
+.es-mirror[data-tilt='level'] .es-half {
+  opacity: 0.6;
+  filter: saturate(0.6);
+}
+
+.es-mirror[data-tilt='dice'] .es-dice {
+  border-color: var(--win);
+  box-shadow:
+    0 0 0 1px var(--win),
+    0 0 24px rgb(91 214 145 / 0.35);
+}
+
+.es-mirror[data-tilt='cards'] .es-cards {
+  border-color: rgb(255 131 115 / 0.8);
+  box-shadow: 0 0 22px rgb(255 131 115 / 0.3);
+}
+
+.es-mirror[data-tilt='dice'] .es-half--dice .es-hand {
+  border-color: var(--win);
+}
+
+.es-mirror[data-tilt='cards'] .es-half--cards .es-hand {
+  border-color: rgb(255 131 115 / 0.8);
+}
+
+.es-caption {
+  min-height: 1.45em;
+  margin: 0;
+  color: var(--ink-200);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+/* The felt: the meter across the top, then the bets. */
+.es-felt {
+  display: grid;
+  gap: 10px;
+}
+
+.es-felt__meter {
+  display: grid;
+}
+
+.es-felt__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'espelho espelho'
+    'empate somas'
+    'par perfeito'
+    'seis seis';
+  gap: 8px;
+}
+
+.es-felt__spot {
+  display: grid;
+  min-width: 0;
+}
+
+.es-felt__spot[data-bet='espelho'] {
+  grid-area: espelho;
+}
+
+.es-felt__spot[data-bet='empate'] {
+  grid-area: empate;
+}
+
+.es-felt__spot[data-bet='somas-iguais'] {
+  grid-area: somas;
+}
+
+.es-felt__spot[data-bet='par-vs-par'] {
+  grid-area: par;
+}
+
+.es-felt__spot[data-bet='espelho-perfeito'] {
+  grid-area: perfeito;
+}
+
+.es-felt__spot[data-bet='seis-seis'] {
+  grid-area: seis;
+}
+
+/* The jackpot bet sits under the meter's brass. */
+.es-felt__spot[data-bet='seis-seis'] .cg-bet-spot {
+  border-color: rgb(221 189 119 / 0.55);
+}
+
+@container (min-width: 520px) {
+  .es-felt__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas:
+      'empate espelho somas'
+      'par seis perfeito';
+  }
+}
+
+/* Two columns (see ../table.css): taller boxes. */
+@media (min-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .es-box {
+    height: clamp(130px, 21svh, 220px);
+  }
+}
+
+/* Phones held sideways: the whole mirror fits the screen's height. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .es-view,
+  .es-mirror {
+    gap: 4px;
+  }
+
+  .es-cards {
+    height: clamp(88px, 25svh, 120px);
+  }
+
+  .es-dice {
+    height: clamp(76px, 22svh, 104px);
+  }
+
+  .es-glass {
+    height: 22px;
+  }
+
+  .es-hand {
+    padding: 1px 12px 2px;
+  }
+
+  .es-hand__value {
+    font-size: 14px;
+  }
+
+  .es-caption {
+    font-size: 12.5px;
+  }
+}

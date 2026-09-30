@@ -16,6 +16,11 @@ export interface JackpotPayout {
   readonly jackpotId: string;
   /** Fraction of the pool awarded, in (0, 1]. */
   readonly share: number;
+  /**
+   * When set, `share` is what a stake of this many cents wins, and a smaller
+   * stake wins in proportion: stake ÷ fullShareStake × share.
+   */
+  readonly fullShareStake?: Cents;
 }
 
 /**
@@ -44,11 +49,49 @@ interface PaytableEntryBase {
 }
 
 /**
- * One line of a bet's paytable: fixed odds, a progressive jackpot, or a push
- * (the stake is returned). Losing outcomes are not listed.
+ * One line of a bet's paytable: fixed odds (optionally with a progressive
+ * meter paid on top), a progressive jackpot alone, or a push (the stake is
+ * returned). Losing outcomes are not listed.
  */
 export type PaytableEntry = PaytableEntryBase &
-  ({ readonly odds: Odds } | { readonly jackpot: JackpotPayout } | { readonly push: true });
+  (
+    | { readonly odds: Odds; readonly jackpot?: JackpotPayout }
+    | { readonly jackpot: JackpotPayout }
+    | { readonly push: true }
+  );
+
+/**
+ * How a bet's progressive meter is funded and paid, for a bet whose winning
+ * line pays fixed odds plus a share of a meter fed by the bet's own stakes.
+ * Every contribution is paid out through the meter in the long run, so the
+ * bet's declared RTP is `fixedRtp + contributionRate`: its return excluding
+ * the seed, which the house funds.
+ */
+export interface ProgressiveTerms {
+  readonly jackpotId: string;
+  /** What the meter starts at and never drops below, in cents. */
+  readonly seed: Cents;
+  /** Share of every stake on the bet that goes to the meter. */
+  readonly contributionRate: number;
+  /** The stake that wins the whole meter; a smaller stake wins its share of it. */
+  readonly fullShareStake: Cents;
+  /** Chance per round of the hit that pays the meter. */
+  readonly hitProbability: number;
+  /** RTP of the fixed pays alone. */
+  readonly fixedRtp: number;
+}
+
+/**
+ * Exact figures on the table's own finite shoe, declared when they differ
+ * from the infinite-shoe ones and are exact in the long run: in a game that
+ * deals the same number of cards every round, each round's cards are a
+ * uniform draw from the full shoe, however deep the shoe has been dealt.
+ */
+export interface FiniteShoeFigures {
+  readonly rtp: number;
+  /** Chance per round that the bet wins. */
+  readonly hitFrequency: number;
+}
 
 /**
  * Everything the UI, docs and simulations need to know about a bet. The
@@ -72,9 +115,14 @@ export interface BetDefinition {
   /**
    * Standard deviation of the return per unit staked, when known. Lets the
    * RTP panel show the band the live figure is expected to converge within.
+   * For a progressive bet, with the meter at its seed.
    */
   readonly standardDeviation?: number;
   readonly description?: string;
+  /** The meter's funding and pay, for a bet with a progressive line. */
+  readonly progressive?: ProgressiveTerms;
+  /** Exact figures on the table's own shoe (see FiniteShoeFigures). */
+  readonly finiteShoe?: FiniteShoeFigures;
 }
 
 /** A choice offered to the player while a round awaits a decision. */
@@ -217,8 +265,36 @@ export interface BetMath {
    * its probability.
    */
   readonly breakdown?: BetBreakdown;
+  /** The meter's economics, for a bet with a progressive line. */
+  readonly progressive?: ProgressiveMath;
+  /** Exact figures on the table's own shoe, when declared. */
+  readonly finiteShoe?: FiniteShoeFigures;
   readonly description?: string;
   readonly paytable: readonly PaytableEntry[];
+}
+
+/**
+ * A progressive bet's economics, derived from its terms. Amounts are in
+ * cents; RTPs are per unit staked.
+ */
+export interface ProgressiveMath extends ProgressiveTerms {
+  /** The fixed odds of the line that pays the meter. */
+  readonly fixedOdds: Odds;
+  /** The fixed pays plus the contributions: the declared RTP. */
+  readonly rtpExcludingSeed: number;
+  /** One round's RTP with the meter at its seed (see progressiveRtpAtMeter). */
+  readonly rtpAtSeed: number;
+  /** The meter at which a round returns exactly its stake. */
+  readonly breakEvenMeter: number;
+  /** Average rounds from one hit to the next, for a player on the bet every round. */
+  readonly cycleRounds: number;
+  /**
+   * What the house pays per round to restore the seed, for a player staking
+   * the full-share amount every round: each hit takes the whole meter.
+   */
+  readonly seedCostPerRound: number;
+  /** Largest net win per unit staked with the meter at its seed. */
+  readonly maxExposureAtSeed: number;
 }
 
 /** A bet's figures split by the condition its lines are paid under. */
@@ -247,4 +323,6 @@ export interface MathSummary {
   readonly gameId: string;
   readonly gameName: string;
   readonly bets: readonly BetMath[];
+  /** Names the table's shoe (e.g. "six-deck shoe") when bets declare finite-shoe figures. */
+  readonly finiteShoe?: string;
 }

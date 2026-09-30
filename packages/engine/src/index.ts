@@ -42,7 +42,7 @@ export {
   type DieFace,
 } from './dice/dice.ts';
 export { EngineError, type EngineErrorCode } from './game/errors.ts';
-export { summarizeMath } from './game/math-summary.ts';
+export { expectedMeterAtHit, progressiveRtpAtMeter, summarizeMath } from './game/math-summary.ts';
 export {
   isCents,
   odds,
@@ -80,6 +80,7 @@ export type {
   BreakdownRow,
   CustomEvent,
   DecisionOption,
+  FiniteShoeFigures,
   Game,
   GameEvent,
   GameEventType,
@@ -87,6 +88,8 @@ export type {
   MathSummary,
   PaytableCondition,
   PaytableEntry,
+  ProgressiveMath,
+  ProgressiveTerms,
   RoundPhase,
   RoundState,
 } from './game/types.ts';
@@ -153,6 +156,35 @@ export {
   type Spread,
 } from './games/entre-dados/index.ts';
 export {
+  ESPELHO_BETS,
+  ESPELHO_BET_IDS,
+  ESPELHO_CONFIG,
+  ESPELHO_DEALER,
+  ESPELHO_ID,
+  ESPELHO_MATH,
+  ESPELHO_NAME,
+  JACKPOT_BET,
+  SEIS_SEIS_FIXED_RTP,
+  SEIS_SEIS_RTP,
+  SEIS_SEIS_RTP_AT_SEED,
+  compareHands,
+  createEspelho,
+  createEspelhoJackpot,
+  createEspelhoShoe,
+  espelhoMathSummary,
+  espelhoOutlook,
+  readHand,
+  resolveEspelhoBet,
+  type EspelhoBetId,
+  type EspelhoGame,
+  type EspelhoHand,
+  type EspelhoOptions,
+  type EspelhoOutlook,
+  type EspelhoResolution,
+  type HandValues,
+  type JackpotMeterEvent,
+} from './games/espelho/index.ts';
+export {
   roundsForTolerance,
   simulate,
   type BetStatistics,
@@ -161,8 +193,10 @@ export {
 } from './math/simulate.ts';
 export {
   ProgressiveJackpot,
+  type ExactAmount,
   type ProgressiveOptions,
   type ProgressiveSnapshot,
+  type ProgressiveState,
 } from './progressive/progressive.ts';
 export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
 export { randomInt, shuffleInPlace, type IntegerRng, type Rng } from './rng/rng.ts';

@@ -123,6 +123,98 @@ describe('renderMathSection with a breakdown', () => {
   });
 });
 
+describe('renderMathSection with a progressive bet and a finite shoe', () => {
+  const summary = summarizeMath({
+    id: 'p',
+    name: 'P',
+    finiteShoe: 'test shoe',
+    bets: defineBets([
+      {
+        id: 'main',
+        label: 'Main',
+        kind: 'main',
+        min: 50,
+        max: 5_000,
+        rtp: 0.9,
+        finiteShoe: { rtp: 0.91, hitFrequency: 0.455 },
+        paytable: [{ id: 'win', label: 'Win', odds: odds(1), probability: 0.45 }],
+      },
+      {
+        id: 'meter',
+        label: 'Meter',
+        kind: 'side',
+        min: 50,
+        max: 2_500,
+        rtp: 0.6,
+        standardDeviation: 20,
+        progressive: {
+          jackpotId: 'house',
+          seed: 500_000,
+          contributionRate: 0.1,
+          fullShareStake: 2_500,
+          hitProbability: 0.001,
+          fixedRtp: 0.5,
+        },
+        finiteShoe: { rtp: 0.58, hitFrequency: 0.0008 },
+        paytable: [
+          {
+            id: 'hit',
+            label: 'Hit',
+            odds: odds(499),
+            jackpot: { jackpotId: 'house', share: 1, fullShareStake: 2_500 },
+            probability: 0.001,
+          },
+        ],
+      },
+    ]),
+  });
+  const sheet = renderMathSection(summary);
+
+  it("tabulates every bet on the table's shoe beside the declared edge", () => {
+    expect(sheet).toContain(
+      [
+        "On the table's test shoe, every round returns exactly:",
+        '',
+        '| Bet | Hit frequency | RTP | House edge | Edge vs declared |',
+        '| :-- | --: | --: | --: | --: |',
+        '| Main | 45.50% | 91.00% | 9.00% | −1.00 pp |',
+        '| Meter | 0.08% | 58.00% | 42.00% | +2.00 pp |',
+      ].join('\n'),
+    );
+  });
+
+  it("writes the meter line and the meter's economics, on both shoes", () => {
+    expect(sheet).toContain('| Hit | 499 to 1 + stake ÷ 25.00 of the meter | 0.100% |');
+    expect(sheet).toContain(
+      [
+        '| Meter | Value |',
+        '| :-- | :-- |',
+        '| Hit chance per round | 0.1000% (1 in 1,000); test shoe: 0.0800% (1 in 1,250) |',
+        '| Fixed pays alone | 499 to 1: RTP 50.00%, house edge 50.00%; test shoe: RTP 48.00% |',
+        '| Contribution to the meter | 10% of every stake |',
+        '| RTP excluding the seed | 60.00% (house edge 40.00%): the fixed pays plus the ' +
+          'contributions, which the meter pays out in the long run; test shoe: 58.00% |',
+        '| Meter share of a hit | stake ÷ 25.00 of the meter (the whole meter at 25.00) |',
+        '| RTP with the meter at M | 50.00% + M ÷ 25,000.00, for any stake |',
+        '| RTP with the meter at its seed (5,000.00) | 70.00%; test shoe: 64.00% |',
+        '| Break-even meter | 12,500.00; test shoe: 16,250.00 |',
+        '| Average cycle | 1,000 rounds from hit to hit; test shoe: 1,250 rounds |',
+        '| Meter at a hit, on average | 5,000.00 + 100 × the mean stake: 5,050.00 at 0.50, ' +
+          '5,100.00 at 1.00, 5,500.00 at 5.00, 7,500.00 at 25.00 |',
+        '| Seed cost to the house | 5.00 per round at 25.00 (20.00% of the stake): a cost, not ' +
+          'part of the RTP |',
+        '| Max exposure per round | 499 × 25.00 + the meter: 17,475.00 with the meter at its ' +
+          'seed, unbounded as it grows |',
+        '| Volatility index at the seed | 20.000 |',
+      ].join('\n'),
+    );
+    expect(sheet).toContain("A progressive bet's RTP excludes the seed of its meter");
+    expect(sheet).toContain(
+      '| Meter (side) | 60.00% | 40.00% | 0.10% | — | 20.000 | 0.50 – 25.00 |',
+    );
+  });
+});
+
 describe('replaceMathSection', () => {
   const sheet = `# Game\n\n## Bets\n\n${MATH_START}\n\nold text\n\n${MATH_END}\n\n## Math\n`;
 

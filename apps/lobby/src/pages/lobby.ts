@@ -1,4 +1,5 @@
-import { h } from '@casinogames/ui';
+import { ESPELHO_CONFIG, type Cents } from '@casinogames/engine';
+import { formatCents, h, storedMeterAmount } from '@casinogames/ui';
 import { gameArt } from '../art/art.ts';
 import { GAMES, type GameEntry } from '../catalog.ts';
 import type { Page } from '../router/router.ts';
@@ -7,6 +8,11 @@ import type { Services } from '../services.ts';
 import { brand, createTopBar } from '../shell/topbar.ts';
 import { isPlayable } from '../tables/index.ts';
 import './lobby.css';
+
+/** Tables with a progressive meter, shown live on their card. */
+const METERS: Readonly<Partial<Record<string, { readonly id: string; readonly seed: Cents }>>> = {
+  espelho: ESPELHO_CONFIG.jackpot,
+};
 
 const PILLARS = [
   {
@@ -54,9 +60,9 @@ export function lobbyPage(services: Services, router: Router): Page {
             h(
               'p',
               { class: 'hero__text' },
-              'A portfolio build for aggregators and live-dealer studios. Entre Dados and Alvo ' +
-                'Móvel are open, with their math proven exactly and by simulation; the other two ' +
-                'tables are in development on the same engine and table kit.',
+              'A portfolio build for aggregators and live-dealer studios. Entre Dados, Alvo Móvel ' +
+                'and Espelho are open, with their math proven exactly and by simulation; the ' +
+                'fourth table is in development on the same engine and table kit.',
             ),
           ),
           h(
@@ -66,7 +72,7 @@ export function lobbyPage(services: Services, router: Router): Page {
             h(
               'ul',
               { class: 'games__grid' },
-              ...GAMES.map((game) => h('li', null, gameCard(game, router))),
+              ...GAMES.map((game) => h('li', null, gameCard(game, router, services))),
             ),
           ),
           h(
@@ -96,8 +102,9 @@ export function lobbyPage(services: Services, router: Router): Page {
   };
 }
 
-function gameCard(game: GameEntry, router: Router): HTMLAnchorElement {
+function gameCard(game: GameEntry, router: Router, services: Services): HTMLAnchorElement {
   const playable = isPlayable(game);
+  const meter = METERS[game.slug];
   return h(
     'a',
     {
@@ -113,6 +120,18 @@ function gameCard(game: GameEntry, router: Router): HTMLAnchorElement {
       h('span', { class: 'game-card__status' }, playable ? 'Open · play now' : 'In development'),
       h('h3', { class: 'game-card__name' }, game.name),
       h('p', { class: 'game-card__gloss' }, `“${game.gloss}”`),
+      meter === undefined
+        ? null
+        : h(
+            'p',
+            { class: 'game-card__meter' },
+            h('span', { class: 'game-card__meter-label' }, 'Progressive'),
+            h(
+              'strong',
+              { class: 'game-card__meter-value cg-num' },
+              formatCents(storedMeterAmount(services.storage, meter.id, meter.seed)),
+            ),
+          ),
       h(
         'span',
         { class: 'game-card__cta', 'aria-hidden': 'true' },

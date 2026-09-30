@@ -62,6 +62,79 @@ describe('ProgressiveJackpot', () => {
     expect(jackpot.snapshot().seedFunding).toBe(280);
   });
 
+  it('pays a stake its exact share of the meter, down to the cent', () => {
+    const jackpot = new ProgressiveJackpot({ id: 'meter', seed: 500_000, contributionRate: 0 });
+    // 0.50 of a 25.00 full share: 2% of 5,000.00, exactly 100.00.
+    expect(jackpot.awardFraction(50, 2_500)).toBe(10_000);
+    expect(jackpot.amount).toBe(500_000); // topped back up to the seed
+    expect(jackpot.snapshot().seedFunding).toBe(10_000);
+    const growing = new ProgressiveJackpot({ id: 'meter', seed: 100_000, contributionRate: 0.1 });
+    growing.contribute(4_007_345); // +400,734.5¢: 500,734.5¢
+    // A third of it is 166,911.5¢: the half cent stays in the pool, above the seed.
+    expect(growing.awardFraction(1, 3)).toBe(166_911);
+    expect(growing.state().pool).toBe(333_823_500_000); // 333,823.5¢ in millionths
+    expect(growing.awardFraction(2_500, 2_500)).toBe(333_823);
+    expect(growing.amount).toBe(100_000); // 0.5¢ left, topped up to the seed
+  });
+
+  it('rejects shares that are not fractions in (0, 1]', () => {
+    const jackpot = new ProgressiveJackpot(base);
+    expect(() => jackpot.awardFraction(0, 10)).toThrow(RangeError);
+    expect(() => jackpot.awardFraction(11, 10)).toThrow(RangeError);
+    expect(() => jackpot.awardFraction(1.5, 10)).toThrow(RangeError);
+  });
+
+  it('stores its exact state and carries on from it', () => {
+    const jackpot = new ProgressiveJackpot(base);
+    jackpot.contribute(50); // 0.75¢
+    jackpot.contribute(12_345);
+    jackpot.award(0.5);
+    const restored = new ProgressiveJackpot(base, jackpot.state());
+    expect(restored.snapshot()).toEqual(jackpot.snapshot());
+    restored.contribute(50);
+    jackpot.contribute(50);
+    expect(restored.state()).toEqual(jackpot.state());
+    // A JSON round trip (what a page stores) keeps every millionth.
+    const parsed = JSON.parse(JSON.stringify(jackpot.state())) as ReturnType<typeof jackpot.state>;
+    expect(new ProgressiveJackpot(base, parsed).state()).toEqual(jackpot.state());
+  });
+
+  it('tops a stored pool below the seed up to it, as seed funding', () => {
+    const lower = new ProgressiveJackpot({ ...base, seed: 60_000 });
+    lower.contribute(100_000); // 61,500¢
+    const raised = new ProgressiveJackpot(base, lower.state()); // seed now 100,000¢
+    expect(raised.amount).toBe(100_000);
+    expect(raised.snapshot().seedFunding).toBe(38_500);
+  });
+
+  it('keeps every total exact past 2^53 millionths of a cent', () => {
+    const jackpot = new ProgressiveJackpot(
+      { id: 'meter', seed: 500_000, contributionRate: 0.1 },
+      {
+        pool: 500_000_000_000,
+        hits: 0,
+        contributed: { cents: 9_007_199_254, micros: 999_999 }, // ~2^53 millionths
+        awarded: 0,
+        seedFunding: { cents: 0, micros: 0 },
+      },
+    );
+    jackpot.contribute(2_500); // +250¢
+    expect(jackpot.state().contributed).toEqual({ cents: 9_007_199_504, micros: 999_999 });
+    jackpot.contribute(5); // +0.5¢
+    expect(jackpot.state().contributed).toEqual({ cents: 9_007_199_505, micros: 499_999 });
+  });
+
+  it.each<[string, object]>([
+    ['a negative pool', { pool: -1 }],
+    ['a fractional hit count', { hits: 1.5 }],
+    ['micros of a whole cent or more', { contributed: { cents: 0, micros: 1_000_000 } }],
+    ['a missing total', { seedFunding: undefined }],
+    ['a pool above the cap', { pool: 200_000_000_000 }],
+  ])('rejects a stored state with %s', (_, override) => {
+    const state = { ...new ProgressiveJackpot(base).state(), ...override };
+    expect(() => new ProgressiveJackpot({ ...base, cap: 150_000 }, state)).toThrow(RangeError);
+  });
+
   it('stops growing at the cap', () => {
     const jackpot = new ProgressiveJackpot({ ...base, cap: 100_010 });
     for (let i = 0; i < 10; i++) jackpot.contribute(10_000); // would add 1,500¢

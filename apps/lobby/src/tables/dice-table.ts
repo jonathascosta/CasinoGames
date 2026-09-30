@@ -4,6 +4,7 @@ import {
   settlementTotals,
   type Bets,
   type Cents,
+  type CustomEvent,
   type DicePair,
   type Game,
   type GameEvent,
@@ -51,7 +52,7 @@ export interface TableOptions {
 export type TablePhase = 'loading' | 'betting' | 'playing';
 
 /** What a game's replay of a round gets from the table. */
-export interface RoundContext {
+export interface RoundContext<TEvent extends CustomEvent = never> {
   readonly roller: DiceRoller;
   readonly dealer: CardDealer;
   /** The bets the round was played with. */
@@ -66,16 +67,16 @@ export interface RoundContext {
    * handled here (the shoe display and its animation), and the shoe display
    * follows every card dealt before the game's own card-dealt handler runs.
    */
-  replay(handlers: EventHandlers<GameEvent>): Promise<void>;
+  replay(handlers: EventHandlers<GameEvent | TEvent>): Promise<void>;
 }
 
-/** What a game brings to the shared table. */
-export interface TableGame<TBetId extends string> {
+/** What a game brings to the shared table; TEvent is the game's own events, if any. */
+export interface TableGame<TBetId extends string, TEvent extends CustomEvent = never> {
   /** Accessible name of the table, e.g. "Entre Dados table". */
   readonly label: string;
   /** Extra class on the table element, for the game's layout. */
   readonly className: string;
-  readonly game: Game<never, undefined>;
+  readonly game: Game<never, undefined, TEvent>;
   /** The shoe the game deals from, shown on the table. */
   readonly shoe: Shoe;
   /** The bet the side bets ride on. */
@@ -97,7 +98,10 @@ export interface TableGame<TBetId extends string> {
    * Plays a settled round's events on the view. Resolves with what the
    * round showed, for the result line ("Card 3 · Entre wins"), or ''.
    */
-  playRound(state: RoundState<never, undefined>, round: RoundContext): Promise<string>;
+  playRound(
+    state: RoundState<never, undefined, TEvent>,
+    round: RoundContext<TEvent>,
+  ): Promise<string>;
   /** The result display ended: clear the game's own marks, if any. */
   clearMarks?(): void;
 }
@@ -125,12 +129,12 @@ const REJECTIONS: Readonly<Record<BetRejection, string>> = {
  * payouts credited at settlement; a round interrupted by navigation or by
  * closing the page is still paid out.
  */
-export class DiceTable<TBetId extends string> {
+export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never> {
   readonly element: HTMLElement;
   /** Resolves once the dice and the card views are ready. */
   readonly ready: Promise<void>;
   readonly felt: TableFelt<TBetId>;
-  readonly #table: TableGame<TBetId>;
+  readonly #table: TableGame<TBetId, TEvent>;
   readonly #services: Services;
   readonly #tracker: RtpTracker;
   readonly #rng: Rng;
@@ -149,7 +153,7 @@ export class DiceTable<TBetId extends string> {
   #dealer: CardDealer | undefined;
   #phase: TablePhase = 'loading';
   /** A round the engine has settled but the table has not paid out yet. */
-  #pending: RoundState<never, undefined> | null = null;
+  #pending: RoundState<never, undefined, TEvent> | null = null;
   /** The last round's summary, shown until the bets change. */
   #result: string | null = null;
   /** What the round just played showed ("Card 3 · Entre wins"). */
@@ -158,7 +162,7 @@ export class DiceTable<TBetId extends string> {
   /** True while the table itself places chips (the opening bet): no chip sound. */
   #placing = false;
 
-  constructor(options: TableOptions, table: TableGame<TBetId>) {
+  constructor(options: TableOptions, table: TableGame<TBetId, TEvent>) {
     this.#table = table;
     this.#services = options.services;
     this.#tracker = options.tracker;
@@ -277,7 +281,7 @@ export class DiceTable<TBetId extends string> {
     this.#bringViewIntoView();
 
     bankroll.debit(total);
-    let state: RoundState<never, undefined>;
+    let state: RoundState<never, undefined, TEvent>;
     try {
       state = this.#table.game.start(bets, this.#rng);
     } catch (error) {
@@ -291,29 +295,28 @@ export class DiceTable<TBetId extends string> {
 
     const signal = this.#abort.signal;
     const shoe = this.#table.shoe;
-    const round: RoundContext = {
+    const round: RoundContext<TEvent> = {
       roller,
       dealer,
       bets,
       power,
       signal,
       motion: this.#motion,
-      replay: (handlers) =>
-        replayEvents(
-          state.events,
-          {
-            ...handlers,
-            'shoe-shuffled': async () => {
-              dealer.setShoe(shoe.size(), shoe.size());
-              await dealer.shuffle();
-            },
-            'card-dealt': async (event) => {
-              dealer.setShoe(shoe.remaining(), shoe.size(), shoe.isCutCardOut());
-              await handlers['card-dealt']?.(event);
-            },
+      replay: (handlers) => {
+        // The game's handlers for the core events the table wraps.
+        const own = handlers as EventHandlers<GameEvent>;
+        const table: EventHandlers<GameEvent> = {
+          'shoe-shuffled': async () => {
+            dealer.setShoe(shoe.size(), shoe.size());
+            await dealer.shuffle();
           },
-          { signal },
-        ),
+          'card-dealt': async (event) => {
+            dealer.setShoe(shoe.remaining(), shoe.size(), shoe.isCutCardOut());
+            await own['card-dealt']?.(event);
+          },
+        };
+        return replayEvents(state.events, { ...handlers, ...table }, { signal });
+      },
     };
     try {
       await dealer.clear();
@@ -390,7 +393,7 @@ export class DiceTable<TBetId extends string> {
   }
 
   /** Pays a settled round out: results on the felt, credit, sounds and RTP stats. */
-  #settle(state: RoundState<never, undefined>): void {
+  #settle(state: RoundState<never, undefined, TEvent>): void {
     if (this.#pending !== state) return;
     this.#pending = null;
     const { bankroll, sound } = this.#services;

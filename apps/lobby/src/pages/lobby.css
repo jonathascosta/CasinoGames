@@ -140,6 +140,32 @@
   color: var(--ink-300);
 }
 
+/* A table's progressive meter, as the table left it. */
+.game-card__meter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 4px 12px 5px;
+  border: 1px solid rgb(221 189 119 / 0.45);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgb(58 38 12 / 0.85), rgb(24 15 5 / 0.9));
+}
+
+.game-card__meter-label {
+  color: var(--gold-400);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.game-card__meter-value {
+  color: var(--gold-200);
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
 .game-card__cta {
   margin-top: 12px;
   font-size: 13px;

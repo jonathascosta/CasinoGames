@@ -52,6 +52,12 @@
   white-space: nowrap;
 }
 
+/* A payout with a meter share on top wraps rather than widening the table. */
+.cg-paytable td.cg-paytable__meter-pays {
+  min-width: 14ch;
+  white-space: normal;
+}
+
 .cg-paytable__stats {
   display: flex;
   flex-wrap: wrap;
