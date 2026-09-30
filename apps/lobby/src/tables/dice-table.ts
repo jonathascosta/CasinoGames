@@ -52,7 +52,11 @@ export interface TableOptions {
 export type TablePhase = 'loading' | 'betting' | 'playing';
 
 /** What a game's replay of a round gets from the table. */
-export interface RoundContext<TEvent extends CustomEvent = never> {
+export interface RoundContext<
+  TEvent extends CustomEvent = never,
+  TChoice extends string = never,
+  TData = undefined,
+> {
   readonly roller: DiceRoller;
   readonly dealer: CardDealer;
   /** The bets the round was played with. */
@@ -62,21 +66,40 @@ export interface RoundContext<TEvent extends CustomEvent = never> {
   /** Aborted when the table is torn down mid-round. */
   readonly signal: AbortSignal;
   readonly motion: Motion;
+  /** True when autoplay plays the round: its decisions are the reference strategy's. */
+  readonly autoplay: boolean;
   /**
-   * Plays the round's events in order with `handlers`. Reshuffles are
-   * handled here (the shoe display and its animation), and the shoe display
-   * follows every card dealt before the game's own card-dealt handler runs.
+   * Plays, in order and with `handlers`, the round's events not played yet:
+   * those of the latest step (see decide). Reshuffles are handled here (the
+   * shoe display and its animation), and the shoe display follows every
+   * card dealt before the game's own card-dealt handler runs.
    */
   replay(handlers: EventHandlers<GameEvent | TEvent>): Promise<void>;
+  /** Whether the balance covers what a choice takes when it is made: its fee and added stake. */
+  canAfford(choice: TChoice): boolean;
+  /**
+   * Makes the player's choice in a round that awaits one: the balance pays
+   * the choice's fee and added stake, and the engine plays on. Returns the
+   * next step, whose new events replay() then plays.
+   */
+  decide(choice: TChoice): RoundState<TChoice, TData, TEvent>;
 }
 
-/** What a game brings to the shared table; TEvent is the game's own events, if any. */
-export interface TableGame<TBetId extends string, TEvent extends CustomEvent = never> {
+/**
+ * What a game brings to the shared table; TEvent is the game's own events,
+ * if any, and TChoice and TData its decisions and their round data.
+ */
+export interface TableGame<
+  TBetId extends string,
+  TEvent extends CustomEvent = never,
+  TChoice extends string = never,
+  TData = undefined,
+> {
   /** Accessible name of the table, e.g. "Entre Dados table". */
   readonly label: string;
   /** Extra class on the table element, for the game's layout. */
   readonly className: string;
-  readonly game: Game<never, undefined, TEvent>;
+  readonly game: Game<TChoice, TData, TEvent>;
   /** The shoe the game deals from, shown on the table. */
   readonly shoe: Shoe;
   /** The bet the side bets ride on. */
@@ -95,13 +118,26 @@ export interface TableGame<TBetId extends string, TEvent extends CustomEvent = n
   /** A round starts: reset the view (the stakes are about to be taken). */
   beginRound(): void;
   /**
-   * Plays a settled round's events on the view. Resolves with what the
-   * round showed, for the result line ("Card 3 · Entre wins"), or ''.
+   * Plays the round on the view, from the first step the engine returned;
+   * in a game with decisions, it asks for them and makes them through
+   * round.decide(). Resolves once the round is settled with what it showed,
+   * for the result line ("Card 3 · Entre wins"), or ''.
    */
   playRound(
-    state: RoundState<never, undefined, TEvent>,
-    round: RoundContext<TEvent>,
+    state: RoundState<TChoice, TData, TEvent>,
+    round: RoundContext<TEvent, TChoice, TData>,
   ): Promise<string>;
+  /**
+   * For a game with decisions: the choice made for the player when a round
+   * must end without one (the page closes while it awaits a decision). It
+   * must cost nothing: no fee or stake is taken without the player's choice.
+   */
+  defaultChoice?(state: RoundState<TChoice, TData, TEvent>): TChoice;
+  /**
+   * What a round may take from the balance beyond its stakes once it plays
+   * (a fee): autoplay only starts a round the balance covers with it.
+   */
+  reserve?(bets: Bets): Cents;
   /** The result display ended: clear the game's own marks, if any. */
   clearMarks?(): void;
 }
@@ -124,17 +160,24 @@ const REJECTIONS: Readonly<Record<BetRejection, string>> = {
  * What every table of the demo shares: the dice tray and the dealer's cards,
  * the felt, the chips, the balance and the actions, and a round's life.
  *
- * The engine decides everything in game.start(); the game then plays the
- * round's events on its view. Stakes are debited when the player rolls and
- * payouts credited at settlement; a round interrupted by navigation or by
- * closing the page is still paid out.
+ * The engine decides everything in game.start() and, in a game with
+ * decisions, game.decide(); the game plays the events of each step on its
+ * view. Stakes are debited when the player rolls, a choice's fee and added
+ * stake when it is made, and payouts credited at settlement. A round
+ * interrupted by navigation or by closing the page is still paid out, and
+ * one that awaits a decision ends with the game's choice that costs nothing.
  */
-export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never> {
+export class DiceTable<
+  TBetId extends string,
+  TEvent extends CustomEvent = never,
+  TChoice extends string = never,
+  TData = undefined,
+> {
   readonly element: HTMLElement;
   /** Resolves once the dice and the card views are ready. */
   readonly ready: Promise<void>;
   readonly felt: TableFelt<TBetId>;
-  readonly #table: TableGame<TBetId, TEvent>;
+  readonly #table: TableGame<TBetId, TEvent, TChoice, TData>;
   readonly #services: Services;
   readonly #tracker: RtpTracker;
   readonly #rng: Rng;
@@ -152,8 +195,8 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
   #roller: DiceRoller | undefined;
   #dealer: CardDealer | undefined;
   #phase: TablePhase = 'loading';
-  /** A round the engine has settled but the table has not paid out yet. */
-  #pending: RoundState<never, undefined, TEvent> | null = null;
+  /** The round in play: its latest step, until the table has paid it out. */
+  #pending: RoundState<TChoice, TData, TEvent> | null = null;
   /** The last round's summary, shown until the bets change. */
   #result: string | null = null;
   /** What the round just played showed ("Card 3 · Entre wins"). */
@@ -162,7 +205,7 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
   /** True while the table itself places chips (the opening bet): no chip sound. */
   #placing = false;
 
-  constructor(options: TableOptions, table: TableGame<TBetId, TEvent>) {
+  constructor(options: TableOptions, table: TableGame<TBetId, TEvent, TChoice, TData>) {
     this.#table = table;
     this.#services = options.services;
     this.#tracker = options.tracker;
@@ -200,7 +243,12 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
     });
     this.#controller = new AutoPlayController({
       playRound: () => this.play(AUTOPLAY_POWER),
-      canContinue: () => this.#phase === 'betting' && this.#problem() === null,
+      canContinue: () =>
+        this.#phase === 'betting' &&
+        this.#problem() === null &&
+        this.#services.bankroll.canAfford(
+          this.#total() + (this.#table.reserve?.(this.#placedBets()) ?? 0),
+        ),
     });
     this.#autoplay = new AutoPlay({ controller: this.#controller });
 
@@ -281,7 +329,7 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
     this.#bringViewIntoView();
 
     bankroll.debit(total);
-    let state: RoundState<never, undefined, TEvent>;
+    let state: RoundState<TChoice, TData, TEvent>;
     try {
       state = this.#table.game.start(bets, this.#rng);
     } catch (error) {
@@ -295,13 +343,16 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
 
     const signal = this.#abort.signal;
     const shoe = this.#table.shoe;
-    const round: RoundContext<TEvent> = {
+    /** Events already played on the view, across the round's steps. */
+    let played = 0;
+    const round: RoundContext<TEvent, TChoice, TData> = {
       roller,
       dealer,
       bets,
       power,
       signal,
       motion: this.#motion,
+      autoplay: this.#controller.state.running,
       replay: (handlers) => {
         // The game's handlers for the core events the table wraps.
         const own = handlers as EventHandlers<GameEvent>;
@@ -315,7 +366,21 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
             await own['card-dealt']?.(event);
           },
         };
-        return replayEvents(state.events, { ...handlers, ...table }, { signal });
+        const events = state.events.slice(played);
+        played = state.events.length;
+        return replayEvents(events, { ...handlers, ...table }, { signal });
+      },
+      canAfford: (choice) => bankroll.canAfford(this.#costOf(state, choice)),
+      decide: (choice) => {
+        if (this.#pending !== state || state.phase !== 'awaiting-decision') {
+          throw new Error('This round does not await a decision');
+        }
+        const cost = this.#costOf(state, choice);
+        if (!bankroll.canAfford(cost)) throw new Error('The balance does not cover this choice');
+        const next = this.#table.game.decide(state, choice);
+        if (cost > 0) bankroll.debit(cost);
+        this.#pending = state = next;
+        return next;
       },
     };
     try {
@@ -327,7 +392,7 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
       if (!signal.aborted) throw error;
     }
     if (signal.aborted) return;
-    this.#settle(state);
+    this.#settle(this.#finish(state));
     this.#phase = 'betting';
     this.#refresh();
   }
@@ -392,8 +457,30 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
     });
   }
 
+  /** What a choice takes from the balance when it is made: its fee and its added stake. */
+  #costOf(state: RoundState<TChoice, TData, TEvent>, choice: TChoice): Cents {
+    const option = state.options.find((candidate) => candidate.choice === choice);
+    return (option?.fee?.amount ?? 0) + (option?.additionalStake?.amount ?? 0);
+  }
+
+  /**
+   * A round that still awaits a decision when it must end (the page closes,
+   * or the view stopped asking) ends with the game's choice that costs
+   * nothing, so no fee or stake is taken without the player.
+   */
+  #finish(state: RoundState<TChoice, TData, TEvent>): RoundState<TChoice, TData, TEvent> {
+    if (state.phase !== 'awaiting-decision') return state;
+    const choice = this.#table.defaultChoice?.(state);
+    if (choice === undefined || this.#costOf(state, choice) > 0) {
+      throw new Error(`${this.#table.label}: no free choice to end a round that awaits one`);
+    }
+    const next = this.#table.game.decide(state, choice);
+    if (this.#pending === state) this.#pending = next;
+    return next;
+  }
+
   /** Pays a settled round out: results on the felt, credit, sounds and RTP stats. */
-  #settle(state: RoundState<never, undefined, TEvent>): void {
+  #settle(state: RoundState<TChoice, TData, TEvent>): void {
     if (this.#pending !== state) return;
     this.#pending = null;
     const { bankroll, sound } = this.#services;
@@ -430,7 +517,7 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
 
   /** Settles a round still being animated, at once (navigation, closing the page). */
   #finalize(): void {
-    if (this.#pending !== null) this.#settle(this.#pending);
+    if (this.#pending !== null) this.#settle(this.#finish(this.#pending));
     this.#tracker.flush();
   }
 
@@ -494,7 +581,8 @@ export class DiceTable<TBetId extends string, TEvent extends CustomEvent = never
     else this.#roller?.disarm();
     this.#clear.disabled = !betting || running || this.#total() === 0;
     this.#betTotal.textContent = formatCents(this.#total());
-    this.#autoplay.setDisabled(this.#phase === 'loading' || problem !== null);
+    // Autoplay starts between rounds only; a running autoplay can always be stopped.
+    this.#autoplay.setDisabled(!betting || problem !== null);
     for (const spot of this.#spots()) spot.setLocked(!betting || running);
     if (betting) {
       this.#rail.setBalance(Math.max(0, this.#services.bankroll.balance - this.#total()));

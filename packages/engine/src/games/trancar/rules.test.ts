@@ -6,6 +6,7 @@ import {
   lockChoice,
   lockedDie,
   otherDie,
+  paidRerollFee,
   rerollFee,
   rollLabel,
   trancarWins,
@@ -39,6 +40,7 @@ describe('Trancar rules', () => {
     expect(rerollFee(25_000, [2, 5], RULES)).toBe(10_000); // the table maximum
     expect(rerollFee(51, [2, 5], RULES)).toBe(21); // 20.4¢ rounds up
     expect(rerollFee(55, [2, 5], RULES)).toBe(22); // exact on multiples of 5¢
+    expect(paidRerollFee(100, RULES)).toBe(40); // whatever the roll
   });
 
   it('re-rolls 1-1 for free, when the rules say so', () => {

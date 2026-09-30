@@ -235,9 +235,10 @@ describe('paytable', () => {
     const rows = [...strategy.querySelectorAll('.cg-paytable__card tbody tr')].map((row) =>
       [...row.children].map((cell) => cell.textContent),
     );
+    // How to play comes first, then the value of each choice, then the chance.
     expect(rows).toEqual([
-      ['High', '50.00%', '+0.500', '−0.200', 'Hold'],
-      ['Low', '50.00%', '−0.500', '−0.200', 'Swap'],
+      ['High', 'Hold', '+0.500', '−0.200', '50.00%'],
+      ['Low', 'Swap', '−0.500', '−0.200', '50.00%'],
     ]);
     const best = [...strategy.querySelectorAll('.cg-paytable__best')].map(
       (cell) => cell.textContent,

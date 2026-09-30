@@ -226,3 +226,12 @@
   animation: none;
   border-color: rgb(221 189 119 / 0.25);
 }
+
+.cg-die-pick:disabled {
+  cursor: default;
+  animation: none;
+}
+
+.cg-die-pick:disabled:not(.is-held) {
+  border-color: transparent;
+}

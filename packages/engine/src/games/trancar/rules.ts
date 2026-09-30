@@ -61,14 +61,18 @@ export function isFreeReroll(dice: DicePair, rules: TrancarRules): boolean {
 }
 
 /**
- * What a re-roll of `dice` costs on a main bet of `stake` cents: the fee
- * rate of the stake, rounded up to the cent (exact on the table's chips,
- * which are multiples of 50 cents), or nothing on a free re-roll.
+ * The fee of a paid re-roll on a main bet of `stake` cents: the fee rate of
+ * the stake, rounded up to the cent (exact on the table's chips, which are
+ * multiples of 50 cents). The most a round takes beyond its bet.
  */
-export function rerollFee(stake: Cents, dice: DicePair, rules: TrancarRules): Cents {
-  if (isFreeReroll(dice, rules)) return 0;
+export function paidRerollFee(stake: Cents, rules: TrancarRules): Cents {
   const { numerator, denominator } = rules.fee;
   return Math.ceil((stake * numerator) / denominator);
+}
+
+/** What a re-roll of `dice` costs on a main bet of `stake` cents: nothing on a free re-roll. */
+export function rerollFee(stake: Cents, dice: DicePair, rules: TrancarRules): Cents {
+  return isFreeReroll(dice, rules) ? 0 : paidRerollFee(stake, rules);
 }
 
 /** The bet wins when the dice add up to more than the dealer's two cards; a tie loses. */

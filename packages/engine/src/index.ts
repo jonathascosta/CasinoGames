@@ -212,6 +212,7 @@ export {
   lockChoice,
   lockedDie,
   otherDie,
+  paidRerollFee,
   referenceStrategy,
   rerollFee,
   rerollValue,

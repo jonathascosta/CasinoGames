@@ -11,6 +11,9 @@ import {
   diceTotal,
   odds,
   rollDice,
+  rollDie,
+  withDie,
+  type DicePair,
   Shoe,
   type Card,
   oddsLabel,
@@ -246,14 +249,39 @@ function diceSection(): HTMLElement {
   const stage = h('div', { class: 'pg-stage' });
   const result = h('strong', { class: 'cg-num' }, '—');
   const rollButton = h('button', { type: 'button', class: 'cg-btn cg-btn--primary' }, 'Roll');
+  const rerollButton = h(
+    'button',
+    { type: 'button', class: 'cg-btn', disabled: true },
+    'Re-roll the other',
+  );
   const rng = createCryptoRng();
   let roller: DiceRoller | undefined;
+  let dice: DicePair = [5, 2];
+  let locked: 0 | 1 | null = null;
 
+  // After each roll the dice can be locked, as at Trancar: tap one, then re-roll the other.
+  const offerLock = () => {
+    locked = null;
+    rerollButton.disabled = true;
+    roller?.offerDice({
+      label: (index) => `Lock the ${dice[index]}`,
+      onPick: (index) => {
+        locked = locked === index ? null : index;
+        roller?.setHeld([locked === 0, locked === 1]);
+        rerollButton.disabled = locked === null;
+      },
+    });
+  };
+  const show = () => {
+    result.textContent = `${dice[0]} + ${dice[1]} = ${diceTotal(dice)}`;
+  };
   const onThrow = async (power: number) => {
     rollButton.disabled = true;
-    const dice = rollDice(rng); // the engine decides; the roller only animates
+    roller?.withdrawDice();
+    dice = rollDice(rng); // the engine decides; the roller only animates
     await roller?.roll(dice, { power });
-    result.textContent = `${dice[0]} + ${dice[1]} = ${diceTotal(dice)}`;
+    show();
+    offerLock();
     roller?.arm();
     rollButton.disabled = false;
   };
@@ -266,15 +294,34 @@ function diceSection(): HTMLElement {
     roller.arm();
   });
   rollButton.addEventListener('click', () => roller?.requestThrow());
+  rerollButton.addEventListener('click', () => {
+    const kept = locked;
+    if (kept === null || roller === undefined) return;
+    const keep: readonly [boolean, boolean] = [kept === 0, kept === 1];
+    rerollButton.disabled = true;
+    roller.setHeld(keep, { final: true });
+    dice = withDie(dice, kept === 0 ? 1 : 0, rollDie(rng));
+    void roller.roll(dice, { power: 0.45, keep }).then(() => {
+      show();
+      offerLock();
+    });
+  });
 
   return section(
     'dice',
     'DiceRoller',
     'Tap the felt to throw, or hold to shake and release: the longer the hold, the harder the ' +
       'throw. 3D dice in PixiJS (lit, bevelled, perspective), landing exactly on the values the ' +
-      'engine rolled with the crypto RNG.',
+      'engine rolled with the crypto RNG. After a roll, tap a die to lock it (a padlock) and ' +
+      're-roll the other, as at Trancar.',
     stage,
-    h('div', { class: 'pg-row' }, rollButton, h('p', { class: 'pg-note' }, 'Last roll ', result)),
+    h(
+      'div',
+      { class: 'pg-row' },
+      rollButton,
+      rerollButton,
+      h('p', { class: 'pg-note' }, 'Last roll ', result),
+    ),
   );
 }
 

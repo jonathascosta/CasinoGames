@@ -210,11 +210,16 @@ export class DiceRoller {
     this.#picks = { element, buttons, off: this.#view.onLayout(place) };
   }
 
-  /** Marks the dice that are held (a padlock over each), while offerDice() is in force. */
-  setHeld(held: readonly [boolean, boolean]): void {
+  /**
+   * Marks the dice that are held (a padlock over each), while offerDice() is
+   * in force. `final`: the choice is made, so the padlocks stay and the
+   * buttons stop responding.
+   */
+  setHeld(held: readonly [boolean, boolean], { final = false }: { final?: boolean } = {}): void {
     this.#picks?.buttons.forEach((button, index) => {
       button.setAttribute('aria-pressed', String(held[index] === true));
       button.classList.toggle('is-held', held[index] === true);
+      button.disabled = final;
     });
   }
 

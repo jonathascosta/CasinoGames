@@ -169,9 +169,10 @@ function renderBreakdown({ by, rows }: BetBreakdown): HTMLElement {
 }
 
 /**
- * A game's decisions: the value of every choice in each situation (the best
- * highlighted), then what that strategy returns under the rules and their
- * variants. The RTPs above assume it.
+ * A game's decisions: in each situation how to play it and the value of
+ * every choice (the best highlighted), then what that strategy returns under
+ * the rules and their variants. The RTPs above assume it. The play comes
+ * first, so a narrow screen shows it before the figures.
  */
 function renderStrategy({ description, card, figures }: DecisionSummary): HTMLElement {
   const value = (number: number) => `${number < 0 ? '−' : '+'}${Math.abs(number).toFixed(3)}`;
@@ -198,9 +199,9 @@ function renderStrategy({ description, card, figures }: DecisionSummary): HTMLEl
             'tr',
             null,
             h('th', { scope: 'col' }, card.situation),
-            h('th', { scope: 'col' }, 'Chance'),
-            ...card.choices.map((choice) => h('th', { scope: 'col' }, choice)),
             h('th', { scope: 'col' }, 'Play'),
+            ...card.choices.map((choice) => h('th', { scope: 'col' }, choice)),
+            h('th', { scope: 'col' }, 'Chance'),
           ),
         ),
         h(
@@ -211,7 +212,7 @@ function renderStrategy({ description, card, figures }: DecisionSummary): HTMLEl
               'tr',
               null,
               h('th', { scope: 'row', class: 'cg-num' }, row.situation),
-              h('td', { class: 'cg-num' }, formatPercent(row.probability)),
+              h('td', { class: 'cg-paytable__play' }, row.play),
               ...row.values.map((number, index) =>
                 h(
                   'td',
@@ -219,7 +220,7 @@ function renderStrategy({ description, card, figures }: DecisionSummary): HTMLEl
                   value(number),
                 ),
               ),
-              h('td', null, row.play),
+              h('td', { class: 'cg-num' }, formatPercent(row.probability)),
             ),
           ),
         ),

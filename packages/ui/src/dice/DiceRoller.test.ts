@@ -154,6 +154,10 @@ describe('DiceRoller', () => {
     expect(buttons.map((button) => button.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
     expect(buttons[1]!.classList.contains('is-held')).toBe(true);
     expect(buttons[1]!.querySelector('.cg-icon--lock')).not.toBeNull();
+    // Once the choice is made, the padlock stays and the buttons stop responding.
+    roller.setHeld([false, true], { final: true });
+    expect(buttons.map((button) => button.disabled)).toEqual([true, true]);
+    expect(buttons[1]!.classList.contains('is-held')).toBe(true);
     roller.withdrawDice();
     expect(host.querySelector('.cg-die-picks')).toBeNull();
     roller.setHeld([true, true]); // nothing to mark: no error

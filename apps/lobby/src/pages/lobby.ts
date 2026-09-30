@@ -60,9 +60,9 @@ export function lobbyPage(services: Services, router: Router): Page {
             h(
               'p',
               { class: 'hero__text' },
-              'A portfolio build for aggregators and live-dealer studios. Entre Dados, Alvo Móvel ' +
-                'and Espelho are open, with their math proven exactly and by simulation; the ' +
-                'fourth table is in development on the same engine and table kit.',
+              'A portfolio build for aggregators and live-dealer studios. All four tables are ' +
+                'open (Entre Dados, Alvo Móvel, Espelho and Trancar, where the player decides), ' +
+                'with their math proven exactly and by simulation on one engine and table kit.',
             ),
           ),
           h(

@@ -122,7 +122,11 @@
   font-weight: 700;
 }
 
-.cg-paytable__card td:last-child,
+/* How to play a situation wraps rather than widening the card. */
+.cg-paytable td.cg-paytable__play {
+  min-width: 12ch;
+}
+
 .cg-paytable__rules th[scope='row'] {
   white-space: nowrap;
 }
