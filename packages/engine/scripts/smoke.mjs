@@ -8,6 +8,8 @@ import {
   createAlvoMovel,
   createCryptoRng,
   createEntreDados,
+  createEspelho,
+  createEspelhoJackpot,
   createSeededRng,
   defineBets,
   exactReturns,
@@ -99,9 +101,31 @@ for (let round = 0; round < 1_000; round++) {
   assert.equal(state.phase, 'settled');
 }
 
+// A game with a progressive meter: Espelho, exactly and on its six-deck shoe, with its meter.
+const espelho = exactReturns(
+  () =>
+    createEspelho({
+      source: createUniformRankSource(RANK_SETS.aceToSix),
+      jackpot: new ProgressiveJackpot({ id: 'espelho', seed: 0, contributionRate: 0 }),
+    }),
+  { espelho: 100, 'seis-seis': 100 },
+);
+assert.equal(espelho.outcomes, 1_296);
+assert.equal(espelho.bets.espelho.rtp.toString(), '205/216');
+assert.equal(espelho.bets['seis-seis'].rtp.toString(), '1001/1296');
+const espelhoTable = createEspelho();
+for (let round = 0; round < 1_000; round++) {
+  const state = espelhoTable.start({ espelho: 100, 'seis-seis': 50 }, rng);
+  assert.equal(state.phase, 'settled');
+}
+// The meter carries on from its stored state.
+const stored = JSON.parse(JSON.stringify(espelhoTable.jackpot.state()));
+assert.deepEqual(createEspelhoJackpot(stored).state(), espelhoTable.jackpot.state());
+
 console.log(
   `engine dist OK on Node ${process.versions.node}: exact RTP ${exact.bets.seven.rtp}, ` +
     `simulated ${report.bets.seven.rtp.toFixed(4)} over ${report.rounds} rounds; ` +
     `Entre Dados exact RTP ${entre.bets.entre.rtp} over ${entre.outcomes} outcomes; ` +
-    `Alvo Móvel over ${alvo.outcomes} outcomes`,
+    `Alvo Móvel over ${alvo.outcomes} outcomes; Espelho over ${espelho.outcomes}, meter ` +
+    `${(espelhoTable.jackpot.amount / 100).toFixed(2)}`,
 );
