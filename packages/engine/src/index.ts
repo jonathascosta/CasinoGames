@@ -42,7 +42,7 @@ export {
   type DieFace,
 } from './dice/dice.ts';
 export { EngineError, type EngineErrorCode } from './game/errors.ts';
-export { summarizeMath } from './game/math-summary.ts';
+export { expectedMeterAtHit, progressiveRtpAtMeter, summarizeMath } from './game/math-summary.ts';
 export {
   isCents,
   odds,
@@ -80,6 +80,7 @@ export type {
   BreakdownRow,
   CustomEvent,
   DecisionOption,
+  FiniteShoeFigures,
   Game,
   GameEvent,
   GameEventType,
@@ -87,6 +88,8 @@ export type {
   MathSummary,
   PaytableCondition,
   PaytableEntry,
+  ProgressiveMath,
+  ProgressiveTerms,
   RoundPhase,
   RoundState,
 } from './game/types.ts';
@@ -161,8 +164,10 @@ export {
 } from './math/simulate.ts';
 export {
   ProgressiveJackpot,
+  type ExactAmount,
   type ProgressiveOptions,
   type ProgressiveSnapshot,
+  type ProgressiveState,
 } from './progressive/progressive.ts';
 export { createCryptoRng, type RandomValuesSource } from './rng/crypto.ts';
 export { randomInt, shuffleInPlace, type IntegerRng, type Rng } from './rng/rng.ts';

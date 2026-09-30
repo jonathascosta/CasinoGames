@@ -6,7 +6,11 @@ export interface SimulationOptions<TChoice extends string, TData, TEvent extends
   readonly rounds: number;
   /** Use a seeded Rng so a simulation (and a test built on it) is reproducible. */
   readonly rng: Rng;
-  readonly bets: Bets;
+  /**
+   * The stakes: the same every round, or chosen per round by index (mixed
+   * stakes). Returning the same frozen objects lets validation run once each.
+   */
+  readonly bets: Bets | ((round: number) => Bets);
   /** Required when the game asks for decisions. */
   readonly strategy?: Strategy<TChoice, TData, TEvent>;
   /**
@@ -53,16 +57,15 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
   options: SimulationOptions<TChoice, TData, TEvent>,
 ): SimulationReport {
   const { rounds, rng, strategy, observe } = options;
-  // Frozen, the same map is validated once instead of every round.
-  const bets = Object.freeze({ ...options.bets });
+  const stakesFor = picker(options.bets);
   if (!Number.isSafeInteger(rounds) || rounds < 2) {
     throw new RangeError(`rounds must be an integer >= 2, got ${rounds}`);
   }
   const perBet = new Map<BetId, RatioAccumulator>();
   const total = new RatioAccumulator();
 
-  for (let round = 0; round < rounds; round++) {
-    const round = playRound(game, bets, rng, strategy);
+  for (let index = 0; index < rounds; index++) {
+    const round = playRound(game, stakesFor(index), rng, strategy);
     observe?.(round);
     const { settlement } = round;
     let stake = 0;
@@ -83,6 +86,13 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
     bets: Object.fromEntries([...perBet].map(([betId, acc]) => [betId, acc.statistics()])),
     total: total.statistics(),
   };
+}
+
+/** The stakes of each round. Frozen, a fixed map is validated once instead of every round. */
+function picker(bets: Bets | ((round: number) => Bets)): (round: number) => Bets {
+  if (typeof bets === 'function') return bets;
+  const frozen = Object.freeze({ ...bets });
+  return () => frozen;
 }
 
 /**
