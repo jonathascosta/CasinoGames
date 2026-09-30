@@ -47,7 +47,9 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
   game: Game<TChoice, TData, TEvent>,
   options: SimulationOptions<TChoice, TData, TEvent>,
 ): SimulationReport {
-  const { rounds, rng, bets, strategy } = options;
+  const { rounds, rng, strategy } = options;
+  // Frozen, the same map is validated once instead of every round.
+  const bets = Object.freeze({ ...options.bets });
   if (!Number.isSafeInteger(rounds) || rounds < 2) {
     throw new RangeError(`rounds must be an integer >= 2, got ${rounds}`);
   }
