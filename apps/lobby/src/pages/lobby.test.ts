@@ -117,6 +117,10 @@ describe('lobby cards', () => {
     const dialog = document.querySelector('dialog.cg-modal[open]')!;
     expect(dialog.querySelector('h2')!.textContent).toBe('Lock & Roll · Game sheet');
     expect(dialog.textContent).toContain('Place the Lock & Roll bet: 0.50 to 250.00.');
+    // Then where to find all four sheets in one PDF.
+    const pdf = [...dialog.querySelectorAll('a')].at(-1)!;
+    expect(pdf.textContent).toBe('download the game sheets');
+    expect(pdf.getAttribute('href')).toBe('/GAME-SHEETS.pdf');
   });
 });
 

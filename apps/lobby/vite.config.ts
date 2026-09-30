@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from 'node:fs';
+import { copyFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { defineConfig, type Plugin } from 'vite';
 import { GAMES } from './src/catalog.ts';
@@ -28,12 +28,45 @@ function staticRoutes(slugs: readonly string[]): Plugin {
 }
 
 /**
+ * Publishes a file kept outside the app at the site's root: served by the dev
+ * server, copied into the build. The game sheets PDF lives in docs/, where
+ * tools/game-sheets-pdf.ts writes it and CI checks it.
+ */
+function publishFile(source: string, name: string, type: string): Plugin {
+  let outDir = 'dist';
+  let base = '/';
+  return {
+    name: 'casinogames:publish-file',
+    configResolved(config) {
+      outDir = resolve(config.root, config.build.outDir);
+      base = config.base;
+    },
+    configureServer(server) {
+      server.middlewares.use(`${base}${name}`, (_request, response) => {
+        response.setHeader('Content-Type', type);
+        response.end(readFileSync(source));
+      });
+    },
+    closeBundle() {
+      copyFileSync(source, join(outDir, name));
+    },
+  };
+}
+
+/**
  * BASE_PATH is set by the Pages workflow to "/<repo>/"; locally the site is
  * served from the root.
  */
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
-  plugins: [staticRoutes([...GAMES.map((game) => game.slug), 'stats'])],
+  plugins: [
+    staticRoutes([...GAMES.map((game) => game.slug), 'stats']),
+    publishFile(
+      resolve(import.meta.dirname, '../../docs/GAME-SHEETS.pdf'),
+      'GAME-SHEETS.pdf',
+      'application/pdf',
+    ),
+  ],
   build: {
     target: 'es2022',
     rolldownOptions: {

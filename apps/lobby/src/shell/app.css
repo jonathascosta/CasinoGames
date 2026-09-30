@@ -224,3 +224,9 @@
 .site-footer a {
   color: var(--ink-300);
 }
+
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}

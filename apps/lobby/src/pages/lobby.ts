@@ -200,6 +200,9 @@ function gameCard(
   return { element, destroy: stopWatching };
 }
 
+/** All four game sheets in one PDF, published at the site's root (see vite.config.ts). */
+export const SHEETS_PDF = `${import.meta.env.BASE_URL}GAME-SHEETS.pdf`;
+
 /** The lobby's Game sheet dialogs, built on first use and kept for the visit. */
 class SheetDialogs {
   readonly #modals = new Map<string, Modal>();
@@ -211,7 +214,11 @@ class SheetDialogs {
       const { loadSheet, createRulesModal } = await import('../tables/shell.ts');
       const sheet = await loadSheet(game.slug);
       if (this.#destroyed) return;
-      modal = this.#modals.get(game.slug) ?? createRulesModal(game, sheet, 'Game sheet');
+      // The sheet, then where to find all four in one PDF.
+      const markdown =
+        `${sheet.trimEnd()}\n\n---\n\n` +
+        `All four game sheets are also in one PDF: [download the game sheets](${SHEETS_PDF}).\n`;
+      modal = this.#modals.get(game.slug) ?? createRulesModal(game, markdown, 'Game sheet');
       this.#modals.set(game.slug, modal);
     }
     modal.open();
@@ -236,7 +243,8 @@ export function siteFooter(): HTMLElement {
     ),
     h(
       'nav',
-      { 'aria-label': 'Developer links' },
+      { class: 'site-footer__links', 'aria-label': 'More' },
+      h('a', { href: SHEETS_PDF }, 'Game sheets (PDF)'),
       h('a', { href: `${import.meta.env.BASE_URL}dev.html` }, 'Component playground'),
     ),
   );
