@@ -1,6 +1,7 @@
 import { createSeededRng, type DicePair } from '@casinogames/engine';
 import type { SoundEngine } from '../audio/SoundEngine.ts';
 import { Disposer, h } from '../dom/h.ts';
+import { icon } from '../dom/icons.ts';
 import { motion as defaultMotion, type Motion } from '../motion/motion.ts';
 import type { DiceView } from './dice-view.ts';
 import { createDomDiceView } from './dom-dice-view.ts';
@@ -24,6 +25,25 @@ export interface DiceRollerOptions {
   readonly label?: string;
 }
 
+/** A die of the pair, by position. */
+export type DieIndex = 0 | 1;
+
+export interface DicePickOptions {
+  /** Called when the player taps a die's button, or activates it from the keyboard. */
+  readonly onPick: (index: DieIndex) => void;
+  /** Each die's accessible name, e.g. "Lock the 6". */
+  readonly label: (index: DieIndex) => string;
+}
+
+export interface RollOptions {
+  /** Shapes the throw animation only. */
+  readonly power?: number;
+  /** Dice that stay where they lie (a locked die); only the others are thrown. */
+  readonly keep?: readonly [boolean, boolean];
+}
+
+/** The smallest tap target over a die, in CSS pixels. */
+const MIN_PICK = 48;
 const FULL_HOLD_MS = 1_200;
 const TAP_POWER = 0.35;
 const KEYBOARD_POWER = 0.6;
@@ -33,6 +53,10 @@ const THROW_MS = 1_250;
  * The player's dice. The roller never decides an outcome: it animates the
  * result the engine drew. Rendering is delegated to a DiceView — PixiJS 3D
  * dice when available, loaded on demand, else flat CSS dice.
+ *
+ * For a choice made by pointing at a die (Trancar's lock), offerDice() lays
+ * a button over each die, in the host (which must be positioned), beside
+ * the tray: the tray itself is a button.
  */
 export class DiceRoller {
   readonly element: HTMLDivElement;
@@ -44,6 +68,12 @@ export class DiceRoller {
   readonly #disposer = new Disposer();
   #armed = false;
   #hold: { start: number; frame: number; lastShake: number } | null = null;
+  /** The buttons over the dice while offerDice() is in force, and their teardown. */
+  #picks: {
+    readonly element: HTMLElement;
+    readonly buttons: readonly HTMLButtonElement[];
+    readonly off: () => void;
+  } | null = null;
 
   private constructor(
     options: DiceRollerOptions,
@@ -118,8 +148,11 @@ export class DiceRoller {
     this.#options.onThrow?.(power);
   }
 
-  /** Animates the dice to the engine's result, then announces it. */
-  async roll(dice: DicePair, { power = 0.55 }: { power?: number } = {}): Promise<void> {
+  /**
+   * Animates the dice to the engine's result, then announces it. Dice in
+   * `keep` stay where they lie: a locked die while the other is re-rolled.
+   */
+  async roll(dice: DicePair, { power = 0.55, keep }: RollOptions = {}): Promise<void> {
     const level = this.#motion.level;
     const sound = this.#options.sound;
     await this.#view.throw(dice, {
@@ -127,9 +160,70 @@ export class DiceRoller {
       duration: this.#motion.duration(THROW_MS * (0.85 + 0.3 * power)),
       travel: level === 'full',
       onBounce: (intensity) => sound?.play('dice-bounce', { intensity }),
+      ...(keep === undefined ? {} : { keep }),
     });
     if (level !== 'full') sound?.play('dice-bounce', { intensity: 0.6 });
-    this.#announcer.textContent = `Rolled ${dice[0]} and ${dice[1]}`;
+    const kept = keep?.[0] === true ? 0 : keep?.[1] === true ? 1 : null;
+    this.#announcer.textContent =
+      kept === null
+        ? `Rolled ${dice[0]} and ${dice[1]}`
+        : `Kept the ${dice[kept]}, rolled ${dice[kept === 0 ? 1 : 0]}`;
+  }
+
+  /**
+   * Lays a button over each die, following the dice as they move, for a
+   * choice made by pointing at a die. setHeld() marks the dice chosen.
+   */
+  offerDice(options: DicePickOptions): void {
+    this.withdrawDice();
+    const buttons = ([0, 1] as const).map((index) => {
+      const button = h(
+        'button',
+        {
+          type: 'button',
+          class: 'cg-die-pick',
+          'aria-pressed': 'false',
+          'aria-label': options.label(index),
+          title: options.label(index),
+          dataset: { die: String(index) },
+        },
+        h('span', { class: 'cg-die-pick__lock' }, icon('lock')),
+      );
+      button.addEventListener('click', () => {
+        options.onPick(index);
+      });
+      return button;
+    });
+    const element = h('div', { class: 'cg-die-picks' }, ...buttons);
+    this.#options.host.append(element);
+    const place = () => {
+      this.#view.spots().forEach((spot, index) => {
+        const size = Math.max(MIN_PICK, spot.size * 1.3);
+        const button = buttons[index]!;
+        button.style.left = `${spot.x - size / 2}px`;
+        button.style.top = `${spot.y - size / 2}px`;
+        button.style.width = `${size}px`;
+        button.style.height = `${size}px`;
+      });
+    };
+    place();
+    this.#picks = { element, buttons, off: this.#view.onLayout(place) };
+  }
+
+  /** Marks the dice that are held (a padlock over each), while offerDice() is in force. */
+  setHeld(held: readonly [boolean, boolean]): void {
+    this.#picks?.buttons.forEach((button, index) => {
+      button.setAttribute('aria-pressed', String(held[index] === true));
+      button.classList.toggle('is-held', held[index] === true);
+    });
+  }
+
+  /** Takes the buttons over the dice away. */
+  withdrawDice(): void {
+    if (this.#picks === null) return;
+    this.#picks.off();
+    this.#picks.element.remove();
+    this.#picks = null;
   }
 
   /** Shows the dice at rest without animation. */
@@ -139,6 +233,7 @@ export class DiceRoller {
 
   destroy(): void {
     this.#cancelHold();
+    this.withdrawDice();
     this.#disposer.dispose();
     this.#view.destroy();
     this.element.remove();

@@ -1,7 +1,7 @@
 import type { DicePair, DieFace, Rng } from '@casinogames/engine';
 import { Graphics } from 'pixi.js';
 import { mix, readCssColor, shade } from '../dom/css.ts';
-import type { DiceView } from '../dice/dice-view.ts';
+import type { DiceView, DieSpot } from '../dice/dice-view.ts';
 import {
   FACES,
   PIPS,
@@ -52,7 +52,8 @@ const PIP_OUTLINE = circle(16);
  * projected with perspective, lit (Lambert + Blinn specular) and bevelled;
  * pips are projected discs. A throw flies the dice from the player's hand,
  * bounces them with decaying height and spins them about a random axis so
- * that the spin reaches zero exactly on the rolled faces.
+ * that the spin reaches zero exactly on the rolled faces. A die kept out of
+ * a throw (a locked die) stays exactly where it lies.
  */
 export async function createPixiDiceView(
   container: HTMLElement,
@@ -80,6 +81,10 @@ export async function createPixiDiceView(
   let holding = 0;
   let holdClock = 0;
   let throwing = false;
+  const listeners = new Set<() => void>();
+  const notify = () => {
+    for (const listener of listeners) listener();
+  };
 
   function size(): number {
     return Math.max(18, Math.min(44, Math.min(host.width, host.height) * 0.1));
@@ -120,6 +125,7 @@ export async function createPixiDiceView(
     });
     draw();
     host.render();
+    notify();
   }
 
   host.onResize(() => {
@@ -165,11 +171,18 @@ export async function createPixiDiceView(
         return Promise.resolve();
       }
       values = result;
+      const keep = options.keep ?? [false, false];
       const from = dice.map((die) => ({ x: die.x, y: die.y, lift: die.lift, q: die.q }));
       const inHand = from.map((start, i) =>
-        options.travel ? { ...start, ...handPosition(i), lift: Math.max(start.lift, 1.1) } : start,
+        options.travel && !keep[i]
+          ? { ...start, ...handPosition(i), lift: Math.max(start.lift, 1.1) }
+          : start,
       );
-      rest = restLayout();
+      const next = restLayout();
+      rest = [
+        keep[0] ? { x: dice[0].x, y: dice[0].y } : next[0],
+        keep[1] ? { x: dice[1].x, y: dice[1].y } : next[1],
+      ];
       const plans = result.map((value: DieFace) => ({
         target: orientationFor(value, jitter() * 0.6),
         axis: normalize([jitter(), jitter(), 0.25 * jitter()]),
@@ -184,6 +197,7 @@ export async function createPixiDiceView(
           elapsed += deltaMs;
           let done = true;
           for (let i = 0; i < dice.length; i++) {
+            if (keep[i]) continue;
             const die = dice[i]!;
             const plan = plans[i]!;
             const start = inHand[i]!;
@@ -205,13 +219,28 @@ export async function createPixiDiceView(
           draw();
           if (done) {
             throwing = false;
+            notify();
             resolve();
           }
           return !done;
         });
       });
     },
+    spots(): readonly [DieSpot, DieSpot] {
+      const s = size();
+      const spot = (die: DieState): DieSpot => ({
+        x: die.x,
+        y: die.y - die.lift * s * 0.85,
+        size: 2 * s * (1 + die.lift * 0.22),
+      });
+      return [spot(dice[0]), spot(dice[1])];
+    },
+    onLayout(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
     destroy() {
+      listeners.clear();
       host.destroy();
     },
   };

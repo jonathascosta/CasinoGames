@@ -52,8 +52,13 @@ export {
   type Easing,
   type MotionLevel,
 } from './motion/motion.ts';
-export { DiceRoller, type DiceRollerOptions } from './dice/DiceRoller.ts';
-export type { DiceView, ThrowOptions } from './dice/dice-view.ts';
+export {
+  DiceRoller,
+  type DicePickOptions,
+  type DiceRollerOptions,
+  type RollOptions,
+} from './dice/DiceRoller.ts';
+export type { DiceView, DieSpot, ThrowOptions } from './dice/dice-view.ts';
 export { CardDealer, type CardDealerOptions } from './cards/CardDealer.ts';
 export type { CardView, HandLayout, ShoeDisplay } from './cards/card-view.ts';
 export { renderMarkdown, isSafeHref, type MarkdownOptions } from './markdown/markdown.ts';
@@ -71,6 +76,7 @@ export {
 } from './jackpot/jackpot-storage.ts';
 export {
   RtpTracker,
+  liveRtp,
   nextCheckpoint,
   parseStats,
   type BetTally,

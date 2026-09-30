@@ -188,6 +188,74 @@ describe('paytable', () => {
     expect(table.querySelector('caption')!.textContent).toContain('each target');
   });
 
+  it("adds a game's strategy card, the best choice highlighted, and its rules compared", () => {
+    const summary = summarizeMath({
+      id: 'swap',
+      name: 'Swap',
+      bets: SUMMARY.bets.map((bet) => ({ ...bet, id: bet.betId })),
+      decisions: {
+        description: 'After the deal, hold the card or swap it for 20% of the bet.',
+        card: {
+          situation: 'Card',
+          choices: ['Hold', 'Swap'],
+          measure: 'net result per unit of the bet',
+          rows: [
+            { situation: 'High', probability: 0.5, values: [0.5, -0.2], best: 0, play: 'Hold' },
+            { situation: 'Low', probability: 0.5, values: [-0.5, -0.2], best: 1, play: 'Swap' },
+          ],
+        },
+        figures: [
+          {
+            label: 'These rules',
+            rtp: 0.85,
+            houseEdge: 0.15,
+            elementOfRisk: 0.14,
+            hitFrequency: 0.5,
+            standardDeviation: 0.9,
+            choiceFrequencies: [{ choice: 'Swap', frequency: 0.5 }],
+            feeFrequency: 0.5,
+            averageFee: 0.1,
+          },
+          {
+            label: 'Free swaps',
+            rtp: 0.95,
+            houseEdge: 0.05,
+            elementOfRisk: 0.05,
+            hitFrequency: 0.5,
+            standardDeviation: 0.8,
+            choiceFrequencies: [],
+            feeFrequency: 0,
+            averageFee: 0,
+          },
+        ],
+      },
+    });
+    const strategy = createPaytable(summary).querySelector('.cg-paytable__strategy')!;
+    expect(strategy.querySelector('h3')!.textContent).toBe('Strategy');
+    const rows = [...strategy.querySelectorAll('.cg-paytable__card tbody tr')].map((row) =>
+      [...row.children].map((cell) => cell.textContent),
+    );
+    expect(rows).toEqual([
+      ['High', '50.00%', '+0.500', '−0.200', 'Hold'],
+      ['Low', '50.00%', '−0.500', '−0.200', 'Swap'],
+    ]);
+    const best = [...strategy.querySelectorAll('.cg-paytable__best')].map(
+      (cell) => cell.textContent,
+    );
+    expect(best).toEqual(['+0.500', '−0.200']);
+    const rules = [...strategy.querySelectorAll('.cg-paytable__rules tr')].map((row) =>
+      [...row.children].map((cell) => cell.textContent),
+    );
+    expect(rules).toEqual([
+      ['The strategy returns', 'These rules', 'Free swaps'],
+      ['RTP', '85.00%', '95.00%'],
+      ['House edge', '15.00%', '5.00%'],
+      ['Swap, share of rounds', '50.00%', '—'],
+      ['Fee paid, share of rounds', '50.00%', '0.00%'],
+    ]);
+    expect(createPaytable(SUMMARY).querySelector('.cg-paytable__strategy')).toBeNull();
+  });
+
   it('opens in a modal titled after the game', () => {
     const modal = createPaytableModal(SUMMARY);
     modal.open();

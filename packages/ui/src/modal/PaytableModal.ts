@@ -2,6 +2,7 @@ import {
   oddsLabel,
   type BetBreakdown,
   type BetMath,
+  type DecisionSummary,
   type JackpotPayout,
   type MathSummary,
   type PaytableEntry,
@@ -11,12 +12,13 @@ import { formatCents, formatPercent } from '../format/format.ts';
 import { Modal } from './Modal.ts';
 import './paytable.css';
 
-/** The paytable of every bet, generated from the game's math summary. */
+/** The paytable of every bet, generated from the game's math summary, with its strategy card. */
 export function createPaytable(summary: MathSummary): HTMLElement {
   return h(
     'div',
     { class: 'cg-paytable' },
     ...summary.bets.map(renderBet),
+    summary.decisions === undefined ? null : renderStrategy(summary.decisions),
     h(
       'p',
       { class: 'cg-paytable__note' },
@@ -163,6 +165,112 @@ function renderBreakdown({ by, rows }: BetBreakdown): HTMLElement {
         ),
       ),
     ),
+  );
+}
+
+/**
+ * A game's decisions: the value of every choice in each situation (the best
+ * highlighted), then what that strategy returns under the rules and their
+ * variants. The RTPs above assume it.
+ */
+function renderStrategy({ description, card, figures }: DecisionSummary): HTMLElement {
+  const value = (number: number) => `${number < 0 ? '−' : '+'}${Math.abs(number).toFixed(3)}`;
+  return h(
+    'section',
+    { class: 'cg-paytable__bet cg-paytable__strategy' },
+    h('header', { class: 'cg-paytable__header' }, h('h3', null, 'Strategy')),
+    h('p', { class: 'cg-paytable__description' }, description),
+    h(
+      'div',
+      { class: 'cg-paytable__lines' },
+      h(
+        'table',
+        { class: 'cg-table cg-paytable__card' },
+        h(
+          'caption',
+          { class: 'cg-paytable__caption' },
+          `Each value is the expected ${card.measure}; the best choice is highlighted.`,
+        ),
+        h(
+          'thead',
+          null,
+          h(
+            'tr',
+            null,
+            h('th', { scope: 'col' }, card.situation),
+            h('th', { scope: 'col' }, 'Chance'),
+            ...card.choices.map((choice) => h('th', { scope: 'col' }, choice)),
+            h('th', { scope: 'col' }, 'Play'),
+          ),
+        ),
+        h(
+          'tbody',
+          null,
+          ...card.rows.map((row) =>
+            h(
+              'tr',
+              null,
+              h('th', { scope: 'row', class: 'cg-num' }, row.situation),
+              h('td', { class: 'cg-num' }, formatPercent(row.probability)),
+              ...row.values.map((number, index) =>
+                h(
+                  'td',
+                  { class: index === row.best ? 'cg-num cg-paytable__best' : 'cg-num' },
+                  value(number),
+                ),
+              ),
+              h('td', null, row.play),
+            ),
+          ),
+        ),
+      ),
+    ),
+    h(
+      'div',
+      { class: 'cg-paytable__lines' },
+      h(
+        'table',
+        { class: 'cg-table cg-paytable__rules' },
+        h(
+          'thead',
+          null,
+          h(
+            'tr',
+            null,
+            h('th', { scope: 'col' }, 'The strategy returns'),
+            ...figures.map((rules) => h('th', { scope: 'col' }, rules.label)),
+          ),
+        ),
+        h(
+          'tbody',
+          null,
+          figureRow('RTP', figures, (rules) => formatPercent(rules.rtp)),
+          figureRow('House edge', figures, (rules) => formatPercent(rules.houseEdge)),
+          ...(figures[0]?.choiceFrequencies ?? []).map(({ choice }) =>
+            figureRow(`${choice}, share of rounds`, figures, (rules) => {
+              const frequency = rules.choiceFrequencies.find((entry) => entry.choice === choice);
+              return frequency === undefined ? '—' : formatPercent(frequency.frequency);
+            }),
+          ),
+          figureRow('Fee paid, share of rounds', figures, (rules) =>
+            formatPercent(rules.feeFrequency),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+function figureRow(
+  label: string,
+  figures: DecisionSummary['figures'],
+  cell: (rules: DecisionSummary['figures'][number]) => string,
+): HTMLElement {
+  return h(
+    'tr',
+    null,
+    h('th', { scope: 'row' }, label),
+    ...figures.map((rules) => h('td', { class: 'cg-num' }, cell(rules))),
   );
 }
 

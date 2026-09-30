@@ -115,3 +115,14 @@
     letter-spacing: 0.06em;
   }
 }
+
+/* The strategy card: the best choice on each row stands out. */
+.cg-paytable td.cg-paytable__best {
+  color: var(--gold-200);
+  font-weight: 700;
+}
+
+.cg-paytable__card td:last-child,
+.cg-paytable__rules th[scope='row'] {
+  white-space: nowrap;
+}
