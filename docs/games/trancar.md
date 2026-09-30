@@ -87,29 +87,29 @@ Wins 1 to 1 when your dice add up to more than the dealer's two cards; a tie los
 
 After the roll: Ficar (stand), or Trancar (lock one die and roll the other once more) for 40% of the bet, taken at once and never returned; a roll of 1-1 re-rolls for free. A re-roll is always worth more with the higher die locked. The reference strategy re-rolls on 1-1, 2-1, 3-1, 4-1, 5-1, 6-1, 3-2, 4-2, 5-2 and stands on the other 12 rolls.
 
-| Roll | Chance | Ficar | Trancar | Play |
-| :-- | --: | --: | --: | :-- |
-| 1-1 | 2.78% | −1.000 | **−0.676** | Lock a 1, re-roll the other (free) |
-| 2-1 | 5.56% | −0.944 | **−0.881** | Lock the 2, re-roll the 1 |
-| 3-1 | 5.56% | −0.833 | **−0.650** | Lock the 3, re-roll the 1 |
-| 4-1 | 5.56% | −0.667 | **−0.400** | Lock the 4, re-roll the 1 |
-| 5-1 | 5.56% | −0.444 | **−0.150** | Lock the 5, re-roll the 1 |
-| 6-1 | 5.56% | −0.167 | **+0.081** | Lock the 6, re-roll the 1 |
-| 2-2 | 2.78% | **−0.833** | −0.881 | Ficar |
-| 3-2 | 5.56% | −0.667 | **−0.650** | Lock the 3, re-roll the 2 |
-| 4-2 | 5.56% | −0.444 | **−0.400** | Lock the 4, re-roll the 2 |
-| 5-2 | 5.56% | −0.167 | **−0.150** | Lock the 5, re-roll the 2 |
-| 6-2 | 5.56% | **+0.167** | +0.081 | Ficar |
-| 3-3 | 2.78% | **−0.444** | −0.650 | Ficar |
-| 4-3 | 5.56% | **−0.167** | −0.400 | Ficar |
-| 5-3 | 5.56% | **+0.167** | −0.150 | Ficar |
-| 6-3 | 5.56% | **+0.444** | +0.081 | Ficar |
-| 4-4 | 2.78% | **+0.167** | −0.400 | Ficar |
-| 5-4 | 5.56% | **+0.444** | −0.150 | Ficar |
-| 6-4 | 5.56% | **+0.667** | +0.081 | Ficar |
-| 5-5 | 2.78% | **+0.667** | −0.150 | Ficar |
-| 6-5 | 5.56% | **+0.833** | +0.081 | Ficar |
-| 6-6 | 2.78% | **+0.944** | +0.081 | Ficar |
+| Roll | Play | Ficar | Trancar | Chance |
+| :-- | :-- | --: | --: | --: |
+| 1-1 | Lock a 1, re-roll the other (free) | −1.000 | **−0.676** | 2.78% |
+| 2-1 | Lock the 2, re-roll the 1 | −0.944 | **−0.881** | 5.56% |
+| 3-1 | Lock the 3, re-roll the 1 | −0.833 | **−0.650** | 5.56% |
+| 4-1 | Lock the 4, re-roll the 1 | −0.667 | **−0.400** | 5.56% |
+| 5-1 | Lock the 5, re-roll the 1 | −0.444 | **−0.150** | 5.56% |
+| 6-1 | Lock the 6, re-roll the 1 | −0.167 | **+0.081** | 5.56% |
+| 2-2 | Ficar | **−0.833** | −0.881 | 2.78% |
+| 3-2 | Lock the 3, re-roll the 2 | −0.667 | **−0.650** | 5.56% |
+| 4-2 | Lock the 4, re-roll the 2 | −0.444 | **−0.400** | 5.56% |
+| 5-2 | Lock the 5, re-roll the 2 | −0.167 | **−0.150** | 5.56% |
+| 6-2 | Ficar | **+0.167** | +0.081 | 5.56% |
+| 3-3 | Ficar | **−0.444** | −0.650 | 2.78% |
+| 4-3 | Ficar | **−0.167** | −0.400 | 5.56% |
+| 5-3 | Ficar | **+0.167** | −0.150 | 5.56% |
+| 6-3 | Ficar | **+0.444** | +0.081 | 5.56% |
+| 4-4 | Ficar | **+0.167** | −0.400 | 2.78% |
+| 5-4 | Ficar | **+0.444** | −0.150 | 5.56% |
+| 6-4 | Ficar | **+0.667** | +0.081 | 5.56% |
+| 5-5 | Ficar | **+0.667** | −0.150 | 2.78% |
+| 6-5 | Ficar | **+0.833** | +0.081 | 5.56% |
+| 6-6 | Ficar | **+0.944** | +0.081 | 2.78% |
 
 Each value is the expected net result per unit of the main bet, the fee included (Trancar locks the higher die). The best choice is in bold: it is the strategy the declared figures assume.
 

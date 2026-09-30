@@ -119,14 +119,14 @@ function renderDecisions({ description, card, figures }: DecisionSummary): strin
     '### Strategy',
     description,
     [
-      row([card.situation, 'Chance', ...card.choices, 'Play']),
-      row([':--', '--:', ...card.choices.map(() => '--:'), ':--']),
+      row([card.situation, 'Play', ...card.choices, 'Chance']),
+      row([':--', ':--', ...card.choices.map(() => '--:'), '--:']),
       ...card.rows.map((situation) =>
         row([
           situation.situation,
-          percent(situation.probability, 2),
-          ...values(situation),
           situation.play,
+          ...values(situation),
+          percent(situation.probability, 2),
         ]),
       ),
     ].join('\n'),

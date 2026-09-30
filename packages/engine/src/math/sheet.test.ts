@@ -266,16 +266,16 @@ describe('renderMathSection with decisions', () => {
     );
   });
 
-  it('writes the strategy card, the best choice in bold', () => {
+  it('writes the strategy card, the play first and the best choice in bold', () => {
     expect(section).toContain(
       [
         '### Strategy',
         'After the deal, hold the card or swap it for 20% of the bet.',
         [
-          '| Card | Chance | Hold | Swap | Play |',
-          '| :-- | --: | --: | --: | :-- |',
-          '| High | 50.00% | **+0.500** | −0.200 | Hold |',
-          '| Low | 50.00% | −0.500 | **−0.200** | Swap it |',
+          '| Card | Play | Hold | Swap | Chance |',
+          '| :-- | :-- | --: | --: | --: |',
+          '| High | Hold | **+0.500** | −0.200 | 50.00% |',
+          '| Low | Swap it | −0.500 | **−0.200** | 50.00% |',
         ].join('\n'),
         'Each value is the expected net result per unit of the bet, fees included. The best ' +
           'choice is in bold: it is the strategy the declared figures assume.',
