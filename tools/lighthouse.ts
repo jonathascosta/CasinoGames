@@ -21,6 +21,12 @@ import { GAMES } from '../packages/engine/src/games/index.ts';
 const BAR = 0.9;
 const RUNS = 3;
 const PORT = 4180;
+/**
+ * Chrome's debugging port. A fixed one: with none, Lighthouse's launcher
+ * waits for Chrome to print the port it picked, which Chrome on GitHub's
+ * runners did not do in time.
+ */
+const DEBUGGING_PORT = 9333;
 const BASE = process.env.BASE_PATH ?? '/';
 const ORIGIN = `http://localhost:${String(PORT)}`;
 const PAGES = ['', 'stats', ...GAMES.map((game) => game.id)];
@@ -90,20 +96,27 @@ async function ready(url: string): Promise<void> {
 
 async function measure(url: string): Promise<Scores> {
   const output = join(dir, 'report.json');
-  await run(
-    'npx',
-    [
-      '--yes',
-      'lighthouse@12',
-      url,
-      '--quiet',
-      '--chrome-flags=--headless=new --no-sandbox',
-      '--only-categories=performance,accessibility',
-      '--output=json',
-      `--output-path=${output}`,
-    ],
-    { timeout: 180_000 },
-  );
+  try {
+    await run(
+      'npx',
+      [
+        '--yes',
+        'lighthouse@12',
+        url,
+        `--port=${String(DEBUGGING_PORT)}`,
+        '--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage',
+        '--only-categories=performance,accessibility',
+        '--output=json',
+        `--output-path=${output}`,
+      ],
+      { timeout: 180_000, maxBuffer: 64 * 1024 * 1024 },
+    );
+  } catch (error) {
+    // Lighthouse's log (and Chrome's, when it would not start) says why.
+    const { stderr } = error as { stderr?: string };
+    process.stderr.write(`${(stderr ?? '').split('\n').slice(-40).join('\n')}\n`);
+    throw error;
+  }
   const report = JSON.parse(readFileSync(output, 'utf8')) as {
     categories: Record<'performance' | 'accessibility', { score: number }>;
     audits: Record<string, { displayValue?: string }>;
