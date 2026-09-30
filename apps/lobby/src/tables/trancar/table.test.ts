@@ -237,6 +237,24 @@ describe('TrancarTable', () => {
     expect(tracker.stats).toMatchObject({ rounds: 1, fees: 0 });
   });
 
+  it('pays a round out when the page is hidden mid-decision, and plays on if it comes back', async () => {
+    const { table, services, tracker, dice, trancar, roll } = await setup(SEEDS.fiveTwo);
+    const { playing } = await roll();
+    window.dispatchEvent(new Event('pagehide'));
+    // Paid out at once, standing: no fee without the player's choice.
+    const line = expected(SEEDS.fiveTwo, 'ficar').settlement.trancar!;
+    expect(services.bankroll.balance).toBe(1_000_00 - 100 + line.payout);
+    expect(tracker.stats).toMatchObject({ rounds: 1, fees: 0 });
+    // Shown again (back from the page cache), the decision still on screen: the round plays
+    // on as it ended, and nothing is paid twice.
+    dice()[0]!.click();
+    trancar.click();
+    await playing;
+    expect(services.bankroll.balance).toBe(1_000_00 - 100 + line.payout);
+    expect(tracker.stats.rounds).toBe(1);
+    expect(table.phase).toBe('betting');
+  });
+
   it('offers Trancar only when the balance covers its fee', async () => {
     const { dice, trancar, ficar, q, roll } = await setup(SEEDS.fiveTwo, 1_00);
     const { playing } = await roll();

@@ -197,6 +197,15 @@ export class DiceTable<
   #phase: TablePhase = 'loading';
   /** The round in play: its latest step, until the table has paid it out. */
   #pending: RoundState<TChoice, TData, TEvent> | null = null;
+  /**
+   * A round the table ended with the free choice while it awaited the
+   * player (the page was hidden): the step it awaited and the step that
+   * ended it, so a view still asking plays on with that choice.
+   */
+  #ended: {
+    readonly awaiting: RoundState<TChoice, TData, TEvent>;
+    readonly settled: RoundState<TChoice, TData, TEvent>;
+  } | null = null;
   /** The last round's summary, shown until the bets change. */
   #result: string | null = null;
   /** What the round just played showed ("Card 3 · Entre wins"). */
@@ -340,6 +349,7 @@ export class DiceTable<
       return;
     }
     this.#pending = state;
+    this.#ended = null;
 
     const signal = this.#abort.signal;
     const shoe = this.#table.shoe;
@@ -372,6 +382,11 @@ export class DiceTable<
       },
       canAfford: (choice) => bankroll.canAfford(this.#costOf(state, choice)),
       decide: (choice) => {
+        if (this.#ended?.awaiting === state) {
+          // The table ended the round meanwhile (the page was hidden and shown again).
+          state = this.#ended.settled;
+          return state;
+        }
         if (this.#pending !== state || state.phase !== 'awaiting-decision') {
           throw new Error('This round does not await a decision');
         }
@@ -476,6 +491,7 @@ export class DiceTable<
     }
     const next = this.#table.game.decide(state, choice);
     if (this.#pending === state) this.#pending = next;
+    this.#ended = { awaiting: state, settled: next };
     return next;
   }
 
