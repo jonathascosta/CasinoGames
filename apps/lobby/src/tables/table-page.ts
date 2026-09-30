@@ -12,7 +12,7 @@ import { siteFooter } from '../pages/lobby.ts';
 import { createTopBar } from '../shell/topbar.ts';
 import type { TableOptions } from './dice-table.ts';
 import type { TablePage } from './index.ts';
-import { createRulesModal, loadSheet, tableTitle } from './shell.ts';
+import { createRulesModal, loadRules, playerRules, tableTitle } from './shell.ts';
 import '../pages/game.css';
 import './table.css';
 
@@ -46,19 +46,20 @@ function iconButton(label: string, name: 'info' | 'paytable', modal: Modal): HTM
 }
 
 /**
- * A table's page: the top bar, the table with its Rules (the game sheet) and
- * Paytable (the math summary) buttons beside the balance, and the RTP monitor.
+ * A table's page: the top bar, the table with its Rules (the players' part of
+ * the Rules of Play) and Paytable (the math summary) buttons beside the
+ * balance, and the RTP monitor.
  */
 export function tablePage(config: TablePageConfig): TablePage {
   return async (game, services, router) => {
-    const sheet = await loadSheet(game.slug);
+    const text = playerRules(await loadRules(game.slug));
     return {
       title: game.name,
       mount(outlet) {
         const math = config.math();
         // The balance sits beside the chips, with the bet.
         const topbar = createTopBar(services, tableTitle(game, router), { balance: false });
-        const rules = createRulesModal(game, sheet);
+        const rules = createRulesModal(game, text);
         const paytable = createPaytableModal(math);
         const tracker = new RtpTracker({ gameId: config.gameId, storage: services.storage });
         const table = config.createTable({

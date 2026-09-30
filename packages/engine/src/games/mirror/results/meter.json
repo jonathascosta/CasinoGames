@@ -1,0 +1,90 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/mirror/mirror.test.ts",
+    "name": "Mirror — the progressive meter › prices the meter, and pays the worked example of the rules"
+  },
+  "figures": {
+    "terms": {
+      "seed": 500000,
+      "contributionRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "fullShareStake": 2500,
+      "hitChance": {
+        "fraction": "1/1296",
+        "value": 0.0007716049382716049
+      },
+      "cycleRounds": {
+        "fraction": "1296",
+        "value": 1296
+      }
+    },
+    "fixedRtp": {
+      "fraction": "1001/1296",
+      "value": 0.7723765432098766
+    },
+    "contributionRtp": {
+      "fraction": "1/10",
+      "value": 0.1
+    },
+    "rtpExcludingSeed": {
+      "fraction": "5653/6480",
+      "value": 0.8723765432098766
+    },
+    "rtpAtSeed": {
+      "fraction": "1201/1296",
+      "value": 0.9266975308641975
+    },
+    "rtpPerMeterUnit": {
+      "fraction": "1/3240000",
+      "value": 3.08641975308642e-7
+    },
+    "breakEvenMeter": {
+      "fraction": "737500",
+      "value": 737500
+    },
+    "seedCostPerRound": {
+      "fraction": "31250/81",
+      "value": 385.8024691358025
+    },
+    "seedCostShareAtMax": {
+      "fraction": "25/162",
+      "value": 0.15432098765432098
+    },
+    "meterAtHit": [
+      {
+        "meanStake": 50,
+        "meter": 506480
+      },
+      {
+        "meanStake": 100,
+        "meter": 512960
+      },
+      {
+        "meanStake": 500,
+        "meter": 564800
+      },
+      {
+        "meanStake": 787.5,
+        "meter": 602060
+      },
+      {
+        "meanStake": 2500,
+        "meter": 824000
+      }
+    ],
+    "example": {
+      "stake": 500,
+      "meterBefore": 600000,
+      "contribution": 50,
+      "meterAtHit": 600050,
+      "fixedWin": 500000,
+      "share": 120010,
+      "payout": 620510,
+      "meterAfterShare": 480040,
+      "topUp": 19960,
+      "meterAfter": 500000
+    }
+  }
+}

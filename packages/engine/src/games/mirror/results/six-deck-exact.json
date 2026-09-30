@@ -1,0 +1,169 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/mirror/finite-shoe.test.ts",
+    "name": "Mirror — every round of the six-deck shoe, exactly › records every bet on the six-deck shoe, and where the meter breaks even there"
+  },
+  "figures": {
+    "shoe": {
+      "kind": "shoe",
+      "decks": 6,
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "suits": 4,
+      "cards": 144,
+      "penetration": 0.75,
+      "cutCard": 108,
+      "behindCutCard": 36
+    },
+    "sampleSpace": {
+      "rolls": 36,
+      "firstCard": 6,
+      "secondCard": 143,
+      "outcomes": 30888
+    },
+    "bets": {
+      "mirror": {
+        "hitFrequency": {
+          "fraction": "4915/10296",
+          "value": 0.47736985236985235
+        },
+        "rtp": {
+          "fraction": "4915/5148",
+          "value": 0.9547397047397047
+        },
+        "houseEdge": {
+          "fraction": "233/5148",
+          "value": 0.045260295260295264
+        },
+        "variance": {
+          "fraction": "26447615/26501904",
+          "value": 0.9979515056729509
+        },
+        "standardDeviation": 0.9989752277574009
+      },
+      "tie": {
+        "hitFrequency": {
+          "fraction": "263/5148",
+          "value": 0.05108780108780109
+        },
+        "rtp": {
+          "fraction": "263/286",
+          "value": 0.9195804195804196
+        },
+        "houseEdge": {
+          "fraction": "23/286",
+          "value": 0.08041958041958042
+        },
+        "variance": {
+          "fraction": "1284755/81796",
+          "value": 15.706819404371853
+        },
+        "standardDeviation": 3.9631829890091943
+      },
+      "equal-sums": {
+        "hitFrequency": {
+          "fraction": "581/5148",
+          "value": 0.11285936285936286
+        },
+        "rtp": {
+          "fraction": "1162/1287",
+          "value": 0.9028749028749029
+        },
+        "houseEdge": {
+          "fraction": "125/1287",
+          "value": 0.09712509712509712
+        },
+        "variance": {
+          "fraction": "10613708/1656369",
+          "value": 6.4078161327578576
+        },
+        "standardDeviation": 2.5313664556436426
+      },
+      "pair-vs-pair": {
+        "hitFrequency": {
+          "fraction": "23/858",
+          "value": 0.026806526806526808
+        },
+        "rtp": {
+          "fraction": "713/858",
+          "value": 0.831002331002331
+        },
+        "houseEdge": {
+          "fraction": "145/858",
+          "value": 0.168997668997669
+        },
+        "variance": {
+          "fraction": "18456005/736164",
+          "value": 25.070507386940953
+        },
+        "standardDeviation": 5.007045774400405
+      },
+      "perfect-mirror": {
+        "hitFrequency": {
+          "fraction": "23/5148",
+          "value": 0.004467754467754468
+        },
+        "rtp": {
+          "fraction": "1541/1716",
+          "value": 0.8980186480186481
+        },
+        "houseEdge": {
+          "fraction": "175/1716",
+          "value": 0.10198135198135198
+        },
+        "variance": {
+          "fraction": "529140875/2944656",
+          "value": 179.69531075955902
+        },
+        "standardDeviation": 13.405047958122307
+      },
+      "double-sixes": {
+        "hitFrequency": {
+          "fraction": "23/30888",
+          "value": 0.0007446257446257446
+        },
+        "rtp": {
+          "fraction": "161/216",
+          "value": 0.7453703703703703
+        },
+        "houseEdge": {
+          "fraction": "55/216",
+          "value": 0.25462962962962965
+        },
+        "variance": {
+          "fraction": "34784855/46656",
+          "value": 745.5601637517146
+        },
+        "standardDeviation": 27.30494760573099
+      }
+    },
+    "doubleSixes": {
+      "fixedRtp": {
+        "fraction": "161/216",
+        "value": 0.7453703703703703
+      },
+      "rtpExcludingSeed": {
+        "fraction": "913/1080",
+        "value": 0.8453703703703703
+      },
+      "cycleRounds": {
+        "fraction": "30888/23",
+        "value": 1342.9565217391305
+      },
+      "breakEvenMeter": {
+        "fraction": "19662500/23",
+        "value": 854891.304347826
+      }
+    },
+    "pairRatio": {
+      "fraction": "23/143",
+      "value": 0.16083916083916083
+    }
+  }
+}

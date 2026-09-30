@@ -52,7 +52,7 @@ export function createMirrorJackpot(state?: ProgressiveState): ProgressiveJackpo
   return new ProgressiveJackpot({ id, seed, contributionRate }, state);
 }
 
-/** The declared math of every bet, as shown in the paytable and the game sheet. */
+/** The declared math of every bet, as shown in the paytable and the Math Report. */
 export function mirrorMathSummary(): MathSummary {
   return summarizeMath({
     id: MIRROR_ID,

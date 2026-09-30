@@ -2,15 +2,36 @@ import { createInfoModal, h, icon, type Modal } from '@casinogames/ui';
 import type { GameEntry } from '../catalog.ts';
 import type { Router } from '../router/router.ts';
 
-/** Game sheets from docs/games (not the _TEMPLATE), loaded on demand as the in-game rules text. */
-const SHEETS = import.meta.glob<string>(
-  ['../../../../docs/games/*.md', '!../../../../docs/games/_*.md'],
-  { query: '?raw', import: 'default' },
-);
+/** The Rules of Play in docs/rules, which tools/generate-docs.ts writes, loaded on demand. */
+const RULES = import.meta.glob<string>('../../../../docs/rules/*.md', {
+  query: '?raw',
+  import: 'default',
+});
 
-export async function loadSheet(slug: string): Promise<string> {
-  const load = Object.entries(SHEETS).find(([path]) => path.endsWith(`/${slug}.md`))?.[1];
-  return load === undefined ? '# Rules\nThe game sheet is not available yet.' : load();
+export async function loadRules(slug: string): Promise<string> {
+  const load = Object.entries(RULES).find(([path]) => path.endsWith(`/${slug}.md`))?.[1];
+  return load === undefined ? '# Rules\nThe Rules of Play are not available yet.' : load();
+}
+
+/** Where the players' part of the Rules of Play starts and ends (see tools/docs/rules.ts). */
+const PLAYER_START = '<!-- player-rules:start -->';
+const PLAYER_END = '<!-- player-rules:end -->';
+
+/**
+ * The part of the Rules of Play a player needs at the table: from the
+ * objective to the settlement, as the document numbers its sections. The
+ * whole document, with the live-dealer notes and the rulings, opens from the
+ * lobby.
+ */
+export function playerRules(rules: string): string {
+  const start = rules.indexOf(PLAYER_START);
+  const end = rules.indexOf(PLAYER_END);
+  if (start === -1 || end < start) return rules;
+  return (
+    'From the Rules of Play, sections 2 to 8. The full document, with the live-dealer notes and ' +
+    "the rulings on irregularities, opens from the lobby's Rules of Play button.\n\n" +
+    rules.slice(start + PLAYER_START.length, end).trim()
+  );
 }
 
 /** The leading part of a table's top bar: a back link, the name and its tagline. */
@@ -37,17 +58,17 @@ export function tableTitle(game: GameEntry, router: Router): HTMLElement {
 }
 
 /**
- * The game sheet in a dialog, without its title (the dialog names the game):
- * the Rules at a table, the Game sheet in the lobby.
+ * Rules of Play in a dialog, without their title (the dialog names the game):
+ * the players' part at a table, the whole document in the lobby.
  */
 export function createRulesModal(
   game: GameEntry,
-  sheet: string,
-  heading: 'Rules' | 'Game sheet' = 'Rules',
+  rules: string,
+  heading: 'Rules' | 'Rules of Play' = 'Rules',
 ): Modal {
   return createInfoModal({
     title: `${game.name} · ${heading}`,
-    markdown: sheet.replace(/^# .*\n+/, ''),
+    markdown: rules.replace(/^# .*\n+/, ''),
   });
 }
 

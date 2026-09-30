@@ -8,14 +8,15 @@
  *
  * Over a whole shoe the rounds interact (the cut card, the cards earlier
  * rounds took), and the long-run shift differs: moving-target.math.test.ts
- * measures it. The game sheet reports both.
+ * measures it. The Math Report reports both.
  */
 import { describe, expect, it } from 'vitest';
 import { DIE_FACES } from '../../dice/dice.ts';
 import type { Odds } from '../../game/money.ts';
 import { Fraction } from '../../math/fraction.ts';
+import { describeShoe, exact, recordFigures } from '../../testing/record.ts';
 import { MOVING_TARGET_BETS } from './bets.ts';
-import { movingTargetMathSummary } from './game.ts';
+import { createMovingTargetShoe, movingTargetMathSummary } from './game.ts';
 import {
   EXACT_HIT_ODDS,
   FIRST_CARD_ODDS,
@@ -112,6 +113,42 @@ describe('Moving Target — the first round of a fresh six-deck shoe, exactly', 
       shift(threePlus, declared['three-plus-cards']!),
       `${(threePlus.toNumber() * 100).toFixed(2)}%`,
     ]).toEqual(['−0.20 pp', '89.38%']);
+  });
+
+  it('measures every bet, and Exact Hit by target, on the first round of a fresh shoe', async () => {
+    const rows = movingTargetMathSummary().bets[0]!.breakdown!.rows;
+    const bets = {
+      'exact-hit': rtp((row) => row.hit.mul(pays(EXACT_HIT_ODDS[row.target]))),
+      'first-card': rtp((row) => row.first.mul(pays(FIRST_CARD_ODDS))),
+      'three-plus-cards': rtp((row) => row.three.mul(pays(THREE_PLUS_CARDS_ODDS))),
+    };
+    const shoe = createMovingTargetShoe();
+    expect(shoe.size()).toBe(SHOE_SIZE);
+    await recordFigures('first-round', {
+      shoe: describeShoe(shoe),
+      perValue: PER_VALUE,
+      bets: Object.fromEntries(
+        Object.entries(bets).map(([id, value]) => [
+          id,
+          {
+            rtp: exact(value),
+            houseEdge: exact(Fraction.ONE.sub(value)),
+            declaredHouseEdge: 1 - declared[id]!,
+            shift: 1 - value.toNumber() - (1 - declared[id]!),
+          },
+        ]),
+      ),
+      byTarget: BY_TARGET.map(({ target, hit }, index) => {
+        const edge = Fraction.ONE.sub(hit.mul(pays(EXACT_HIT_ODDS[target])));
+        return {
+          target,
+          hit: exact(hit),
+          houseEdge: exact(edge),
+          declaredHouseEdge: rows[index]!.houseEdge,
+          shift: edge.toNumber() - rows[index]!.houseEdge,
+        };
+      }),
+    });
   });
 
   it('makes the even targets harder to hit, the odd ones barely', () => {

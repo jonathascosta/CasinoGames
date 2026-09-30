@@ -9,8 +9,11 @@
 import { describe, expect, it } from 'vitest';
 import { RANK_SETS } from '../../cards/card.ts';
 import { Shoe } from '../../cards/shoe.ts';
+import { playRound } from '../../game/play.ts';
+import { enumerateOutcomes } from '../../math/enumerate.ts';
 import { exactReturns } from '../../math/exact.ts';
 import { Fraction } from '../../math/fraction.ts';
+import { exact, exactFigures, exposure, recordFigures } from '../../testing/record.ts';
 import { createUniformRankSource } from '../../testing/uniform-ranks.ts';
 import {
   LOCK_AND_ROLL_BETS,
@@ -108,6 +111,132 @@ describe('Lock & Roll — the declared figures, exactly, on the game', () => {
       return choice === 'stand' ? choice : choice === 'lock-0' ? 'lock-1' : 'lock-0';
     };
     expect(rtpOf(lockLow).compare(best)).toBe(-1);
+  });
+
+  const uniform = (rules = LOCK_AND_ROLL_CONFIG.rules) =>
+    createLockAndRoll({ source: createUniformRankSource(RANK_SETS.aceToSix), rules });
+  const exactOf = (
+    choose: (state: LockAndRollState) => LockAndRollChoice,
+    rules = LOCK_AND_ROLL_CONFIG.rules,
+  ) => exactReturns(() => uniform(rules), { 'lock-and-roll': 100 }, choose).bets['lock-and-roll']!;
+
+  it('breaks the return down by decision and result, and prices the strategies a player might follow', async () => {
+    // Every round of the reference strategy, by what the player did and how the bet ended.
+    const kinds = new Map<string, { probability: Fraction; net: Fraction }>();
+    const rounds = enumerateOutcomes((rng) =>
+      playRound(uniform(), { 'lock-and-roll': 100 }, rng, lockAndRollStrategy()),
+    );
+    for (const { value: state, probability } of rounds) {
+      const line = state.settlement['lock-and-roll']!;
+      const locked = state.events.some((event) => event.type === 'die-rerolled');
+      const decision = !locked ? 'stand' : line.fee === undefined ? 'lock-free' : 'lock';
+      const key = `${decision}/${line.outcome}`;
+      const kind = kinds.get(key);
+      const net = Fraction.of(line.net, line.stake);
+      if (kind === undefined) kinds.set(key, { probability, net });
+      else {
+        expect(kind.net.equals(net)).toBe(true);
+        kinds.set(key, { probability: kind.probability.add(probability), net });
+      }
+    }
+    const order = [
+      'stand/win',
+      'stand/lose',
+      'lock/win',
+      'lock/lose',
+      'lock-free/win',
+      'lock-free/lose',
+    ];
+    expect([...kinds.keys()].sort()).toEqual([...order].sort());
+    const rows = order.map((key) => ({ key, ...kinds.get(key)! }));
+    const mean = rows.reduce((sum, row) => sum.add(row.probability.mul(row.net)), Fraction.ZERO);
+    const square = rows.reduce(
+      (sum, row) => sum.add(row.probability.mul(row.net).mul(row.net)),
+      Fraction.ZERO,
+    );
+    const played = exactOf(lockAndRollStrategy());
+    expect(Fraction.ONE.add(mean).equals(played.rtp)).toBe(true);
+    expect(square.sub(mean.mul(mean)).equals(played.variance)).toBe(true);
+    expect(played.rtp.equals(mainBet.rtp)).toBe(true);
+
+    // The declared figures assume the best play; these are what other plays return.
+    const lowIndex = (state: LockAndRollState) =>
+      state.data.dice[0] <= state.data.dice[1] ? 0 : 1;
+    const strategies = {
+      optimal: lockAndRollStrategy(),
+      'never-lock': (): LockAndRollChoice => 'stand',
+      'always-lock-low': (state: LockAndRollState): LockAndRollChoice =>
+        lowIndex(state) === 0 ? 'lock-0' : 'lock-1',
+      'always-lock-high': (state: LockAndRollState): LockAndRollChoice =>
+        lowIndex(state) === 0 ? 'lock-1' : 'lock-0',
+      'optimal-wrong-die': (state: LockAndRollState): LockAndRollChoice => {
+        const choice = lockAndRollStrategy()(state);
+        return choice === 'stand' ? choice : choice === 'lock-0' ? 'lock-1' : 'lock-0';
+      },
+    };
+    const priced = Object.fromEntries(
+      Object.entries(strategies).map(([name, choose]) => {
+        const result = exactOf(choose);
+        return [
+          name,
+          {
+            ...exactFigures(result),
+            averageFee: exact(result.expectedFee.div(result.expectedStake)),
+          },
+        ];
+      }),
+    );
+    expect(priced['never-lock']!.rtp.fraction).toBe('575/648');
+    for (const name of Object.keys(strategies).filter((key) => key !== 'optimal')) {
+      expect(priced[name]!.rtp.value, name).toBeLessThan(priced.optimal!.rtp.value);
+    }
+    const without = exactOf(lockAndRollStrategy(WITHOUT_FREE_ONE_ONE), WITHOUT_FREE_ONE_ONE);
+    const atMax = exposure(
+      () => uniform(),
+      { 'lock-and-roll': LOCK_AND_ROLL_CONFIG.max },
+      lockAndRollStrategy(),
+    );
+    expect(atMax.bets['lock-and-roll']).toEqual({
+      win: LOCK_AND_ROLL_CONFIG.max,
+      loss:
+        LOCK_AND_ROLL_CONFIG.max *
+        (1 + LOCK_AND_ROLL_CONFIG.rules.fee.numerator / LOCK_AND_ROLL_CONFIG.rules.fee.denominator),
+    });
+    await recordFigures('exact', {
+      sampleSpace: { rolls: 36, rerolls: 6, cards: 24 * 24, outcomes: report.outcomes },
+      source: { kind: 'infinite shoe', ranks: RANK_SETS.aceToSix, suits: 4 },
+      rules: {
+        fee: exact(
+          Fraction.of(
+            LOCK_AND_ROLL_CONFIG.rules.fee.numerator,
+            LOCK_AND_ROLL_CONFIG.rules.fee.denominator,
+          ),
+        ),
+        freeOneOne: LOCK_AND_ROLL_CONFIG.rules.freeOneOne,
+      },
+      outcomes: rows.map(({ key, probability, net }) => ({
+        decision: key.split('/')[0],
+        result: key.split('/')[1],
+        probability: exact(probability),
+        net: exact(net),
+        contribution: exact(probability.mul(net)),
+      })),
+      bet: {
+        ...exactFigures(mainBet),
+        averageFee: exact(mainBet.expectedFee.div(mainBet.expectedStake)),
+        feeFrequency: exact(LOCK_AND_ROLL_MATH.feeFrequency),
+        rerollFrequency: exact(LOCK_AND_ROLL_MATH.rerollFrequency),
+        elementOfRisk: exact(LOCK_AND_ROLL_MATH.elementOfRisk),
+      },
+      withoutFreeOneOne: {
+        ...exactFigures(without),
+        averageFee: exact(without.expectedFee.div(without.expectedStake)),
+        elementOfRisk: exact(LOCK_AND_ROLL_WITHOUT_FREE.elementOfRisk),
+        rerollFrequency: exact(LOCK_AND_ROLL_WITHOUT_FREE.rerollFrequency),
+      },
+      strategies: priced,
+      maxExposure: atMax,
+    });
   });
 });
 

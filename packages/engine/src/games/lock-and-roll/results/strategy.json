@@ -1,0 +1,654 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/lock-and-roll/strategy.test.ts",
+    "name": "Lock & Roll — the best choice on each of the 21 rolls, by expected value › values standing and locking either die on each of the 21 rolls, as strategy.ts does"
+  },
+  "figures": {
+    "rules": {
+      "fee": {
+        "fraction": "2/5",
+        "value": 0.4
+      },
+      "freeOneOne": true
+    },
+    "rows": [
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "chance": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "free": true,
+        "stand": {
+          "fraction": "-1",
+          "value": -1
+        },
+        "lockHigh": {
+          "fraction": "-73/108",
+          "value": -0.6759259259259259
+        },
+        "lockLow": {
+          "fraction": "-73/108",
+          "value": -0.6759259259259259
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "35/108",
+          "value": 0.32407407407407407
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-17/18",
+          "value": -0.9444444444444444
+        },
+        "lockHigh": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "lockLow": {
+          "fraction": "-581/540",
+          "value": -1.075925925925926
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "17/270",
+          "value": 0.06296296296296296
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-5/6",
+          "value": -0.8333333333333334
+        },
+        "lockHigh": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "lockLow": {
+          "fraction": "-581/540",
+          "value": -1.075925925925926
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "11/60",
+          "value": 0.18333333333333332
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-2/3",
+          "value": -0.6666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "lockLow": {
+          "fraction": "-581/540",
+          "value": -1.075925925925926
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "4/15",
+          "value": 0.26666666666666666
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-4/9",
+          "value": -0.4444444444444444
+        },
+        "lockHigh": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "lockLow": {
+          "fraction": "-581/540",
+          "value": -1.075925925925926
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "53/180",
+          "value": 0.29444444444444445
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-1/6",
+          "value": -0.16666666666666666
+        },
+        "lockHigh": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "lockLow": {
+          "fraction": "-581/540",
+          "value": -1.075925925925926
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "67/270",
+          "value": 0.24814814814814815
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "chance": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-5/6",
+          "value": -0.8333333333333334
+        },
+        "lockHigh": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "lockLow": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "13/270",
+          "value": 0.04814814814814815
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-2/3",
+          "value": -0.6666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "lockLow": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "1/60",
+          "value": 0.016666666666666666
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-4/9",
+          "value": -0.4444444444444444
+        },
+        "lockHigh": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "lockLow": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "2/45",
+          "value": 0.044444444444444446
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-1/6",
+          "value": -0.16666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "lockLow": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "best": "lock-high",
+        "margin": {
+          "fraction": "1/60",
+          "value": 0.016666666666666666
+        },
+        "bestWithoutFree": "lock-high"
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "1/6",
+          "value": 0.16666666666666666
+        },
+        "lockHigh": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "lockLow": {
+          "fraction": "-119/135",
+          "value": -0.8814814814814815
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "23/270",
+          "value": 0.08518518518518518
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "chance": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-4/9",
+          "value": -0.4444444444444444
+        },
+        "lockHigh": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "lockLow": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "37/180",
+          "value": 0.20555555555555555
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "-1/6",
+          "value": -0.16666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "lockLow": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "7/30",
+          "value": 0.23333333333333334
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "1/6",
+          "value": 0.16666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "lockLow": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "19/60",
+          "value": 0.31666666666666665
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "4/9",
+          "value": 0.4444444444444444
+        },
+        "lockHigh": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "lockLow": {
+          "fraction": "-13/20",
+          "value": -0.65
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "49/135",
+          "value": 0.362962962962963
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "chance": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "free": false,
+        "stand": {
+          "fraction": "1/6",
+          "value": 0.16666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "lockLow": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "17/30",
+          "value": 0.5666666666666667
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "4/9",
+          "value": 0.4444444444444444
+        },
+        "lockHigh": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "lockLow": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "107/180",
+          "value": 0.5944444444444444
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "2/3",
+          "value": 0.6666666666666666
+        },
+        "lockHigh": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "lockLow": {
+          "fraction": "-2/5",
+          "value": -0.4
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "79/135",
+          "value": 0.5851851851851851
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "chance": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "free": false,
+        "stand": {
+          "fraction": "2/3",
+          "value": 0.6666666666666666
+        },
+        "lockHigh": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "lockLow": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "49/60",
+          "value": 0.8166666666666667
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "chance": {
+          "fraction": "1/18",
+          "value": 0.05555555555555555
+        },
+        "free": false,
+        "stand": {
+          "fraction": "5/6",
+          "value": 0.8333333333333334
+        },
+        "lockHigh": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "lockLow": {
+          "fraction": "-3/20",
+          "value": -0.15
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "203/270",
+          "value": 0.7518518518518519
+        },
+        "bestWithoutFree": "stand"
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "chance": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "free": false,
+        "stand": {
+          "fraction": "17/18",
+          "value": 0.9444444444444444
+        },
+        "lockHigh": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "lockLow": {
+          "fraction": "11/135",
+          "value": 0.08148148148148149
+        },
+        "best": "stand",
+        "margin": {
+          "fraction": "233/270",
+          "value": 0.8629629629629629
+        },
+        "bestWithoutFree": "stand"
+      }
+    ],
+    "houseEdge": {
+      "fraction": "791/19440",
+      "value": 0.04068930041152263
+    },
+    "rtp": {
+      "fraction": "18649/19440",
+      "value": 0.9593106995884774
+    },
+    "houseEdgeWithoutFree": {
+      "fraction": "161/3240",
+      "value": 0.04969135802469136
+    },
+    "rtpWithoutFree": {
+      "fraction": "3079/3240",
+      "value": 0.9503086419753086
+    },
+    "rerolls": {
+      "fraction": "17/36",
+      "value": 0.4722222222222222
+    },
+    "rerollsWithoutFree": {
+      "fraction": "4/9",
+      "value": 0.4444444444444444
+    },
+    "freeOneOneWorth": {
+      "fraction": "35/3888",
+      "value": 0.009002057613168725
+    }
+  }
+}

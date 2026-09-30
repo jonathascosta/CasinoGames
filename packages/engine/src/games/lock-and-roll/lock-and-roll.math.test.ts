@@ -15,6 +15,12 @@ import { RANK_SETS } from '../../cards/card.ts';
 import { Shoe } from '../../cards/shoe.ts';
 import { roundsForTolerance, simulate } from '../../math/simulate.ts';
 import { createSeededRng } from '../../rng/seeded.ts';
+import {
+  describeShoe,
+  recordFigures,
+  simulationRecord,
+  verification,
+} from '../../testing/record.ts';
 import { LOCK_AND_ROLL_BETS, LOCK_AND_ROLL_MATH } from './bets.ts';
 import { createLockAndRoll, lockAndRollStrategy } from './game.ts';
 
@@ -29,7 +35,7 @@ const pp = (ratio: number) => {
 };
 
 describe('Lock & Roll — Monte Carlo on an infinite shoe against the declared figures', () => {
-  it('lands on the declared RTP, win frequency, re-roll and fee frequencies', () => {
+  it('lands on the declared RTP, win frequency, re-roll and fee frequencies', async () => {
     const bet = LOCK_AND_ROLL_BETS[0];
     const rounds = Math.max(2_000_000, roundsForTolerance(bet.standardDeviation, TOLERANCE, Z));
     expect(rounds).toBe(5_144_842);
@@ -37,23 +43,21 @@ describe('Lock & Roll — Monte Carlo on an infinite shoe against the declared f
     let rerolls = 0;
     let freeRerolls = 0;
     let paid = 0;
-    const report = simulate(
-      createLockAndRoll({ source: new Shoe({ decks: Infinity, ranks: RANK_SETS.aceToSix }) }),
-      {
-        rounds,
-        rng: createSeededRng(SEED),
-        bets: { 'lock-and-roll': 100 },
-        strategy: lockAndRollStrategy(),
-        observe(round) {
-          let rerolled = false;
-          for (const event of round.events) if (event.type === 'die-rerolled') rerolled = true;
-          if (!rerolled) return;
-          rerolls++;
-          if (round.settlement['lock-and-roll']!.fee === undefined) freeRerolls++;
-          else paid++;
-        },
+    const infiniteShoe = new Shoe({ decks: Infinity, ranks: RANK_SETS.aceToSix });
+    const report = simulate(createLockAndRoll({ source: infiniteShoe }), {
+      rounds,
+      rng: createSeededRng(SEED),
+      bets: { 'lock-and-roll': 100 },
+      strategy: lockAndRollStrategy(),
+      observe(round) {
+        let rerolled = false;
+        for (const event of round.events) if (event.type === 'die-rerolled') rerolled = true;
+        if (!rerolled) return;
+        rerolls++;
+        if (round.settlement['lock-and-roll']!.fee === undefined) freeRerolls++;
+        else paid++;
       },
-    );
+    });
 
     const measured = report.bets['lock-and-roll']!;
     expect(measured.rounds).toBe(rounds);
@@ -63,7 +67,16 @@ describe('Lock & Roll — Monte Carlo on an infinite shoe against the declared f
         'the reference strategy deciding',
       'Figure                declared  simulated   difference  allowed',
     ];
-    const row = (label: string, declared: number, simulated: number, allowed: number) => {
+    const results: Record<string, object> = {};
+    const row = (
+      key: string,
+      label: string,
+      declared: number,
+      simulated: number,
+      allowed: number,
+      standardError: number,
+    ) => {
+      results[key] = verification(declared, simulated, standardError, allowed);
       lines.push(
         `${label.padEnd(21)} ${pct(declared)}  ${pct(simulated)}   ${pp(simulated - declared)}  ` +
           `±${(allowed * 100).toFixed(3)} pp`,
@@ -73,14 +86,29 @@ describe('Lock & Roll — Monte Carlo on an infinite shoe against the declared f
         `${label}: ${simulated} vs ${declared}`,
       ).toBeLessThanOrEqual(allowed);
     };
-    row('RTP', bet.rtp, measured.rtp, TOLERANCE);
+    const error = (p: number) => Math.sqrt((p * (1 - p)) / rounds);
+    row('rtp', 'RTP', bet.rtp, measured.rtp, TOLERANCE, measured.standardError);
     const win = LOCK_AND_ROLL_MATH.hitFrequency.toNumber();
-    row('Win frequency', win, measured.hitFrequency, binomial(win));
+    row('hitFrequency', 'Win frequency', win, measured.hitFrequency, binomial(win), error(win));
     const reroll = LOCK_AND_ROLL_MATH.rerollFrequency.toNumber();
-    row('Lock (re-rolls)', reroll, rerolls / rounds, binomial(reroll));
-    row('Free 1-1 re-rolls', 1 / 36, freeRerolls / rounds, binomial(1 / 36));
+    row(
+      'rerollFrequency',
+      'Lock (re-rolls)',
+      reroll,
+      rerolls / rounds,
+      binomial(reroll),
+      error(reroll),
+    );
+    row(
+      'freeRerollFrequency',
+      'Free 1-1 re-rolls',
+      1 / 36,
+      freeRerolls / rounds,
+      binomial(1 / 36),
+      error(1 / 36),
+    );
     const fee = LOCK_AND_ROLL_MATH.feeFrequency.toNumber();
-    row('Fee paid', fee, paid / rounds, binomial(fee));
+    row('feeFrequency', 'Fee paid', fee, paid / rounds, binomial(fee), error(fee));
     // Every fee is 40¢ on a 1.00 bet.
     expect(measured.fees).toBe(paid * 40);
     expect(measured.pushFrequency).toBe(0);
@@ -90,5 +118,19 @@ describe('Lock & Roll — Monte Carlo on an infinite shoe against the declared f
         `${measured.standardDeviation.toFixed(4)} (declared ${bet.standardDeviation.toFixed(4)})`,
     );
     process.stdout.write(`${lines.join('\n')}\n`);
+    await recordFigures('infinite-shoe', {
+      simulation: simulationRecord({
+        rounds,
+        seed: SEED,
+        source: describeShoe(infiniteShoe),
+        stakes: { 'lock-and-roll': 100 },
+        strategy: 'reference',
+        z: Z,
+        tolerance: TOLERANCE,
+      }),
+      statistics: measured,
+      results,
+      counts: { rerolls, freeRerolls, feesPaid: paid },
+    });
   });
 });

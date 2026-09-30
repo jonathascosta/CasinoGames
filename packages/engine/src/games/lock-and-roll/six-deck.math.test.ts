@@ -16,9 +16,15 @@ import { describe, expect, it } from 'vitest';
 import { DIE_FACES } from '../../dice/dice.ts';
 import { roundsForTolerance, simulate } from '../../math/simulate.ts';
 import { createSeededRng } from '../../rng/seeded.ts';
+import {
+  describeShoe,
+  recordFigures,
+  simulationRecord,
+  verification,
+} from '../../testing/record.ts';
 import { LOCK_AND_ROLL_BETS, LOCK_AND_ROLL_SIX_DECK } from './bets.ts';
 import { LOCK_AND_ROLL_CONFIG } from './config.ts';
-import { createLockAndRoll, lockAndRollStrategy } from './game.ts';
+import { createLockAndRoll, createLockAndRollShoe, lockAndRollStrategy } from './game.ts';
 import { DISTINCT_ROLLS, feeRate, referenceStrategy } from './strategy.ts';
 
 const TOLERANCE = 0.0015;
@@ -80,7 +86,7 @@ function expectation(left: Float64Array): { readonly fixed: number; readonly cou
 }
 
 describe('Lock & Roll — the six-deck shoe in the long run', () => {
-  it('returns the exact six-deck figures, and reports the counting exposure', () => {
+  it('returns the exact six-deck figures, and reports the counting exposure', async () => {
     const bet = LOCK_AND_ROLL_BETS[0];
     const rounds = Math.max(2_000_000, roundsForTolerance(bet.standardDeviation, TOLERANCE, Z));
     expect(rounds).toBe(5_144_842);
@@ -92,7 +98,8 @@ describe('Lock & Roll — the six-deck shoe in the long run', () => {
     const overall = { fixed: 0, counter: 0 };
     let shuffles = 0;
     let rerolls = 0;
-    const report = simulate(createLockAndRoll(), {
+    const shoe = createLockAndRollShoe();
+    const report = simulate(createLockAndRoll({ source: shoe }), {
       rounds,
       rng: createSeededRng(SEED),
       bets: { 'lock-and-roll': 100 },
@@ -153,6 +160,7 @@ describe('Lock & Roll — the six-deck shoe in the long run', () => {
         'spread at which the counter breaks even (one unit in the other rounds)',
     );
     const labels = { fixed: 'The reference strategy', counter: 'Deciding with the count' };
+    const counting: Record<string, object> = {};
     for (const kind of kinds) {
       const share = favourable[kind] / rounds;
       const edge = favourable[kind] === 0 ? 0 : gained[kind] / favourable[kind];
@@ -167,10 +175,46 @@ describe('Lock & Roll — the six-deck shoe in the long run', () => {
         `  ${labels[kind].padEnd(24)} ${pct(share, 2)} of rounds, edge ${pct(edge, 1)} in them, ` +
           `break-even spread ${spread}; ${pct(overall[kind] / rounds + 1, 3)} RTP at one unit`,
       );
+      counting[kind] = {
+        favourable: share,
+        edgeWhenFavourable: edge,
+        breakEvenSpread: gained[kind] <= 0 ? null : lost / gained[kind],
+        flatRtp: overall[kind] / rounds + 1,
+      };
     }
     // Deciding with the count can only help, and the fixed strategy averages the exact figure.
     expect(overall.counter).toBeGreaterThanOrEqual(overall.fixed);
     expect(Math.abs(overall.fixed / rounds + 1 - exact)).toBeLessThan(0.0005);
     process.stdout.write(`${lines.join('\n')}\n`);
+    await recordFigures('six-deck-shoe', {
+      simulation: simulationRecord({
+        rounds,
+        seed: SEED,
+        source: describeShoe(shoe),
+        stakes: { 'lock-and-roll': 100 },
+        strategy: 'reference',
+        z: Z,
+        tolerance: TOLERANCE,
+      }),
+      statistics: measured,
+      shuffles,
+      rerolls,
+      rtp: {
+        declared: bet.rtp,
+        ...verification(
+          exact,
+          measured.rtp,
+          measured.standardError,
+          Math.min(TOLERANCE, Z * measured.standardError),
+        ),
+      },
+      hitFrequency: verification(
+        win,
+        measured.hitFrequency,
+        Math.sqrt((win * (1 - win)) / rounds),
+        Z * Math.sqrt((win * (1 - win)) / rounds),
+      ),
+      counting,
+    });
   });
 });

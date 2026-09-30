@@ -17,6 +17,13 @@ import type { Bets } from '../../game/types.ts';
 import { exactReturns } from '../../math/exact.ts';
 import { Fraction } from '../../math/fraction.ts';
 import { ProgressiveJackpot } from '../../progressive/progressive.ts';
+import {
+  exact,
+  exactFigures,
+  exposure,
+  outcomeTable,
+  recordFigures,
+} from '../../testing/record.ts';
 import { createScriptedCardSource } from '../../testing/scripted-cards.ts';
 import { createScriptedRng, scriptForDice } from '../../testing/scripted-rng.ts';
 import {
@@ -28,6 +35,7 @@ import {
 } from './bets.ts';
 import { MIRROR_CONFIG } from './config.ts';
 import { createMirror, mirrorMathSummary } from './game.ts';
+import { compareHands, readHand } from './rules.ts';
 
 const { jackpot: METER, sideMax } = MIRROR_CONFIG;
 const pct = (ratio: number, digits = 2) => `${(ratio * 100).toFixed(digits)}%`;
@@ -90,6 +98,50 @@ describe('Mirror — the declared table, from 36 × 24 × 24 draws', () => {
     expect(pct(edge(tally.sum, 7))).toBe('9.88%');
   });
 
+  it('ranks the 21 kinds of hand as the rules state, and every dice hand against every card hand', async () => {
+    // One hand of each kind, weakest first, read by the engine.
+    const kinds = [1, 2, 3, 4, 5, 6]
+      .flatMap((high) => [1, 2, 3, 4, 5, 6].filter((low) => low <= high).map((low) => [high, low]))
+      .map(([high, low]) => ({ high: high!, low: low!, hand: readHand([high!, low!]) }))
+      .sort((a, b) => a.hand.strength - b.hand.strength);
+    expect(kinds).toHaveLength(21);
+    const chance = (kind: { high: number; low: number }) =>
+      Fraction.of(kind.high === kind.low ? 1 : 2, 36);
+    let win = Fraction.ZERO;
+    let tie = Fraction.ZERO;
+    const matrix = kinds.map((dice) =>
+      kinds.map((cards) => {
+        const result = compareHands([dice.high, dice.low], [cards.high, cards.low]);
+        // The engine's comparison is the ranking written here from the rules.
+        const ruled = Math.sign(strength(dice.high, dice.low) - strength(cards.high, cards.low));
+        expect(result).toBe(ruled);
+        const both = chance(dice).mul(chance(cards));
+        if (result === 1) win = win.add(both);
+        if (result === 0) tie = tie.add(both);
+        return result;
+      }),
+    );
+    // Only identical kinds tie; the chances are those of the declared table.
+    expect(matrix.every((row, i) => row.every((cell, j) => (cell === 0) === (i === j)))).toBe(true);
+    expect(win.equals(Fraction.of(tally.win, tally.total))).toBe(true);
+    expect(tie.equals(Fraction.of(tally.tie, tally.total))).toBe(true);
+    await recordFigures('hands', {
+      kinds: kinds.map((kind, index) => ({
+        rank: kinds.length - index,
+        high: kind.high,
+        low: kind.low,
+        pair: kind.hand.pair,
+        sum: kind.hand.sum,
+        label: kind.hand.label,
+        chance: exact(chance(kind)),
+      })),
+      matrix,
+      win: exact(win),
+      tie: exact(tie),
+      lose: exact(Fraction.ONE.sub(win).sub(tie)),
+    });
+  });
+
   it('is exactly the math the bets declare', () => {
     const declared = MIRROR_MATH;
     const exact = (count: number) => Fraction.of(count, tally.total);
@@ -127,6 +179,49 @@ describe('Mirror — the game over every draw of the dice and an infinite shoe',
 
   it('enumerates 36 rolls × 24 × 24 cards', () => {
     expect(report.outcomes).toBe(20_736);
+  });
+
+  it("adds up each bet's outcomes to its declared figures, and finds the most a round can pay", async () => {
+    const summary = mirrorMathSummary();
+    const bets = Object.fromEntries(
+      summary.bets.map((declared) => {
+        const result = report.bets[declared.betId]!;
+        const fixed = declared.progressive === undefined;
+        expect(result.rtp.toNumber()).toBe(fixed ? declared.rtp : declared.progressive.fixedRtp);
+        return [
+          declared.betId,
+          { outcomes: outcomeTable(declared.paytable, result), ...exactFigures(result) },
+        ];
+      }),
+    );
+    // Double Sixes with the meter at its seed: a hit pays 1000 to 1 plus seed ÷ SIDE_MAX.
+    const atSeed = exactReturns(
+      () => createMirror({ source: infiniteShoe(), jackpot: frozenMeter(METER.seed) }),
+      { mirror: 100, 'double-sixes': 100 },
+    ).bets['double-sixes']!;
+    expect(atSeed.standardDeviation).toBeCloseTo(bet('double-sixes').standardDeviation!, 12);
+    // Every bet at its maximum, the meter at its seed.
+    const atMax = exposure(
+      () => createMirror({ source: infiniteShoe(), jackpot: frozenMeter(METER.seed) }),
+      Object.fromEntries(MIRROR_BETS.map(({ id, max }) => [id, max])),
+    );
+    for (const declared of summary.bets) {
+      const most = atMax.bets[declared.betId]!.win;
+      const perUnit = declared.maxExposure ?? declared.progressive!.maxExposureAtSeed;
+      expect(most).toBe(perUnit * declared.max);
+    }
+    await recordFigures('exact', {
+      sampleSpace: { rolls: 36, cards: 24 * 24, outcomes: report.outcomes },
+      source: { kind: 'infinite shoe', ranks: RANK_SETS.aceToSix, suits: 4 },
+      bets,
+      doubleSixesAtSeed: {
+        meter: METER.seed,
+        rtp: exact(atSeed.rtp),
+        variance: exact(atSeed.variance),
+        standardDeviation: atSeed.standardDeviation,
+      },
+      maxExposure: atMax,
+    });
   });
 
   it.each(FIXED)(
@@ -218,6 +313,77 @@ describe('Mirror — the progressive meter', () => {
     // The round's own 15¢ goes in first: 623,471.7¢ × 150/2,500 = 37,408.302¢ → 37,408¢.
     expect(state.settlement['double-sixes']!.payout).toBe(150 + 150_000 + 37_408);
     expect(jackpot.amount).toBe(586_063); // 623,471.7 − 37,408 = 586,063.7¢
+  });
+
+  it('prices the meter, and pays the worked example of the rules', async () => {
+    const terms = mirrorMathSummary().bets.find(
+      ({ betId }) => betId === 'double-sixes',
+    )!.progressive!;
+    const hitChance = MIRROR_MATH.doubleSixes.p;
+    const contribution = Fraction.of(Math.round(METER.contributionRate * 1_000_000), 1_000_000);
+    const fixedRtp = DOUBLE_SIXES_FIXED_RTP;
+    // Break-even: fixedRtp + hitChance × M ÷ SIDE_MAX = 1.
+    const breakEven = Fraction.ONE.sub(fixedRtp).mul(Fraction.of(sideMax)).div(hitChance);
+    expect(breakEven.toNumber()).toBeCloseTo(terms.breakEvenMeter, 6);
+    const seedCost = Fraction.of(METER.seed).mul(hitChance);
+    expect(seedCost.toNumber()).toBeCloseTo(terms.seedCostPerRound, 9);
+    // The meter at a hit, when every cycle starts at the seed: seed + rate × mean stake × cycle.
+    const meanStakes = [50, 100, 500, (50 + 100 + 500 + 2_500) / 4, 2_500];
+    const atHit = meanStakes.map((meanStake) => ({
+      meanStake,
+      meter: expectedMeterAtHit(terms, meanStake),
+    }));
+    // The worked example: 5.00 on Double Sixes with the meter at 6,000.00, then 6-6 against 6-6.
+    const jackpot = new ProgressiveJackpot({
+      id: METER.id,
+      seed: METER.seed,
+      contributionRate: METER.contributionRate,
+    });
+    jackpot.contribute(1_000_000); // 10% of 10,000.00: the meter is 6,000.00
+    const before = jackpot.amount;
+    expect(before).toBe(600_000);
+    const game = createMirror({ source: createScriptedCardSource('6S 6H'), jackpot });
+    const state = game.start(
+      { mirror: 100, 'double-sixes': 500 },
+      createScriptedRng(scriptForDice([6, 6])),
+    );
+    const meters = state.events.flatMap((event) => (event.type === 'jackpot-meter' ? [event] : []));
+    const won = state.events.find((event) => event.type === 'jackpot-won');
+    const line = state.settlement['double-sixes']!;
+    const share = won?.type === 'jackpot-won' ? won.amount : 0;
+    expect(share).toBe(120_010);
+    expect(jackpot.amount).toBe(METER.seed);
+    await recordFigures('meter', {
+      terms: {
+        seed: METER.seed,
+        contributionRate: exact(contribution),
+        fullShareStake: sideMax,
+        hitChance: exact(hitChance),
+        cycleRounds: exact(Fraction.ONE.div(hitChance)),
+      },
+      fixedRtp: exact(fixedRtp),
+      contributionRtp: exact(contribution),
+      rtpExcludingSeed: exact(DOUBLE_SIXES_RTP),
+      rtpAtSeed: exact(DOUBLE_SIXES_RTP_AT_SEED),
+      /** One round's return with the meter at M: fixedRtp + M × hitChance ÷ SIDE_MAX. */
+      rtpPerMeterUnit: exact(hitChance.div(Fraction.of(sideMax))),
+      breakEvenMeter: exact(breakEven),
+      seedCostPerRound: exact(seedCost),
+      seedCostShareAtMax: exact(seedCost.div(Fraction.of(sideMax))),
+      meterAtHit: atHit,
+      example: {
+        stake: 500,
+        meterBefore: before,
+        contribution: meters[0]!.amount - before,
+        meterAtHit: meters[0]!.amount,
+        fixedWin: line.payout - line.stake - share,
+        share,
+        payout: line.payout,
+        meterAfterShare: meters[0]!.amount - share,
+        topUp: METER.seed - (meters[0]!.amount - share),
+        meterAfter: jackpot.amount,
+      },
+    });
   });
 
   it('is worth 92.67% at its seed and breaks even at 7,375.00', () => {

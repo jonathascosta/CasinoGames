@@ -1,0 +1,95 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/lock-and-roll/six-deck.math.test.ts",
+    "name": "Lock & Roll — the six-deck shoe in the long run › returns the exact six-deck figures, and reports the counting exposure"
+  },
+  "figures": {
+    "simulation": {
+      "rounds": 5144842,
+      "seed": "lock-and-roll/six-deck-shoe",
+      "source": {
+        "kind": "shoe",
+        "decks": 6,
+        "ranks": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "suits": 4,
+        "cards": 144,
+        "penetration": 0.75,
+        "cutCard": 108,
+        "behindCutCard": 36
+      },
+      "stakes": {
+        "lock-and-roll": 100
+      },
+      "strategy": "reference",
+      "z": 3.29,
+      "tolerance": 0.0015,
+      "rng": "xoshiro128** 1.1 (Blackman & Vigna), its state expanded from the seed by SplitMix64; a string seed is first hashed with FNV-1a (64-bit) over its UTF-8 bytes",
+      "confidence": {
+        "level": 0.95,
+        "z": 1.959963984540054
+      }
+    },
+    "statistics": {
+      "rounds": 5144842,
+      "staked": 514484200,
+      "returned": 584694800,
+      "fees": 91506400,
+      "rtp": 0.9586074752149824,
+      "houseEdge": 0.04139252478501765,
+      "hitFrequency": 0.5682339710335128,
+      "pushFrequency": 0,
+      "standardDeviation": 1.0342086259825491,
+      "standardError": 0.0004559551598253693
+    },
+    "shuffles": 95275,
+    "rerolls": 2430976,
+    "rtp": {
+      "declared": 0.9593106995884774,
+      "expected": 0.9597189847189848,
+      "observed": 0.9586074752149824,
+      "difference": -0.0011115095040024059,
+      "standardError": 0.0004559551598253693,
+      "ci95": [
+        0.9577138195231594,
+        0.9595011309068053
+      ],
+      "errors": 2.437760556165465,
+      "allowed": 0.0015,
+      "pass": true
+    },
+    "hitFrequency": {
+      "expected": 0.5687483812483812,
+      "observed": 0.5682339710335128,
+      "difference": -0.0005144102148684215,
+      "standardError": 0.0002183430813425687,
+      "ci95": [
+        0.5678060264578079,
+        0.5686619156092177
+      ],
+      "errors": 2.3559721320472677,
+      "allowed": 0.0007183487376170509,
+      "pass": true
+    },
+    "counting": {
+      "fixed": {
+        "favourable": 0.21069082393589542,
+        "edgeWhenFavourable": 0.04624007810035009,
+        "breakEvenSpread": 5.128883452353317,
+        "flatRtp": 0.9597749303740143
+      },
+      "counter": {
+        "favourable": 0.2109194023839799,
+        "edgeWhenFavourable": 0.04693697486000574,
+        "breakEvenSpread": 5.021604076320341,
+        "flatRtp": 0.9601864466523797
+      }
+    }
+  }
+}

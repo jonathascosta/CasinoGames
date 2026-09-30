@@ -95,8 +95,8 @@ export interface FiniteShoeFigures {
 
 /**
  * Everything the UI, docs and simulations need to know about a bet. The
- * paytable modal and the game sheets are generated from this, never typed by
- * hand.
+ * paytable modal, the Rules of Play and the Math Reports are generated from
+ * this, never typed by hand.
  */
 export interface BetDefinition {
   readonly id: BetId;

@@ -19,9 +19,15 @@ import type { Bets } from '../../game/types.ts';
 import { roundsForTolerance, simulate } from '../../math/simulate.ts';
 import type { ExactAmount } from '../../progressive/progressive.ts';
 import { createSeededRng } from '../../rng/seeded.ts';
+import {
+  describeShoe,
+  recordFigures,
+  simulationRecord,
+  verification,
+} from '../../testing/record.ts';
 import { MIRROR_BETS } from './bets.ts';
 import { MIRROR_CONFIG } from './config.ts';
-import { createMirror, mirrorMathSummary } from './game.ts';
+import { createMirror, createMirrorShoe, mirrorMathSummary } from './game.ts';
 import { MIRROR_BET_IDS, resolveMirrorBet } from './rules.ts';
 
 const Z = 3.29;
@@ -98,12 +104,13 @@ const RETURN_GIVEN_CARDS = MIRROR_BET_IDS.map((bet) => {
 });
 
 describe('Mirror — the six-deck shoe in the long run', () => {
-  it('returns the exact six-deck figures, and reports the meter and the counting exposure', () => {
+  it('returns the exact six-deck figures, and reports the meter and the counting exposure', async () => {
     const summary = mirrorMathSummary();
     const rounds = roundsForTolerance(MIRROR_BETS[3].standardDeviation!, 0.003, Z);
     expect(rounds).toBe(31_213_015);
 
-    const game = createMirror();
+    const shoe = createMirrorShoe();
+    const game = createMirror({ source: shoe });
     const start = game.jackpot.state();
     const fixed = new Ratio();
     const excludingSeed = new Ratio();
@@ -181,13 +188,16 @@ describe('Mirror — the six-deck shoe in the long run', () => {
       `Mirror on the six-deck shoe, ${rounds.toLocaleString('en-US')} rounds (seed ${SEED})`,
       'RTP                    declared  six decks  simulated   difference  standard error',
     ];
+    const results: Record<string, object> = {};
     const row = (
       label: string,
       declared: number,
       exact: number,
       measured: number,
       error: number,
+      key: string,
     ) => {
+      results[key] = { declared, ...verification(exact, measured, error, Z * error) };
       lines.push(
         `${label.padEnd(21)} ${pct(declared)}  ${pct(exact)}  ${pct(measured)}   ` +
           `${pp(measured - exact)}  ${(error * 100).toFixed(3)} pp`,
@@ -204,8 +214,16 @@ describe('Mirror — the six-deck shoe in the long run', () => {
         Math.abs(measured.hitFrequency - shoe.hitFrequency),
         `${bet.betId} hit frequency`,
       ).toBeLessThanOrEqual(Z * Math.sqrt((shoe.hitFrequency * (1 - shoe.hitFrequency)) / rounds));
+      const binomial = Math.sqrt((shoe.hitFrequency * (1 - shoe.hitFrequency)) / rounds);
+      results[`${bet.betId}/hitFrequency`] = verification(
+        shoe.hitFrequency,
+        measured.hitFrequency,
+        binomial,
+        Z * binomial,
+      );
+      results[`${bet.betId}/statistics`] = measured;
       if (bet.progressive === undefined)
-        row(bet.label, bet.rtp, shoe.rtp, measured.rtp, measured.standardError);
+        row(bet.label, bet.rtp, shoe.rtp, measured.rtp, measured.standardError, `${bet.betId}/rtp`);
     }
     const jackpotBet = summary.bets.at(-1)!;
     const contribution = METER.contributionRate;
@@ -215,6 +233,7 @@ describe('Mirror — the six-deck shoe in the long run', () => {
       jackpotBet.finiteShoe!.rtp - contribution,
       fixed.value,
       fixed.standardError,
+      'double-sixes/fixedRtp',
     );
     row(
       'Double Sixes, excl. seed',
@@ -222,6 +241,7 @@ describe('Mirror — the six-deck shoe in the long run', () => {
       jackpotBet.finiteShoe!.rtp,
       excludingSeed.value,
       excludingSeed.standardError,
+      'double-sixes/rtpExcludingSeed',
     );
 
     // The meter: its accounts balance exactly, and its economics with these mixed stakes.
@@ -250,6 +270,8 @@ describe('Mirror — the six-deck shoe in the long run', () => {
         'spread at which the counter breaks even (one unit in the other rounds)',
     );
     const labels = [...summary.bets.map((bet) => bet.label), 'Double Sixes with the meter'];
+    const keys = [...MIRROR_BET_IDS, 'double-sixes-with-meter'];
+    const counting: Record<string, object> = {};
     for (const [index, label] of labels.entries()) {
       const times = favourable[index] ?? 0;
       const share = times / rounds;
@@ -258,11 +280,38 @@ describe('Mirror — the six-deck shoe in the long run', () => {
       const lost = gained - (expectedOverall[index] ?? 0);
       const spread =
         gained <= 0 ? '—' : lost <= 0 ? 'none needed' : `1 to ${(lost / gained).toFixed(1)}`;
+      counting[keys[index]!] = {
+        favourable: share,
+        edgeWhenFavourable: edge,
+        breakEvenSpread: gained <= 0 ? null : lost / gained,
+      };
       lines.push(
         `  ${label.padEnd(26)} ${pct(share, 2)} of rounds, edge ${pct(edge, 1)} in them, ` +
           `break-even spread ${spread}`,
       );
     }
     process.stdout.write(`${lines.join('\n')}\n`);
+    await recordFigures('six-deck-shoe', {
+      simulation: simulationRecord({
+        rounds,
+        seed: SEED,
+        source: describeShoe(shoe),
+        stakes: JACKPOT_STAKES,
+        z: Z,
+        tolerance: 0.003,
+      }),
+      results,
+      meter: {
+        hits,
+        roundsPerHit: rounds / hits,
+        meterAtHit: meterAtHits / hits,
+        topUps,
+        topUpsPerRound: topUps / rounds,
+        topUpsShareOfStakes: topUps / jackpot.staked,
+        rtpWithTopUps: jackpot.rtp,
+        staked: jackpot.staked,
+      },
+      counting,
+    });
   });
 });

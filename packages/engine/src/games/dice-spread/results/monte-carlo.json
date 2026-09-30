@@ -1,0 +1,310 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/dice-spread/dice-spread.math.test.ts",
+    "name": "Dice Spread — Monte Carlo against the real six-deck shoe › lands every bet within ±0.15 pp of its declared RTP"
+  },
+  "figures": {
+    "simulation": {
+      "rounds": 124852059,
+      "seed": "dice-spread/monte-carlo",
+      "source": {
+        "kind": "shoe",
+        "decks": 6,
+        "ranks": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "suits": 4,
+        "cards": 144,
+        "penetration": 0.75,
+        "cutCard": 108,
+        "behindCutCard": 36
+      },
+      "stakes": {
+        "between": 50,
+        "match": 50,
+        "bullseye": 50,
+        "doubles": 50,
+        "triple": 50
+      },
+      "z": 3.29,
+      "tolerance": 0.0015,
+      "rng": "xoshiro128** 1.1 (Blackman & Vigna), its state expanded from the seed by SplitMix64; a string seed is first hashed with FNV-1a (64-bit) over its UTF-8 bytes",
+      "confidence": {
+        "level": 0.95,
+        "z": 1.959963984540054
+      }
+    },
+    "bets": {
+      "between": {
+        "statistics": {
+          "rounds": 124852059,
+          "staked": 6242602950,
+          "returned": 6010962750,
+          "fees": 0,
+          "rtp": 0.9628936515976881,
+          "houseEdge": 0.03710634840231186,
+          "hitFrequency": 0.18514770349121756,
+          "pushFrequency": 0.44446161676837065,
+          "standardDeviation": 1.1174185823948097,
+          "standardError": 0.0001000041527600318
+        },
+        "rtp": {
+          "expected": 0.9629629629629629,
+          "observed": 0.9628936515976881,
+          "difference": -0.00006931136527477122,
+          "standardError": 0.0001000041527600318,
+          "ci95": [
+            0.9626976470599741,
+            0.9630896561354022
+          ],
+          "errors": 0.6930848705962196,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.18518518518518517,
+          "observed": 0.18514770349121756,
+          "difference": -0.000037481693967611474,
+          "standardError": 0.00003476439885344345,
+          "ci95": [
+            0.18507956652152063,
+            0.1852158404609145
+          ],
+          "errors": 1.078163155520777,
+          "allowed": 0.00011437487222782896,
+          "pass": true
+        },
+        "pushFrequency": {
+          "expected": 0.4444444444444444,
+          "observed": 0.44446161676837065,
+          "difference": 0.000017172323926228916,
+          "standardError": 0.00004447076843535783,
+          "ci95": [
+            0.4443744556638725,
+            0.4445487778728688
+          ],
+          "errors": 0.38614857647873563,
+          "allowed": 0.00014630882815232726,
+          "pass": true
+        }
+      },
+      "match": {
+        "statistics": {
+          "rounds": 124852059,
+          "staked": 6242602950,
+          "returned": 5722960500,
+          "fees": 0,
+          "rtp": 0.9167586895783593,
+          "houseEdge": 0.08324131042164074,
+          "hitFrequency": 0.3055862298594531,
+          "pushFrequency": 0,
+          "standardDeviation": 1.3819658422386525,
+          "standardError": 0.00012367999366914961
+        },
+        "rtp": {
+          "expected": 0.9166666666666666,
+          "observed": 0.9167586895783593,
+          "difference": 0.00009202291169263521,
+          "standardError": 0.00012367999366914961,
+          "ci95": [
+            0.9165162812451596,
+            0.9170010979115589
+          ],
+          "errors": 0.7440403978253853,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.3055555555555556,
+          "observed": 0.3055862298594531,
+          "difference": 0.00003067430389752657,
+          "standardError": 0.00004122550569878529,
+          "ci95": [
+            0.30550542935303904,
+            0.3056670303658672
+          ],
+          "errors": 0.7440613129563232,
+          "allowed": 0.0001356319137490036,
+          "pass": true
+        },
+        "pushFrequency": {
+          "expected": 0,
+          "observed": 0,
+          "difference": 0,
+          "standardError": 0,
+          "ci95": [
+            0,
+            0
+          ],
+          "errors": 0,
+          "allowed": 0,
+          "pass": true
+        }
+      },
+      "bullseye": {
+        "statistics": {
+          "rounds": 124852059,
+          "staked": 6242602950,
+          "returned": 5318993800,
+          "fees": 0,
+          "rtp": 0.852047429990722,
+          "houseEdge": 0.14795257000927797,
+          "hitFrequency": 0.03704554043437922,
+          "pushFrequency": 0,
+          "standardDeviation": 4.344088652177871,
+          "standardError": 0.0003887772335452566
+        },
+        "rtp": {
+          "expected": 0.8518518518518519,
+          "observed": 0.852047429990722,
+          "difference": 0.00019557813887016717,
+          "standardError": 0.0003887772335452566,
+          "ci95": [
+            0.8512854406149643,
+            0.8528094193664798
+          ],
+          "errors": 0.5030596495753922,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.037037037037037035,
+          "observed": 0.03704554043437922,
+          "difference": 0.000008503397342186914,
+          "standardError": 0.000016901492435089816,
+          "ci95": [
+            0.03701241411792147,
+            0.03707866675083697
+          ],
+          "errors": 0.5031151760617716,
+          "allowed": 0.0000556059101114455,
+          "pass": true
+        },
+        "pushFrequency": {
+          "expected": 0,
+          "observed": 0,
+          "difference": 0,
+          "standardError": 0,
+          "ci95": [
+            0,
+            0
+          ],
+          "errors": 0,
+          "allowed": 0,
+          "pass": true
+        }
+      },
+      "doubles": {
+        "statistics": {
+          "rounds": 124852059,
+          "staked": 6242602950,
+          "returned": 5204861000,
+          "fees": 0,
+          "rtp": 0.8337645436828559,
+          "houseEdge": 0.1662354563171441,
+          "hitFrequency": 0.16675290873657117,
+          "pushFrequency": 0,
+          "standardDeviation": 1.8637755851855669,
+          "standardError": 0.0001667998915248582
+        },
+        "rtp": {
+          "expected": 0.8333333333333334,
+          "observed": 0.8337645436828559,
+          "difference": 0.00043121034952253723,
+          "standardError": 0.0001667998915248582,
+          "ci95": [
+            0.833437621902842,
+            0.8340914654628698
+          ],
+          "errors": 2.5851956232134237,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.16666666666666666,
+          "observed": 0.16675290873657117,
+          "difference": 0.000086242069904513,
+          "standardError": 0.00003335307632651838,
+          "ci95": [
+            0.16668753790819757,
+            0.16681827956494477
+          ],
+          "errors": 2.5857305952897547,
+          "allowed": 0.00010973162111424547,
+          "pass": true
+        },
+        "pushFrequency": {
+          "expected": 0,
+          "observed": 0,
+          "difference": 0,
+          "standardError": 0,
+          "ci95": [
+            0,
+            0
+          ],
+          "errors": 0,
+          "allowed": 0,
+          "pass": true
+        }
+      },
+      "triple": {
+        "statistics": {
+          "rounds": 124852059,
+          "staked": 6242602950,
+          "returned": 5376426100,
+          "fees": 0,
+          "rtp": 0.8612474865152204,
+          "houseEdge": 0.13875251348477957,
+          "hitFrequency": 0.02778217698436195,
+          "pushFrequency": 0,
+          "standardDeviation": 5.094793917014162,
+          "standardError": 0.0004559621230443676
+        },
+        "rtp": {
+          "expected": 0.8611111111111112,
+          "observed": 0.8612474865152204,
+          "difference": 0.00013637540410926796,
+          "standardError": 0.0004559621230443676,
+          "ci95": [
+            0.860353817175739,
+            0.8621411558547019
+          ],
+          "errors": 0.2990937124310168,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.027777777777777776,
+          "observed": 0.02778217698436195,
+          "difference": 0.000004399206584172061,
+          "standardError": 0.000014707324236487224,
+          "ci95": [
+            0.02775335115854948,
+            0.027811002810174415
+          ],
+          "errors": 0.2991167199032793,
+          "allowed": 0.00004838709673804297,
+          "pass": true
+        },
+        "pushFrequency": {
+          "expected": 0,
+          "observed": 0,
+          "difference": 0,
+          "standardError": 0,
+          "ci95": [
+            0,
+            0
+          ],
+          "errors": 0,
+          "allowed": 0,
+          "pass": true
+        }
+      }
+    }
+  }
+}

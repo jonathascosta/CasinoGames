@@ -1,0 +1,213 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/moving-target/finite-shoe.test.ts",
+    "name": "Moving Target — the first round of a fresh six-deck shoe, exactly › measures every bet, and Exact Hit by target, on the first round of a fresh shoe"
+  },
+  "figures": {
+    "shoe": {
+      "kind": "shoe",
+      "decks": 6,
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "suits": 4,
+      "cards": 240,
+      "penetration": 0.75,
+      "cutCard": 180,
+      "behindCutCard": 60
+    },
+    "perValue": 24,
+    "bets": {
+      "exact-hit": {
+        "rtp": {
+          "fraction": "2499444661827999541/2603004917918604570",
+          "value": 0.9602151131648983
+        },
+        "houseEdge": {
+          "fraction": "103560256090605029/2603004917918604570",
+          "value": 0.03978488683510176
+        },
+        "declaredHouseEdge": 0.03848355241705559,
+        "shift": 0.0013013344180461406
+      },
+      "first-card": {
+        "rtp": {
+          "fraction": "11/12",
+          "value": 0.9166666666666666
+        },
+        "houseEdge": {
+          "fraction": "1/12",
+          "value": 0.08333333333333333
+        },
+        "declaredHouseEdge": 0.08333333333333337,
+        "shift": 0
+      },
+      "three-plus-cards": {
+        "rtp": {
+          "fraction": "1709/1912",
+          "value": 0.8938284518828452
+        },
+        "houseEdge": {
+          "fraction": "203/1912",
+          "value": 0.10617154811715482
+        },
+        "declaredHouseEdge": 0.10416666666666663,
+        "shift": 0.0020048814504881607
+      }
+    },
+    "byTarget": [
+      {
+        "target": 2,
+        "hit": {
+          "fraction": "131/1195",
+          "value": 0.1096234309623431
+        },
+        "houseEdge": {
+          "fraction": "163/2390",
+          "value": 0.06820083682008368
+        },
+        "declaredHouseEdge": 0.06499999999999995,
+        "shift": 0.0032008368200837356
+      },
+      {
+        "target": 3,
+        "hit": {
+          "fraction": "17203/142205",
+          "value": 0.1209732428536268
+        },
+        "houseEdge": {
+          "fraction": "4581/142205",
+          "value": 0.03221405717098555
+        },
+        "declaredHouseEdge": 0.03199999999999992,
+        "shift": 0.00021405717098563204
+      },
+      {
+        "target": 4,
+        "hit": {
+          "fraction": "2981493/22468390",
+          "value": 0.1326972248567877
+        },
+        "houseEdge": {
+          "fraction": "228277/3209770",
+          "value": 0.07111942600248616
+        },
+        "declaredHouseEdge": 0.06830000000000003,
+        "shift": 0.002819426002486136
+      },
+      {
+        "target": 5,
+        "hit": {
+          "fraction": "1141270/7797853",
+          "value": 0.14635695235598825
+        },
+        "houseEdge": {
+          "fraction": "379598/7797853",
+          "value": 0.04867980968607641
+        },
+        "declaredHouseEdge": 0.04833500000000002,
+        "shift": 0.0003448096860763916
+      },
+      {
+        "target": 6,
+        "hit": {
+          "fraction": "5004119256/31152422735",
+          "value": 0.1606333895301771
+        },
+        "houseEdge": {
+          "fraction": "1127707199/31152422735",
+          "value": 0.03619966281893741
+        },
+        "declaredHouseEdge": 0.03369400000000011,
+        "shift": 0.0025056628189372987
+      },
+      {
+        "target": 7,
+        "hit": {
+          "fraction": "71719214251/404981495555",
+          "value": 0.17709257098948095
+        },
+        "houseEdge": {
+          "fraction": "21051634349/809962991110",
+          "value": 0.02599085955785479
+        },
+        "declaredHouseEdge": 0.025641450000000066,
+        "shift": 0.00034940955785472613
+      },
+      {
+        "target": 8,
+        "hit": {
+          "fraction": "7863610652623/40440295056135",
+          "value": 0.1944498832589514
+        },
+        "houseEdge": {
+          "fraction": "224448358604/8088059011227",
+          "value": 0.027750583705243026
+        },
+        "declaredHouseEdge": 0.025641449999999955,
+        "shift": 0.0021091337052430714
+      },
+      {
+        "target": 9,
+        "hit": {
+          "fraction": "1713086207048/7993553940015",
+          "value": 0.21430845652675803
+        },
+        "houseEdge": {
+          "fraction": "94888669433/2664517980005",
+          "value": 0.03561194562958886
+        },
+        "declaredHouseEdge": 0.03538503549999994,
+        "shift": 0.00022691012958891976
+      },
+      {
+        "target": 10,
+        "hit": {
+          "fraction": "1932482511729104/8209379896395405",
+          "value": 0.23539932809999733
+        },
+        "houseEdge": {
+          "fraction": "479449849478989/8209379896395405",
+          "value": 0.058402687600010696
+        },
+        "declaredHouseEdge": 0.05682092360000002,
+        "shift": 0.0015817640000106784
+      },
+      {
+        "target": 11,
+        "hit": {
+          "fraction": "2616579220546133/16418759792790810",
+          "value": 0.15936521720081606
+        },
+        "houseEdge": {
+          "fraction": "119880744919002/2736459965465135",
+          "value": 0.043808696795103685
+        },
+        "declaredHouseEdge": 0.04375452394000001,
+        "shift": 0.000054172855103673534
+      },
+      {
+        "target": 12,
+        "hit": {
+          "fraction": "103336581523968532/626649332091515915",
+          "value": 0.16490336178779688
+        },
+        "houseEdge": {
+          "fraction": "6629842947704723/626649332091515915",
+          "value": 0.01057982927321863
+        },
+        "declaredHouseEdge": 0.008129976333999922,
+        "shift": 0.0024498529392187086
+      }
+    ]
+  }
+}

@@ -30,7 +30,7 @@ export type DieIndex = 0 | 1;
  *     round then settles the doubled stake by the same comparison;
  *  3. its value on each roll in rollValues() (strategy.ts): twice the
  *     re-roll's value, less the fee. The strategy, the declared figures and
- *     the game sheet then take it into account by themselves;
+ *     the Math Report then take it into account by themselves;
  *  4. a button on the table.
  */
 export type LockAndRollChoice = 'stand' | `lock-${DieIndex}`;

@@ -25,7 +25,7 @@ export function createMovingTargetShoe(): Shoe {
   return new Shoe({ decks: 6, ranks: RANK_SETS.aceToTen });
 }
 
-/** The declared math of every bet, as shown in the paytable and the game sheet. */
+/** The declared math of every bet, as shown in the paytable and the Math Report. */
 export function movingTargetMathSummary(): MathSummary {
   return summarizeMath({
     id: MOVING_TARGET_ID,

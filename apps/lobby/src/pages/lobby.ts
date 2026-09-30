@@ -125,8 +125,8 @@ export function lobbyPage(services: Services, router: Router): Page {
 /**
  * A table's card: its art, the main bet's declared RTP, the name and
  * tagline, a live meter where the table has one, and two actions. Play is a
- * link stretched over the whole card; Game sheet opens the rules and math in
- * a dialog, loaded on first use.
+ * link stretched over the whole card; Rules of Play opens the game's Rules
+ * of Play in a dialog, loaded on first use.
  */
 function gameCard(
   game: GameEntry,
@@ -155,9 +155,13 @@ function gameCard(
   }
   const sheet = h(
     'button',
-    { type: 'button', class: 'cg-btn game-card__sheet', 'aria-label': `Game sheet: ${game.name}` },
+    {
+      type: 'button',
+      class: 'cg-btn game-card__sheet',
+      'aria-label': `Rules of Play: ${game.name}`,
+    },
     icon('paytable'),
-    'Game sheet',
+    'Rules of Play',
   );
   sheet.addEventListener('click', () => {
     void sheets.open(game);
@@ -209,10 +213,13 @@ function gameCard(
   return { element, destroy: stopWatching };
 }
 
-/** All four game sheets in one PDF, published at the site's root (see vite.config.ts). */
-export const SHEETS_PDF = `${import.meta.env.BASE_URL}GAME-SHEETS.pdf`;
+/**
+ * Every game's Rules of Play and Math Report in one PDF, published at the
+ * site's root (see vite.config.ts).
+ */
+export const SUBMISSION_PACK = `${import.meta.env.BASE_URL}SUBMISSION-PACK.pdf`;
 
-/** The lobby's Game sheet dialogs, built on first use and kept for the visit. */
+/** The lobby's Rules of Play dialogs, built on first use and kept for the visit. */
 class SheetDialogs {
   readonly #modals = new Map<string, Modal>();
   #destroyed = false;
@@ -221,7 +228,7 @@ class SheetDialogs {
     let modal = this.#modals.get(game.slug);
     if (modal === undefined) {
       const { createSheetDialog } = await import('./sheet-dialog.ts');
-      const created = await createSheetDialog(game, SHEETS_PDF);
+      const created = await createSheetDialog(game, SUBMISSION_PACK);
       if (this.#destroyed) {
         created.destroy();
         return;
@@ -254,7 +261,7 @@ export function siteFooter(): HTMLElement {
     h(
       'nav',
       { class: 'site-footer__links', 'aria-label': 'More' },
-      h('a', { href: SHEETS_PDF }, 'Game sheets (PDF)'),
+      h('a', { href: SUBMISSION_PACK }, 'Submission pack (PDF)'),
       h('a', { href: `${import.meta.env.BASE_URL}dev.html` }, 'Component playground'),
     ),
   );

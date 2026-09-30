@@ -4,7 +4,13 @@ import type { GameEntry } from '../catalog.ts';
 import type { Page, Router } from '../router/router.ts';
 import type { Services } from '../services.ts';
 import { createTopBar } from '../shell/topbar.ts';
-import { createRulesModal, loadSheet, modalButton, tableTitle } from '../tables/shell.ts';
+import {
+  createRulesModal,
+  loadRules,
+  modalButton,
+  playerRules,
+  tableTitle,
+} from '../tables/shell.ts';
 import { siteFooter } from './lobby.ts';
 import './game.css';
 
@@ -13,12 +19,12 @@ import './game.css';
  * rules, balance, settings) around an "in development" stage.
  */
 export async function gamePage(game: GameEntry, services: Services, router: Router): Promise<Page> {
-  const sheet = await loadSheet(game.slug);
+  const text = playerRules(await loadRules(game.slug));
   return {
     title: game.name,
     mount(outlet) {
       const topbar = createTopBar(services, tableTitle(game, router));
-      const rules = createRulesModal(game, sheet);
+      const rules = createRulesModal(game, text);
       const rulesButton = modalButton('Rules', 'info', rules);
       const paytableButton = h(
         'button',

@@ -41,7 +41,7 @@ The dependency rules are enforced by tooling, not left to convention:
 | Engine never imports UI or rendering code | ESLint `no-restricted-imports` (`repo/engine-purity`)                                                  |
 | PixiJS only in `packages/ui/src/pixi`     | ESLint `no-restricted-imports` (`repo/pixi-confinement`)                                               |
 | PixiJS never in a page's first load       | The lobby's build fails if any chunk the site loads, short of the PixiJS views, carries PixiJS         |
-| Game sheets and their PDF match the code  | `pnpm docs:check` in CI                                                                                |
+| The submission documents match the code   | `pnpm docs:check` in CI: no number typed by hand, every figure from `results.json`                     |
 
 Workspace packages export their TypeScript sources (`"exports": "./src/index.ts"`), so Vite,
 Vitest and `tsc` consume the source directly and there is no build-before-test step. The engine
@@ -60,7 +60,7 @@ because a server would consume it as plain JavaScript. `publishConfig` points th
 | `cards/`       | `Card`, `Rank`, `Suit`, `RANK_SETS`, card codes (`'TH'`), `CardSource`, `Shoe`                                               |
 | `game/`        | `Game`, `RoundState`, `GameEvent`, `BetDefinition`; `RoundBuilder`; money; settlement; validation; `playRound`               |
 | `progressive/` | `ProgressiveJackpot`                                                                                                         |
-| `math/`        | `Fraction`, `enumerateOutcomes`, `exactReturns`, `simulate`, `roundsForTolerance`, sheet rendering                           |
+| `math/`        | `Fraction`, `enumerateOutcomes`, `exactReturns`, `simulate`, `roundsForTolerance`                                            |
 | `games/`       | The games (`dice-spread/`, `moving-target/`, `mirror/`, `lock-and-roll/`: rules, bets, the game) and `GAMES`, their registry |
 | `testing/`     | Scripted RNGs and card sources, chi-square tests (`@casinogames/engine/testing`)                                             |
 | `fixtures/`    | Three toy games (dice, war, re-roll) that exercise the engine and its math tooling in tests                                  |
@@ -150,8 +150,8 @@ the paytable, `summarizeMath` derives each bet's hit frequency, push frequency a
 When a payout depends on something the round settles before the result, such as Moving Target's
 target, each line names that condition in `given`: its name, its value and the chance of that
 value. The summary then adds a `breakdown` with one row per value: its chance, and the hit
-frequency, RTP and house edge given it. The game sheets and the paytable dialog show that table in
-place of the flat paytable.
+frequency, RTP and house edge given it. The paytable dialog shows that table in place of the flat
+paytable, and the Math Report gives it by target.
 
 A bet with a progressive meter declares its terms in `progressive`: the meter, its seed, the share
 of every stake that feeds it, the stake that wins the whole meter (a smaller stake wins its share),
@@ -169,7 +169,7 @@ each choice is made, the fees). The declared figures assume that strategy.
 
 A bet may also declare `finiteShoe`: its exact figures on the table's own shoe. They exist when a
 game deals the same number of cards every round, as Mirror does, so that every round's cards are
-a uniform draw from the full shoe; the sheets publish them beside the declared figures.
+a uniform draw from the full shoe; the Math Reports publish them beside the declared figures.
 
 - `defineBets([...])` validates definitions **at module load** (unique ids, sane limits, plausible
   RTP, non-empty paytables, consistent conditions and progressive terms), so a misconfigured
@@ -281,7 +281,7 @@ it. `state()` is the pool's exact state, and `new ProgressiveJackpot(options, st
 from it (a stored pool below the seed is topped up to it). The long-run RTP of a progressive bet is
 derived in [MATH.md](MATH.md#progressive-jackpots).
 
-### Math tooling and game sheets
+### Math tooling and the submission documents
 
 `exactReturns` (exhaustive enumeration with BigInt fractions) and `simulate` (Monte Carlo with
 standard errors) both run the real game through `playRound`, so they test the implementation, not
@@ -289,22 +289,28 @@ a model of it. `simulate` can hand every settled round to an observer, for stati
 does not keep, such as Moving Target's figures per target, and can take stakes chosen per round.
 [MATH.md](MATH.md) describes both.
 
-Every game's `mathSummary()` is derived from its bet definitions by `summarizeMath`. The paytable
-modal renders it in the browser, and `pnpm docs:sheets` writes it into `docs/games/<id>.md` between
-`<!-- math:start -->` and `<!-- math:end -->`: an overview table (RTP, house edge, hit frequency,
-push, max exposure, volatility index, limits), the figures on the table's own shoe when declared,
-and each bet's paytable, or its breakdown by condition, with a progressive bet's meter terms. The
-section is fenced off
-from Prettier, which would otherwise re-align its tables. The published figures therefore come from
-the code the tests verify, and `pnpm docs:check` fails CI when a sheet is stale.
+Every game's `mathSummary()` is derived from its bet definitions by `summarizeMath`, and the
+paytable modal renders it in the browser. The exact and Monte Carlo suites record what they
+compute as file snapshots beside the tests (`packages/engine/src/games/<id>/results/*.json`,
+through `testing/record.ts`), with the test's file and name: a run that computes anything else
+fails, and `-u` rewrites them.
 
-`tools/game-sheets-pdf.ts` (`pnpm docs:pdf`) prints the four sheets into one PDF,
-`docs/GAME-SHEETS.pdf`, with a cover listing each game's main bet and RTP. The Markdown goes
-through the kit's own renderer on a jsdom document, so the PDF reads like the Rules dialog, and
-headless Chrome prints it. The PDF's title carries a hash of the sheets, the renderer and the
-script: `docs:check` compares it without a browser or a PDF parser, and CI also prints the PDF
-afresh and keeps it as an artifact. The site publishes it at its root. The scripts in `tools/`
-are type-checked with their own `tsconfig.json` (DOM and Node types together).
+`tools/generate-docs.ts` (`pnpm docs:generate`) writes the submission documents from those two
+sources only: `docs/results.json` gathers the math summaries, the records and the table facts
+the Rules of Play read from the engine; the Rules of Play (`docs/rules/<id>.md`) and the Math
+Reports (`docs/math/<id>.md`) are written from it; and `docs/SUBMISSION-PACK.pdf` puts them behind
+a cover. The templates (`tools/docs/`) cannot hold a digit: every number enters as a figure of
+`results.json`, marked with its path and formatter, and the generator re-checks each against
+`results.json` before writing, failing on any stray number. The Math Reports name the last commit
+that changed the engine, so documents are regenerated in a commit after the engine's. The
+generated files are kept from Prettier, and `pnpm docs:check`, in CI, fails when any of them
+differs from what the code gives. [docs/README.md](README.md) describes both documents.
+
+The PDF goes through the kit's own Markdown renderer on a jsdom document, so it reads like the
+Rules dialog, and headless Chrome prints it. Its title carries a hash of the documents, the
+generator and the renderer: `docs:check` compares it without a browser or a PDF parser, and CI
+also prints the PDF afresh and keeps it as an artifact. The site publishes it at its root. The
+scripts in `tools/` are type-checked with their own `tsconfig.json` (DOM and Node types together).
 
 ### A game: Dice Spread
 
@@ -415,7 +421,7 @@ so a hidden card is never put on the page.
 | `CardDealer`            | Deals from a shoe with slide and flip, shows the shoe counter and the cut card, announces cards to screen readers; DOM cards laid out like the PixiJS ones until those take over                                                                           |
 | `BankrollDisplay`       | Balance with a count-up and a floating win or loss delta; offers a top-up below the table minimum                                                                                                                                                          |
 | Paytable modal          | Built from `mathSummary()`: odds, probabilities, RTP, house edge, standard deviation, limits, and a game's strategy card                                                                                                                                   |
-| Info modal              | Renders a game sheet (Markdown) as the Rules dialog                                                                                                                                                                                                        |
+| Info modal              | Renders Markdown in a dialog: the table's Rules and the lobby's Rules of Play                                                                                                                                                                              |
 | `RtpPanel`              | Rounds, wagered, returned (and fees), and live versus declared RTP per bet, fees counted against the return, with a convergence sparkline and its 95% band; a progressive bet's RTP at the current meter, and the figures on the table's shoe              |
 | `AutoPlay`              | Runs 10 to 100 rounds; stops on request, on error, or before a round the balance cannot cover                                                                                                                                                              |
 | Turbo and sound toggles | Switches that persist settings; turbo sets the motion level to `none`                                                                                                                                                                                      |
@@ -487,8 +493,9 @@ their colours from the same tokens at runtime, so the canvas matches the chrome.
   neither of them.
 - **Routes.** `/` is the lobby, `/stats` the RTP stats page, and `/:slug` serves one of the four
   game slugs (anything else gets the not-found page). Games with rules load their table from the
-  `tables/` registry; the others show a placeholder page. Each table opens its rules sheet from
-  `docs/games/<slug>.md`, loaded through `import.meta.glob` so the docs are the single source.
+  `tables/` registry; the others show a placeholder page. Each table's Rules dialog shows the players' part of its Rules of Play
+  (`docs/rules/<slug>.md`, from the objective to the settlement), loaded through
+  `import.meta.glob` so the generated documents are the single source.
 - **Tables.** What every table shares lives in `tables/`: `DiceTable` runs the chips, balance,
   actions, autoplay, bet spots and a round's life (stakes debited on the roll, the engine's events
   replayed step by step, a choice's fee debited when it is made, payouts credited at settlement,
@@ -503,7 +510,8 @@ their colours from the same tokens at runtime, so the canvas matches the chrome.
   the stored meter on the table's card.
 - **Lobby.** A card per table: its art, the main bet's declared RTP, the tagline, the live
   progressive meter where it has one, and two actions, Play (a link stretched over the card) and
-  Game sheet (the sheet in a dialog, loaded on first use, with a link to the PDF).
+  Rules of Play (the whole document in a dialog, loaded on first use, with a link to the submission
+  pack).
 - **House controls.** The lobby's bar shows the bankroll with a reset, and links the RTP stats with
   a reset for every table's figures; both resets ask first, in a dialog that opens on Cancel.
 - **RTP stats.** `/stats` adds up the stored stats of all four tables (rounds, wagered, returned,
@@ -511,7 +519,7 @@ their colours from the same tokens at runtime, so the canvas matches the chrome.
   RTP monitor, following rounds played in another tab.
 - **Static hosting.** At build time small Vite plugins copy `index.html` into each game's folder,
   `stats/` and `404.html`, so deep links load directly on GitHub Pages; publish
-  `docs/GAME-SHEETS.pdf` at the site's root; and fail the build if PixiJS could reach a page's
+  `docs/SUBMISSION-PACK.pdf` at the site's root; and fail the build if PixiJS could reach a page's
   first load (`pixiOnDemandOnly`, which caught the bundler placing its own helpers in a PixiJS
   chunk that every table then loaded).
 - **Services.** `createServices()` builds the page-wide state once (storage, settings, bankroll,
@@ -561,7 +569,7 @@ resources) is listed in the [README](../README.md#moving-the-engine-server-side)
 | RNG          | Reference vectors (xoshiro128\*\* and SplitMix64), reproducibility, seed handling, uniformity of `randomInt`, shuffles and dice                                                                                                                                                                                                                                                                                                                                  | Vitest; seeded chi-square tests, so they cannot flake |
 | Shoe         | Composition, penetration and cut card, reshuffle rules, mid-round exhaustion, infinite mode                                                                                                                                                                                                                                                                                                                                                                      | Vitest with seeded and scripted RNGs                  |
 | Rounds       | Builder invariants, validation, error codes, settlement arithmetic, decisions, added stakes and fees                                                                                                                                                                                                                                                                                                                                                             | Vitest with scripted dice and cards                   |
-| Math tooling | Enumeration (including non-determinism detection), fractions, simulator statistics, sheet rendering                                                                                                                                                                                                                                                                                                                                                              | Vitest                                                |
+| Math tooling | Enumeration (including non-determinism detection), fractions, simulator statistics, recorded figures                                                                                                                                                                                                                                                                                                                                                             | Vitest                                                |
 | Game math    | Exact RTP, probabilities and variance equal the declared fractions (for Moving Target, via a memoised recursion too; for Mirror and Lock & Roll, on the six-deck shoe as well); Lock & Roll's strategy derived by expected value; a progressive meter's pay and accounts; Monte Carlo within ±0.15 pp; the six-deck shoe's shift; card counting exposure                                                                                                         | `pnpm test` (exact), `pnpm test:math` (Monte Carlo)   |
 | UI kit       | Components' DOM, keyboard and pointer behaviour, persistence, motion, audio gating, autoplay stops, RTP statistics; the deferred renderers taking over (with stand-in PixiJS views)                                                                                                                                                                                                                                                                              | Vitest in jsdom, with the DOM renderers               |
 | Lobby        | Router: base paths, link interception, not-found handling, focus and titles; the lobby's cards, meter and resets; the RTP stats page; every table plays rounds that match the engine's settlement, including one interrupted by leaving; PixiJS asked for on the first press; the target board; the mirror; the meter stored, carried on and shown in the lobby; Lock & Roll's decision, fee, hint and focus, and autoplay matching the engine with its strategy | Vitest in jsdom                                       |
@@ -570,25 +578,25 @@ resources) is listed in the [README](../README.md#moving-the-engine-server-side)
 
 ## Decisions
 
-| Decision                                  | Why                                                                                                                                                                           |
-| :---------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `RoundState` carries its `Rng`            | `decide(state, choice)` keeps its two-argument signature and still draws from the round's stream. A server strips it before persisting and re-attaches its own RNG on resume. |
-| `CardSource` interface in front of `Shoe` | Scripted cards in tests, persisted shoes on a server, card readers at live tables, with no change to game code.                                                               |
-| Optional `IntegerRng.nextInt`             | Lets the enumerator branch on each draw with probability exactly 1/n, and lets a certified RNG service own the scaling.                                                       |
-| Rejection sampling for integers           | `floor(next() × n)` is biased for any n that is not a power of two, and certification labs flag it.                                                                           |
-| xoshiro128\*\* seeded by SplitMix64       | Small, fast, well-studied (passes BigCrush), with a 32-bit output that JavaScript handles natively. SplitMix64 makes adjacent seeds produce unrelated streams.                |
-| Exact math by enumerating the real code   | A separate combinatorial model can agree with itself and still disagree with the game. Enumerating the game's own draws tests what ships.                                     |
-| Monte Carlo rounds sized from σ           | A fixed 2,000,000 rounds is too few for volatile bets. Sizing from the bet's standard deviation keeps a correct implementation's failure probability below 0.1%.              |
-| Integer cents, floored breakage           | No floating-point drift between client, server and ledger; the rounding rule is explicit and conventional.                                                                    |
-| Builder-owned lifecycle events            | Games cannot forget to settle a bet, settle twice or skip `round-settled`; every game gets the same audit log.                                                                |
-| Fees count against the return             | A fee pays nothing and is never returned, so it is not a stake: RTP is (payout − fee) ÷ stake, and the element of risk (loss ÷ stake and fees) is published beside it.        |
-| Strategies computed, not written down     | Lock & Roll's best play comes from exact expected values, so retuning the fee retunes the strategy, the declared figures and the sheet together.                              |
-| Paytables and sheets generated from code  | One source for declared figures; stale docs fail CI.                                                                                                                          |
-| DOM chrome, Pixi only for dice and cards  | Accessibility and layout come free with the DOM. Pixi is used only where a canvas is actually needed, and it is loaded lazily with a DOM fallback.                            |
-| Render-on-demand Pixi hosts               | Idle tables cost nothing on battery-powered phones.                                                                                                                           |
-| PixiJS on the first interaction           | Started with the page, WebGL blocked the main thread for over a second where the GPU paints in software. The DOM views look the part, and the switch rides a round's start.   |
-| `aria-disabled` for round-bound controls  | A `disabled` button drops the keyboard focus to the top of the page, every round.                                                                                             |
-| A PDF printed from the sheets             | One file to send an aggregator, from the same Markdown; a build hash in its title lets CI tell a stale PDF without a PDF parser.                                              |
-| Own Markdown renderer                     | The rules sheets need a small, safe subset (no raw HTML, vetted links). Writing it avoided a runtime dependency; the project takes none beyond PixiJS without approval.       |
-| Native `<dialog>` for modals              | Focus trapping, Escape handling and top-layer stacking come from the browser.                                                                                                 |
-| TypeScript 6.0, Vitest 4, jsdom 29        | Vitest 5 and jsdom 30 need Node 22, but the project supports Node 20. `typescript-eslint` supports TypeScript up to 6.0.                                                      |
+| Decision                                    | Why                                                                                                                                                                           |
+| :------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RoundState` carries its `Rng`              | `decide(state, choice)` keeps its two-argument signature and still draws from the round's stream. A server strips it before persisting and re-attaches its own RNG on resume. |
+| `CardSource` interface in front of `Shoe`   | Scripted cards in tests, persisted shoes on a server, card readers at live tables, with no change to game code.                                                               |
+| Optional `IntegerRng.nextInt`               | Lets the enumerator branch on each draw with probability exactly 1/n, and lets a certified RNG service own the scaling.                                                       |
+| Rejection sampling for integers             | `floor(next() × n)` is biased for any n that is not a power of two, and certification labs flag it.                                                                           |
+| xoshiro128\*\* seeded by SplitMix64         | Small, fast, well-studied (passes BigCrush), with a 32-bit output that JavaScript handles natively. SplitMix64 makes adjacent seeds produce unrelated streams.                |
+| Exact math by enumerating the real code     | A separate combinatorial model can agree with itself and still disagree with the game. Enumerating the game's own draws tests what ships.                                     |
+| Monte Carlo rounds sized from σ             | A fixed 2,000,000 rounds is too few for volatile bets. Sizing from the bet's standard deviation keeps a correct implementation's failure probability below 0.1%.              |
+| Integer cents, floored breakage             | No floating-point drift between client, server and ledger; the rounding rule is explicit and conventional.                                                                    |
+| Builder-owned lifecycle events              | Games cannot forget to settle a bet, settle twice or skip `round-settled`; every game gets the same audit log.                                                                |
+| Fees count against the return               | A fee pays nothing and is never returned, so it is not a stake: RTP is (payout − fee) ÷ stake, and the element of risk (loss ÷ stake and fees) is published beside it.        |
+| Strategies computed, not written down       | Lock & Roll's best play comes from exact expected values, so retuning the fee retunes the strategy, the declared figures and the Math Report together.                        |
+| Paytables and documents generated from code | One source for declared figures, and every figure traced to a test; stale docs fail CI.                                                                                       |
+| DOM chrome, Pixi only for dice and cards    | Accessibility and layout come free with the DOM. Pixi is used only where a canvas is actually needed, and it is loaded lazily with a DOM fallback.                            |
+| Render-on-demand Pixi hosts                 | Idle tables cost nothing on battery-powered phones.                                                                                                                           |
+| PixiJS on the first interaction             | Started with the page, WebGL blocked the main thread for over a second where the GPU paints in software. The DOM views look the part, and the switch rides a round's start.   |
+| `aria-disabled` for round-bound controls    | A `disabled` button drops the keyboard focus to the top of the page, every round.                                                                                             |
+| A PDF printed from the documents            | One file to send a distributor or a lab, from the same Markdown; a build hash in its title lets CI tell a stale PDF without a PDF parser.                                     |
+| Own Markdown renderer                       | The rules need a small, safe subset (no raw HTML, vetted links). Writing it avoided a runtime dependency; the project takes none beyond PixiJS without approval.              |
+| Native `<dialog>` for modals                | Focus trapping, Escape handling and top-layer stacking come from the browser.                                                                                                 |
+| TypeScript 6.0, Vitest 4, jsdom 29          | Vitest 5 and jsdom 30 need Node 22, but the project supports Node 20. `typescript-eslint` supports TypeScript up to 6.0.                                                      |

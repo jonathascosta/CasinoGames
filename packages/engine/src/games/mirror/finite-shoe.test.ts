@@ -21,9 +21,10 @@ import { exactReturns } from '../../math/exact.ts';
 import { Fraction } from '../../math/fraction.ts';
 import { ProgressiveJackpot } from '../../progressive/progressive.ts';
 import { createFullShoePairSource } from '../../testing/full-shoe-pairs.ts';
+import { describeShoe, exact, recordFigures } from '../../testing/record.ts';
 import { MIRROR_BETS, MIRROR_MATH, DOUBLE_SIXES_FIXED_RTP } from './bets.ts';
 import { MIRROR_CONFIG } from './config.ts';
-import { createMirror } from './game.ts';
+import { createMirror, createMirrorShoe } from './game.ts';
 
 const BETS: Bets = Object.fromEntries(MIRROR_BETS.map(({ id }) => [id, 100]));
 const KEYS: readonly [string, keyof typeof MIRROR_MATH][] = [
@@ -60,6 +61,44 @@ describe('Mirror — every round of the six-deck shoe, exactly', () => {
         ? definition.finiteShoe!.rtp - MIRROR_CONFIG.jackpot.contributionRate
         : definition.finiteShoe!.rtp;
     expect(result.rtp.toNumber()).toBeCloseTo(fixedRtp, 15);
+  });
+
+  it('records every bet on the six-deck shoe, and where the meter breaks even there', async () => {
+    const contribution = Fraction.of(
+      Math.round(MIRROR_CONFIG.jackpot.contributionRate * 1_000_000),
+      1_000_000,
+    );
+    const hit = MIRROR_MATH.doubleSixes.shoe;
+    const fixedRtp = report.bets['double-sixes']!.rtp;
+    // Break-even on this shoe: fixedRtp + hit × M ÷ SIDE_MAX = 1.
+    const breakEven = Fraction.ONE.sub(fixedRtp).mul(Fraction.of(MIRROR_CONFIG.sideMax)).div(hit);
+    await recordFigures('six-deck-exact', {
+      shoe: describeShoe(createMirrorShoe()),
+      sampleSpace: { rolls: 36, firstCard: 6, secondCard: 143, outcomes: report.outcomes },
+      bets: Object.fromEntries(
+        KEYS.map(([id]) => {
+          const result = report.bets[id]!;
+          return [
+            id,
+            {
+              hitFrequency: exact(result.hitFrequency),
+              rtp: exact(result.rtp),
+              houseEdge: exact(Fraction.ONE.sub(result.rtp)),
+              variance: exact(result.variance),
+              standardDeviation: result.standardDeviation,
+            },
+          ];
+        }),
+      ),
+      doubleSixes: {
+        fixedRtp: exact(fixedRtp),
+        rtpExcludingSeed: exact(fixedRtp.add(contribution)),
+        cycleRounds: exact(Fraction.ONE.div(hit)),
+        breakEvenMeter: exact(breakEven),
+      },
+      /** A pair of cards against an infinite shoe's 1 in 6: 23/143 as likely per value. */
+      pairRatio: exact(MIRROR_MATH.pairVsPair.shoe.div(Fraction.of(1, 6))),
+    });
   });
 
   it('makes pairs of cards rarer: every bet moves', () => {

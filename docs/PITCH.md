@@ -11,8 +11,10 @@ twice, exactly and by simulation, against the code that ships.
 
 - **Play the demo:** <https://jonathascosta.github.io/CasinoGames/> (virtual chips, any phone or
   desktop browser).
-- **Read the game sheets:** [GAME-SHEETS.pdf](GAME-SHEETS.pdf), the rules and the full math of the
-  four games in one file.
+- **Read the submission pack:** [SUBMISSION-PACK.pdf](SUBMISSION-PACK.pdf), each game's Rules of
+  Play (for pit managers and dealer trainers) and Math Report (for gaming labs and analysts) in
+  one file, generated from the code; [README.md](README.md#submission-documents) explains how to
+  verify every figure.
 - **Check the math live:** the demo's [RTP stats](https://jonathascosta.github.io/CasinoGames/stats)
   set every round played in the browser against the declared figures, bet by bet.
 
@@ -26,7 +28,7 @@ twice, exactly and by simulation, against the code that ships.
 | Lock & Roll   | Lock a die, roll the other, beat the cards.          |       95.93% |                    56.9% | None: a decision instead           |
 
 Every RTP is an exact fraction (Between's is 26/27), declared on an infinite shoe; each game
-sheet also gives the figures on the table's own six-deck shoe. The demo's limits are 0.50 to
+Math Report also gives the figures on the table's own six-deck shoe. The demo's limits are 0.50 to
 250.00 on a main bet and 0.50 to 25.00 on a side bet.
 
 ## The games
@@ -39,7 +41,7 @@ single value between them, down to 1 to 2 with four. Dice one apart, or a pair, 
 the stake comes back. Every roll sets its own odds before the card turns, and the base game stays
 gentle: 96.30%, with 18.5% of rounds won and 44.4% pushed. Four side bets ride on the same roll
 and card, among them Bullseye (22 to 1, the card dead centre of a spread of two) and Triple (30
-to 1, a pair and its card). The sheet measures card counting exactly and flags that Between can
+to 1, a pair and its card). The Math Report measures card counting exactly and flags that Between can
 be counted at the default shoe penetration, which a live table needs to know.
 
 ### Moving Target
@@ -51,7 +53,7 @@ up, adding the cards as they come, and stops as soon as the total reaches or pas
 and house edge. Every card changes the count, so the tension builds card by card: of the four,
 it is the game the dealer drives most. First Card (9 to 1: the first card alone hits the target)
 and 3+ Cards (4 to 1: the dealer needs three cards or more) settle on the same deal. Exact Hit
-returns 96.15%, and the sheet measures how the real six-deck shoe moves each bet, by 0.11 points
+returns 96.15%, and the Math Report measures how the real six-deck shoe moves each bet, by 0.11 points
 at most.
 
 ### Mirror
@@ -89,8 +91,9 @@ rounds stay short.
   knows one can play the others; an operator integrates one engine and one client for all four.
 - **Math anyone can check.** Every declared RTP is an exact fraction, proven by running the real
   game over every possible draw and confirmed by seeded simulations of millions of rounds, on an
-  infinite shoe and on the real one. The paytables, the game sheets and the PDF are generated from
-  the code, and CI fails if they drift.
+  infinite shoe and on the real one. The paytables, the Rules of Play, the Math Reports and their PDF
+  are generated from the code, every figure traced to the test that reproduces it, and CI fails if
+  they drift.
 
 ## Random numbers
 
@@ -107,8 +110,8 @@ rounds stay short.
   `next()` for a stream of uniform numbers, or `nextInt(n)` when the RNG service does its own
   certified scaling. The order of the draws is part of the engine's tested contract, and each
   round's event log records them in that order (a reshuffle, the dice, every card), so a
-  laboratory can reproduce rounds from the RNG's output. The exact-math reports and the game
-  sheets make up the math side of a submission.
+  laboratory can reproduce rounds from the RNG's output. The Math Reports make up the math side
+  of a submission, and the Rules of Play its rules.
 
 ## At a live table
 
@@ -116,9 +119,9 @@ Each game's dealer side is already a real card game, so the four work as live fo
 RNG ones.
 
 - **Real shoes.** Every figure is published for the six-deck shoe with the cut card at three
-  quarters, not only for an infinite deck, and the Dice Spread, Mirror and Lock & Roll sheets
-  measure the card counting exposure. Where a bet can be counted, as Between can at the default
-  penetration, a studio can shuffle earlier or use a continuous shuffler.
+  quarters, not only for an infinite deck, and every Math Report measures the card counting
+  exposure. Where a bet can be counted, as Between can at the default penetration, a studio can
+  shuffle earlier or use a continuous shuffler.
 - **The dealer rolls for the table.** Live, one roll (from a shaker or an automatic dice table,
   as in Sic Bo) and the same cards settle every player's bets. Lock & Roll's re-roll becomes one
   more die, rolled once for everyone who locked: each player keeps the die they chose, and the
@@ -181,7 +184,7 @@ the client replays the same events whether the engine runs in the page or behind
 ## Where it stands
 
 Version 0.1.0 is a complete demo: four playable games, their math proven exactly and by
-simulation, game sheets and their PDF generated from the code, a lobby with the declared RTPs and
+simulation, a Rules of Play and a Math Report per game generated from the code, a lobby with the declared RTPs and
 the live meter, and an RTP stats page. The next steps are the ones an operator sets: the wallet
 API with a first aggregator, the engine deployed behind it with a certified RNG, and the
 certification of the RNG and the math. The architecture and the math behind every figure are in

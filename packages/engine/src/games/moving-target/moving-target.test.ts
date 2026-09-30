@@ -14,6 +14,14 @@ import type { Odds } from '../../game/money.ts';
 import type { PaytableEntry } from '../../game/types.ts';
 import { exactReturns } from '../../math/exact.ts';
 import { Fraction } from '../../math/fraction.ts';
+import {
+  exact,
+  exactFigures,
+  exposure,
+  oddsRecord,
+  outcomeTable,
+  recordFigures,
+} from '../../testing/record.ts';
 import { createUniformRankSource } from '../../testing/uniform-ranks.ts';
 import { MOVING_TARGET_BETS } from './bets.ts';
 import { movingTargetMathSummary, createMovingTarget } from './game.ts';
@@ -242,6 +250,74 @@ describe('Moving Target — exact math', () => {
       );
       expect(report.outcomes).toBe(sequences);
       expect(sequences).toBe(71_469);
+    });
+
+    it('breaks every bet down by target, adding up to its declared figures, and finds the most a round can pay', async () => {
+      const summary = movingTargetMathSummary();
+      const odds: Readonly<Record<MovingTargetBetId, (target: Target) => Odds>> = {
+        'exact-hit': (target) => EXACT_HIT_ODDS[target],
+        'first-card': () => FIRST_CARD_ODDS,
+        'three-plus-cards': () => THREE_PLUS_CARDS_ODDS,
+      };
+      const chance: Readonly<
+        Record<MovingTargetBetId, (row: (typeof BY_TARGET)[number]) => Fraction>
+      > = {
+        'exact-hit': (row) => row.hit,
+        'first-card': (row) => row.first,
+        'three-plus-cards': (row) => row.three,
+      };
+      const bets = Object.fromEntries(
+        summary.bets.map((bet) => {
+          const id = bet.betId as MovingTargetBetId;
+          const result = report.bets[id]!;
+          expect(result.rtp.toNumber()).toBe(bet.rtp);
+          const byTarget = BY_TARGET.map((row) => {
+            const win = chance[id](row);
+            const pays = multiplier(odds[id](row.target));
+            return {
+              target: row.target,
+              rollChance: exact(row.roll),
+              win: exact(win),
+              odds: oddsRecord(odds[id](row.target)),
+              returnGivenTarget: exact(win.mul(pays)),
+              edgeGivenTarget: exact(Fraction.ONE.sub(win.mul(pays))),
+              probability: exact(row.roll.mul(win)),
+              contribution: exact(row.roll.mul(win).mul(pays)),
+            };
+          });
+          // The dice-weighted aggregate of the rows is the bet's RTP.
+          const aggregate = BY_TARGET.reduce(
+            (sum, row) =>
+              sum.add(row.roll.mul(chance[id](row)).mul(multiplier(odds[id](row.target)))),
+            Fraction.ZERO,
+          );
+          expect(aggregate.equals(result.rtp)).toBe(true);
+          return [
+            id,
+            { byTarget, outcomes: outcomeTable(bet.paytable, result), ...exactFigures(result) },
+          ];
+        }),
+      );
+      const atMax = exposure(
+        () => createMovingTarget({ source: createUniformRankSource(RANK_SETS.aceToTen) }),
+        Object.fromEntries(MOVING_TARGET_BETS.map((bet) => [bet.id, bet.max])),
+      );
+      for (const bet of summary.bets) {
+        expect(atMax.bets[bet.betId]!.win).toBe(bet.maxExposure! * bet.max);
+      }
+      await recordFigures('exact', {
+        sampleSpace: {
+          rolls: DIE_FACES.length ** 2,
+          targets: TARGETS.length,
+          cardValues: CARD_VALUES.length,
+          outcomes: report.outcomes,
+          sequences: Object.fromEntries(TARGETS.map((target) => [target, dealCount(target)])),
+        },
+        source: { kind: 'uniform ranks', ranks: RANK_SETS.aceToTen },
+        rolls: Object.fromEntries(TARGETS.map((target) => [target, ROLLS.get(target)!])),
+        bets,
+        maxExposure: atMax,
+      });
     });
 
     it.each(MOVING_TARGET_BETS.map((bet) => bet.id))(

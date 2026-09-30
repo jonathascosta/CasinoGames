@@ -1,7 +1,7 @@
 import { h } from '../dom/h.ts';
 
 /**
- * A small Markdown renderer for the game sheets and rules text. It builds DOM
+ * A small Markdown renderer for the Rules of Play and other rules text. It builds DOM
  * nodes directly (text is never parsed as HTML), so even a hostile document
  * cannot inject markup or script; link targets are limited to http(s),
  * mailto, relative paths and fragments.
@@ -123,14 +123,27 @@ function startsBlock(lines: readonly Line[], i: number): boolean {
   );
 }
 
+/**
+ * A paragraph's lines, joined: a soft line break is a space, so emphasis,
+ * code and links may run across lines, as a wrapped document writes them.
+ * A hard break (two trailing spaces or a backslash) ends the run.
+ */
 function parseParagraph(lines: readonly Line[]): Node[] {
   const nodes: Node[] = [];
+  let run: string[] = [];
+  const flush = () => {
+    if (run.length > 0) nodes.push(...parseInline(run.join(' ')));
+    run = [];
+  };
   lines.forEach((line, index) => {
     const hardBreak = / {2,}$/.test(line) || line.endsWith('\\');
-    const content = line.trim().replace(/\\$/, '');
-    nodes.push(...parseInline(content));
-    if (index < lines.length - 1) nodes.push(hardBreak ? h('br') : document.createTextNode(' '));
+    run.push(line.trim().replace(/\\$/, ''));
+    if (hardBreak && index < lines.length - 1) {
+      flush();
+      nodes.push(h('br'));
+    }
   });
+  flush();
   return nodes;
 }
 

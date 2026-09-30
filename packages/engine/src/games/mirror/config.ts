@@ -4,8 +4,9 @@ import { odds } from '../../game/money.ts';
  * What can be retuned in Mirror without touching its rules: the shoe, the
  * limits, the payouts and the progressive meter. The declared math
  * (bets.ts) is computed from these values and the exact tests check it
- * against the game, so a change here stays consistent; the game sheet then
- * needs `pnpm docs:sheets`.
+ * against the game, so a change here stays consistent; the tests' records
+ * and the documents then need `pnpm test -u`, `pnpm test:math -u` and
+ * `pnpm docs:generate`.
  */
 export const MIRROR_CONFIG = {
   /** Decks of aces to sixes in the table's shoe. */

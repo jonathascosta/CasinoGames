@@ -14,6 +14,7 @@
 import { describe, expect, it } from 'vitest';
 import { DIE_FACES, type DicePair, type DieFace } from '../../dice/dice.ts';
 import { Fraction } from '../../math/fraction.ts';
+import { exact, recordFigures } from '../../testing/record.ts';
 import { LOCK_AND_ROLL_CONFIG, type LockAndRollRules } from './config.ts';
 import type { LockAndRollChoice } from './rules.ts';
 import {
@@ -21,6 +22,7 @@ import {
   INFINITE_SHOE,
   bestChoice,
   referenceStrategy,
+  rollValues,
   shoeTotals,
   strategyMath,
 } from './strategy.ts';
@@ -113,7 +115,7 @@ describe('Lock & Roll — the best choice on each of the 21 rolls, by expected v
     // Re-rolling the high die is never the best: the higher the die kept, the better the re-roll.
     if (low !== high)
       expect(values['reroll the high die'].compare(values['reroll the low die'])).toBe(-1);
-    // strategy.ts computes the same choice (the game, autoplay and the sheet use it).
+    // strategy.ts computes the same choice (the game, autoplay and the Math Report use it).
     expect(bestChoice([low, high], RULES)).toBe(asChoice(best, low, high));
     expect(referenceStrategy(RULES)([low, high])).toBe(asChoice(best, low, high));
     expect(referenceStrategy(RULES)([high, low])).toBe(best === 'stand' ? 'stand' : 'lock-0');
@@ -164,6 +166,48 @@ describe('Lock & Roll — the best choice on each of the 21 rolls, by expected v
     const without = strategyMath(WITHOUT_FREE, INFINITE_SHOE);
     expect(without.rtp.equals(ONE.sub(edge(false).houseEdge))).toBe(true);
     expect(without.rerollFrequency.toString()).toBe('4/9');
+  });
+
+  it('values standing and locking either die on each of the 21 rolls, as strategy.ts does', async () => {
+    /** The play as the table names it: lock the higher die (re-roll the lower), or the lower. */
+    const named = (play: Play) =>
+      play === 'stand' ? 'stand' : play === 'reroll the low die' ? 'lock-high' : 'lock-low';
+    const rows = ROLLS.map(([low, high]) => {
+      const { best, values } = evaluate(low, high, true);
+      // strategy.ts values the same choices: lock[i] keeps die i and re-rolls the other.
+      const engine = rollValues([low, high], RULES, INFINITE_SHOE);
+      expect(engine.stand.equals(values.stand)).toBe(true);
+      expect(engine.lock[1].equals(values['reroll the low die'])).toBe(true);
+      expect(engine.lock[0].equals(values['reroll the high die'])).toBe(true);
+      const ranked = Object.values(values).sort((a, b) => b.compare(a));
+      return {
+        dice: [high, low],
+        chance: exact(Fraction.of(low === high ? 1 : 2, 36)),
+        free: RULES.freeOneOne && low === 1 && high === 1,
+        stand: exact(values.stand),
+        lockHigh: exact(values['reroll the low die']),
+        lockLow: exact(values['reroll the high die']),
+        best: named(best),
+        /** How much the best choice is worth over the next best, per unit of the bet. */
+        margin: exact(
+          ranked[0]!.sub(ranked.find((value) => !value.equals(ranked[0]!)) ?? ranked[0]!),
+        ),
+        bestWithoutFree: named(evaluate(low, high, false).best),
+      };
+    });
+    const played = edge(true);
+    const without = edge(false);
+    await recordFigures('strategy', {
+      rules: { fee: exact(FEE), freeOneOne: RULES.freeOneOne },
+      rows,
+      houseEdge: exact(played.houseEdge),
+      rtp: exact(ONE.sub(played.houseEdge)),
+      houseEdgeWithoutFree: exact(without.houseEdge),
+      rtpWithoutFree: exact(ONE.sub(without.houseEdge)),
+      rerolls: exact(played.rerolls),
+      rerollsWithoutFree: exact(without.rerolls),
+      freeOneOneWorth: exact(without.houseEdge.sub(played.houseEdge)),
+    });
   });
 
   it('keeps the same strategy on the six-deck shoe, where it returns a little more', () => {

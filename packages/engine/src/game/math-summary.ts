@@ -13,7 +13,7 @@ import type {
 
 /**
  * Builds a game's math summary from its bet definitions, so the declared
- * figures shown in the paytable and written to the game sheets come from one
+ * figures shown in the paytable and written to the Math Reports come from one
  * place: the code the tests verify.
  */
 export function summarizeMath(game: {

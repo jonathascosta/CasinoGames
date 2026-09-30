@@ -25,7 +25,7 @@ export function createDiceSpreadShoe(): Shoe {
   return new Shoe({ decks: 6, ranks: RANK_SETS.aceToSix });
 }
 
-/** The declared math of every bet, as shown in the paytable and the game sheet. */
+/** The declared math of every bet, as shown in the paytable and the Math Report. */
 export function diceSpreadMathSummary(): MathSummary {
   return summarizeMath({ id: DICE_SPREAD_ID, name: DICE_SPREAD_NAME, bets: DICE_SPREAD_BETS });
 }

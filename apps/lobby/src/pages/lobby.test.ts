@@ -56,7 +56,7 @@ afterEach(() => {
 });
 
 describe('lobby cards', () => {
-  it('shows each table with its declared RTP, a Play link and a Game sheet button', () => {
+  it('shows each table with its declared RTP, a Play link and a Rules of Play button', () => {
     const { outlet, card } = mount(services());
     expect(
       [...outlet.querySelectorAll('.game-card__name')].map((name) => name.textContent),
@@ -71,7 +71,7 @@ describe('lobby cards', () => {
     expect(play.getAttribute('aria-label')).toBe('Play Mirror');
     expect(play.textContent).toBe('Play');
     expect(card('mirror').querySelector('.game-card__sheet')!.getAttribute('aria-label')).toBe(
-      'Game sheet: Mirror',
+      'Rules of Play: Mirror',
     );
     expect(card('mirror').getAttribute('aria-labelledby')).toBe('game-mirror');
   });
@@ -108,19 +108,21 @@ describe('lobby cards', () => {
     expect(value()).toBe('5,032.50'); // no longer listening
   });
 
-  it('opens the game sheet in a dialog, from the docs', async () => {
+  it('opens the whole Rules of Play in a dialog, from the docs', async () => {
     const { card } = mount(services());
     card('lock-and-roll').querySelector<HTMLButtonElement>('.game-card__sheet')!.click();
     await vi.waitFor(() => {
       expect(document.querySelector('dialog.cg-modal[open]')).not.toBeNull();
     });
     const dialog = document.querySelector('dialog.cg-modal[open]')!;
-    expect(dialog.querySelector('h2')!.textContent).toBe('Lock & Roll · Game sheet');
-    expect(dialog.textContent).toContain('Place the Lock & Roll bet: 0.50 to 250.00.');
-    // Then where to find all four sheets in one PDF.
+    expect(dialog.querySelector('h2')!.textContent).toBe('Lock & Roll · Rules of Play');
+    expect(dialog.textContent).toContain('Limits. 0.50 to 250.00.');
+    // All of it, the live-dealer notes and the rulings included.
+    expect(dialog.textContent).toContain('Irregularities');
+    // Then where to find the Math Report and every game's documents in one PDF.
     const pdf = [...dialog.querySelectorAll('a')].at(-1)!;
-    expect(pdf.textContent).toBe('download the game sheets');
-    expect(pdf.getAttribute('href')).toBe('/GAME-SHEETS.pdf');
+    expect(pdf.textContent).toBe('download the submission pack (PDF)');
+    expect(pdf.getAttribute('href')).toBe('/SUBMISSION-PACK.pdf');
   });
 });
 

@@ -19,6 +19,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The documents name the last commit that changed the engine.
+          fetch-depth: 0
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
@@ -30,32 +33,34 @@ jobs:
       - run: pnpm format:check
       - run: pnpm typecheck
       - run: pnpm test
-      - name: Game sheets and their PDF match the code
+      - name: Rules of Play, Math Reports, results.json and the pack match the code
         run: pnpm docs:check
       - run: pnpm build
       - name: Built engine runs on plain Node (server-side smoke test)
         run: pnpm --filter @casinogames/engine smoke
 
-  game-sheets-pdf:
-    name: Game sheets PDF
+  submission-pack:
+    name: Submission pack PDF
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Prints docs/GAME-SHEETS.pdf afresh with the runner's Chrome; --check
-      # then confirms it carries the build of the sources it was printed from.
-      - run: pnpm docs:pdf
-      - run: pnpm docs:pdf --check
+      # Prints docs/SUBMISSION-PACK.pdf afresh with the runner's Chrome; the
+      # check then confirms every document, and the PDF's build, still match.
+      - run: pnpm docs:generate --reprint
+      - run: pnpm docs:check
       - uses: actions/upload-artifact@v7
         with:
-          name: game-sheets-pdf
-          path: docs/GAME-SHEETS.pdf
+          name: submission-pack
+          path: docs/SUBMISSION-PACK.pdf
           if-no-files-found: error
 
   lighthouse:
@@ -76,6 +81,7 @@ jobs:
       - run: pnpm lighthouse
 
   math:
+    # Each simulation must reproduce the results it recorded, which the Math Reports quote.
     name: Monte Carlo suites
     runs-on: ubuntu-latest
     timeout-minutes: 30

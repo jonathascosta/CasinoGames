@@ -21,6 +21,12 @@ import type { Bets } from '../../game/types.ts';
 import { roundsForTolerance, simulate } from '../../math/simulate.ts';
 import type { ExactAmount } from '../../progressive/progressive.ts';
 import { createSeededRng } from '../../rng/seeded.ts';
+import {
+  describeShoe,
+  recordFigures,
+  simulationRecord,
+  verification,
+} from '../../testing/record.ts';
 import { MIRROR_BETS, DOUBLE_SIXES_FIXED_RTP } from './bets.ts';
 import { createMirror, mirrorMathSummary } from './game.ts';
 
@@ -78,7 +84,7 @@ class Ratio {
 }
 
 describe('Mirror — Monte Carlo on an infinite shoe against the declared figures', () => {
-  it('lands every bet on its declared RTP and hit frequency', () => {
+  it('lands every bet on its declared RTP and hit frequency', async () => {
     const summary = mirrorMathSummary();
     const required = MIRROR_BETS.map((bet) =>
       roundsForTolerance(bet.standardDeviation!, TOLERANCE, Z),
@@ -86,9 +92,8 @@ describe('Mirror — Monte Carlo on an infinite shoe against the declared figure
     const rounds = Math.max(2_000_000, ...required.filter((count) => count <= BUDGET));
     expect(rounds).toBe(124_852_059);
 
-    const game = createMirror({
-      source: new Shoe({ decks: Infinity, ranks: RANK_SETS.aceToSix }),
-    });
+    const infiniteShoe = new Shoe({ decks: Infinity, ranks: RANK_SETS.aceToSix });
+    const game = createMirror({ source: infiniteShoe });
     const start = game.jackpot.state();
     const fixed = new Ratio();
     const excludingSeed = new Ratio();
@@ -123,13 +128,16 @@ describe('Mirror — Monte Carlo on an infinite shoe against the declared figure
       `Mirror on an infinite shoe, ${rounds.toLocaleString('en-US')} rounds (seed ${SEED})`,
       'RTP                    declared  simulated   difference  standard error  allowed',
     ];
+    const results: Record<string, object> = {};
     const row = (
       label: string,
       declared: number,
       measured: number,
       error: number,
       allowed: number,
+      key?: string,
     ) => {
+      if (key !== undefined) results[key] = verification(declared, measured, error, allowed);
       lines.push(
         `${label.padEnd(21)} ${pct(declared)}  ${pct(measured)}   ${pp(measured - declared)}  ` +
           `${(error * 100).toFixed(3)} pp        ±${(allowed * 100).toFixed(3)} pp`,
@@ -149,9 +157,24 @@ describe('Mirror — Monte Carlo on an infinite shoe against the declared figure
         Z * Math.sqrt((p * (1 - p)) / rounds),
       );
       expect(measured.pushFrequency).toBe(0);
+      const binomial = Math.sqrt((p * (1 - p)) / rounds);
+      results[`${bet.betId}/hitFrequency`] = verification(
+        p,
+        measured.hitFrequency,
+        binomial,
+        Z * binomial,
+      );
+      results[`${bet.betId}/statistics`] = measured;
       if (bet.progressive !== undefined) continue;
       const error = bet.standardDeviation! / Math.sqrt(rounds);
-      row(bet.label, bet.rtp, measured.rtp, measured.standardError, Math.max(TOLERANCE, Z * error));
+      row(
+        bet.label,
+        bet.rtp,
+        measured.rtp,
+        measured.standardError,
+        Math.max(TOLERANCE, Z * error),
+        `${bet.betId}/rtp`,
+      );
     }
 
     // Double Sixes: the fixed pays, and the RTP excluding the seed (what the players' own stakes return).
@@ -164,6 +187,7 @@ describe('Mirror — Monte Carlo on an infinite shoe against the declared figure
       fixed.value,
       fixed.standardError,
       Z * fixed.standardError,
+      'double-sixes/fixedRtp',
     );
     row(
       'Double Sixes, excl. seed',
@@ -171,6 +195,7 @@ describe('Mirror — Monte Carlo on an infinite shoe against the declared figure
       excludingSeed.value,
       excludingSeed.standardError,
       Z * excludingSeed.standardError,
+      'double-sixes/rtpExcludingSeed',
     );
     // The accounts balance exactly: the meter paid out the seed, the contributions and the
     // top-ups, less what it still holds.
@@ -192,5 +217,26 @@ describe('Mirror — Monte Carlo on an infinite shoe against the declared figure
         `${(topUps / 100 / rounds).toFixed(2)} per round; RTP with them ${pct(jackpot.rtp)}`,
     );
     process.stdout.write(`${lines.join('\n')}\n`);
+    await recordFigures('infinite-shoe', {
+      simulation: simulationRecord({
+        rounds,
+        seed: SEED,
+        source: describeShoe(infiniteShoe),
+        stakes: JACKPOT_STAKES,
+        z: Z,
+        tolerance: TOLERANCE,
+      }),
+      budget: BUDGET,
+      results,
+      meter: {
+        hits,
+        roundsPerHit: rounds / hits,
+        meterAtHit: meterAtHits / hits,
+        topUps,
+        topUpsPerRound: topUps / rounds,
+        rtpWithTopUps: jackpot.rtp,
+        staked: jackpot.staked,
+      },
+    });
   });
 });

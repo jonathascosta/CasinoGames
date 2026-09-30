@@ -1,0 +1,451 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/mirror/mirror.test.ts",
+    "name": "Mirror — the game over every draw of the dice and an infinite shoe › adds up each bet's outcomes to its declared figures, and finds the most a round can pay"
+  },
+  "figures": {
+    "sampleSpace": {
+      "rolls": 36,
+      "cards": 576,
+      "outcomes": 20736
+    },
+    "source": {
+      "kind": "infinite shoe",
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "suits": 4
+    },
+    "bets": {
+      "mirror": {
+        "outcomes": [
+          {
+            "entry": "higher",
+            "label": "Dice outrank the dealer's cards",
+            "odds": {
+              "to": 1,
+              "per": 1,
+              "returns": 2
+            },
+            "probability": {
+              "fraction": "205/432",
+              "value": 0.47453703703703703
+            },
+            "returns": {
+              "fraction": "2",
+              "value": 2
+            },
+            "contribution": {
+              "fraction": "205/216",
+              "value": 0.9490740740740741
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "227/432",
+              "value": 0.5254629629629629
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "205/216",
+          "value": 0.9490740740740741
+        },
+        "houseEdge": {
+          "fraction": "11/216",
+          "value": 0.05092592592592592
+        },
+        "hitFrequency": {
+          "fraction": "205/432",
+          "value": 0.47453703703703703
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "46535/46656",
+          "value": 0.9974065500685871
+        },
+        "standardDeviation": 0.9987024331944861
+      },
+      "tie": {
+        "outcomes": [
+          {
+            "entry": "tie",
+            "label": "The hands rank equal",
+            "odds": {
+              "to": 17,
+              "per": 1,
+              "returns": 18
+            },
+            "probability": {
+              "fraction": "11/216",
+              "value": 0.05092592592592592
+            },
+            "returns": {
+              "fraction": "18",
+              "value": 18
+            },
+            "contribution": {
+              "fraction": "11/12",
+              "value": 0.9166666666666666
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "205/216",
+              "value": 0.9490740740740741
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "11/12",
+          "value": 0.9166666666666666
+        },
+        "houseEdge": {
+          "fraction": "1/12",
+          "value": 0.08333333333333333
+        },
+        "hitFrequency": {
+          "fraction": "11/216",
+          "value": 0.05092592592592592
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "2255/144",
+          "value": 15.659722222222221
+        },
+        "standardDeviation": 3.9572366901945886
+      },
+      "equal-sums": {
+        "outcomes": [
+          {
+            "entry": "same-sum",
+            "label": "Same sum",
+            "odds": {
+              "to": 7,
+              "per": 1,
+              "returns": 8
+            },
+            "probability": {
+              "fraction": "73/648",
+              "value": 0.11265432098765432
+            },
+            "returns": {
+              "fraction": "8",
+              "value": 8
+            },
+            "contribution": {
+              "fraction": "73/81",
+              "value": 0.9012345679012346
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "575/648",
+              "value": 0.8873456790123457
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "73/81",
+          "value": 0.9012345679012346
+        },
+        "houseEdge": {
+          "fraction": "8/81",
+          "value": 0.09876543209876543
+        },
+        "hitFrequency": {
+          "fraction": "73/648",
+          "value": 0.11265432098765432
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "41975/6561",
+          "value": 6.397652796829751
+        },
+        "standardDeviation": 2.5293581788330712
+      },
+      "pair-vs-pair": {
+        "outcomes": [
+          {
+            "entry": "pairs",
+            "label": "Both hands are pairs",
+            "odds": {
+              "to": 30,
+              "per": 1,
+              "returns": 31
+            },
+            "probability": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "returns": {
+              "fraction": "31",
+              "value": 31
+            },
+            "contribution": {
+              "fraction": "31/36",
+              "value": 0.8611111111111112
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "35/36",
+              "value": 0.9722222222222222
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "31/36",
+          "value": 0.8611111111111112
+        },
+        "houseEdge": {
+          "fraction": "5/36",
+          "value": 0.1388888888888889
+        },
+        "hitFrequency": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "33635/1296",
+          "value": 25.952932098765434
+        },
+        "standardDeviation": 5.094402035446892
+      },
+      "perfect-mirror": {
+        "outcomes": [
+          {
+            "entry": "same-pair",
+            "label": "Both hands are the same pair",
+            "odds": {
+              "to": 200,
+              "per": 1,
+              "returns": 201
+            },
+            "probability": {
+              "fraction": "1/216",
+              "value": 0.004629629629629629
+            },
+            "returns": {
+              "fraction": "201",
+              "value": 201
+            },
+            "contribution": {
+              "fraction": "67/72",
+              "value": 0.9305555555555556
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "215/216",
+              "value": 0.9953703703703703
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "67/72",
+          "value": 0.9305555555555556
+        },
+        "houseEdge": {
+          "fraction": "5/72",
+          "value": 0.06944444444444445
+        },
+        "hitFrequency": {
+          "fraction": "1/216",
+          "value": 0.004629629629629629
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "965135/5184",
+          "value": 186.17573302469137
+        },
+        "standardDeviation": 13.64462286121135
+      },
+      "double-sixes": {
+        "outcomes": [
+          {
+            "entry": "six-six",
+            "label": "Both hands are 6-6",
+            "odds": {
+              "to": 1000,
+              "per": 1,
+              "returns": 1001
+            },
+            "probability": {
+              "fraction": "1/1296",
+              "value": 0.0007716049382716049
+            },
+            "returns": {
+              "fraction": "1001",
+              "value": 1001
+            },
+            "contribution": {
+              "fraction": "1001/1296",
+              "value": 0.7723765432098766
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "1295/1296",
+              "value": 0.9992283950617284
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "1001/1296",
+          "value": 0.7723765432098766
+        },
+        "houseEdge": {
+          "fraction": "295/1296",
+          "value": 0.22762345679012347
+        },
+        "hitFrequency": {
+          "fraction": "1/1296",
+          "value": 0.0007716049382716049
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "1297591295/1679616",
+          "value": 772.5523542285856
+        },
+        "standardDeviation": 27.794826033429057
+      }
+    },
+    "doubleSixesAtSeed": {
+      "meter": 500000,
+      "rtp": {
+        "fraction": "1201/1296",
+        "value": 0.9266975308641975
+      },
+      "variance": {
+        "fraction": "1867909295/1679616",
+        "value": 1112.1049662541914
+      },
+      "standardDeviation": 33.348237828319974
+    },
+    "maxExposure": {
+      "stakes": {
+        "mirror": 25000,
+        "tie": 2500,
+        "equal-sums": 2500,
+        "pair-vs-pair": 2500,
+        "perfect-mirror": 2500,
+        "double-sixes": 2500
+      },
+      "bets": {
+        "mirror": {
+          "win": 25000,
+          "loss": 25000
+        },
+        "tie": {
+          "win": 42500,
+          "loss": 2500
+        },
+        "equal-sums": {
+          "win": 17500,
+          "loss": 2500
+        },
+        "pair-vs-pair": {
+          "win": 75000,
+          "loss": 2500
+        },
+        "perfect-mirror": {
+          "win": 500000,
+          "loss": 2500
+        },
+        "double-sixes": {
+          "win": 3000000,
+          "loss": 2500
+        }
+      },
+      "layout": {
+        "win": 3610000,
+        "loss": 37500
+      }
+    }
+  }
+}
