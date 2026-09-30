@@ -338,4 +338,63 @@ export interface MathSummary {
   readonly bets: readonly BetMath[];
   /** Names the table's shoe (e.g. "six-deck shoe") when bets declare finite-shoe figures. */
   readonly finiteShoe?: string;
+  /** The reference strategy and what it returns, for a game with decisions. */
+  readonly decisions?: DecisionSummary;
+}
+
+/**
+ * A game's decisions: the reference strategy the declared figures assume,
+ * situation by situation, and what it returns under the table's rules and
+ * under variants of them.
+ */
+export interface DecisionSummary {
+  /** What the player decides and what it costs, in a sentence or two. */
+  readonly description: string;
+  readonly card: StrategyCard;
+  /** The table's rules first, then any variants, for comparison. */
+  readonly figures: readonly StrategyFigures[];
+}
+
+/** The value of every choice in each situation, and the best one. */
+export interface StrategyCard {
+  /** What a row is, e.g. "Roll". */
+  readonly situation: string;
+  /** The choices compared, e.g. ["Ficar", "Trancar"]. */
+  readonly choices: readonly string[];
+  /** What the values measure, e.g. "net result per unit of the main bet, fees included". */
+  readonly measure: string;
+  readonly rows: readonly StrategyRow[];
+}
+
+export interface StrategyRow {
+  /** e.g. "6-2". */
+  readonly situation: string;
+  /** Chance per round of this situation. */
+  readonly probability: number;
+  /** The expected value of each choice, in the order of StrategyCard.choices. */
+  readonly values: readonly number[];
+  /** The best choice: an index into StrategyCard.choices. */
+  readonly best: number;
+  /** How to play it, e.g. "Lock the 6, re-roll the 2". */
+  readonly play: string;
+}
+
+/** What the reference strategy returns under one set of rules. */
+export interface StrategyFigures {
+  /** e.g. "These rules" or "Without the free 1-1". */
+  readonly label: string;
+  readonly rtp: number;
+  readonly houseEdge: number;
+  /** The loss per unit of everything the player pays: stakes and fees. */
+  readonly elementOfRisk: number;
+  /** Chance per round that the main bet wins. */
+  readonly hitFrequency: number;
+  /** Standard deviation of the net result per unit of the main bet, fees included. */
+  readonly standardDeviation: number;
+  /** How often the strategy makes each choice other than standing, e.g. "Trancar". */
+  readonly choiceFrequencies: readonly { readonly choice: string; readonly frequency: number }[];
+  /** Chance per round of paying a fee. */
+  readonly feeFrequency: number;
+  /** Average fee per round, per unit of the main bet. */
+  readonly averageFee: number;
 }
