@@ -107,9 +107,10 @@ export interface BetDefinition {
   readonly max: Cents;
   readonly paytable: readonly PaytableEntry[];
   /**
-   * Declared return to player: the long-run total returned ÷ total wagered
-   * on this bet (additional stakes made during a round included). The house
-   * edge is 1 − rtp. Proven by each game's exact and Monte Carlo tests.
+   * Declared return to player: the long-run total returned, less any fees
+   * charged against the bet, ÷ total wagered on it (additional stakes made
+   * during a round included). The house edge is 1 − rtp. Proven by each
+   * game's exact and Monte Carlo tests.
    */
   readonly rtp: number;
   /**
@@ -131,6 +132,12 @@ export interface DecisionOption<TChoice extends string = string> {
   readonly label: string;
   /** A stake the choice commits (e.g. a raise); taken when it is chosen. */
   readonly additionalStake?: { readonly betId: BetId; readonly amount: Cents };
+  /**
+   * What the choice costs (e.g. a re-roll), charged against a placed bet:
+   * taken when it is chosen and never returned, whatever the result. A fee
+   * is not a stake: nothing pays on it, and it lowers the bet's return.
+   */
+  readonly fee?: { readonly betId: BetId; readonly amount: Cents };
 }
 
 /**
@@ -160,6 +167,7 @@ export type GameEvent =
   | { readonly type: 'decision-requested'; readonly options: readonly DecisionOption[] }
   | { readonly type: 'decision-made'; readonly choice: string }
   | { readonly type: 'stake-added'; readonly betId: BetId; readonly amount: Cents }
+  | { readonly type: 'fee-charged'; readonly betId: BetId; readonly amount: Cents }
   | {
       readonly type: 'jackpot-won';
       readonly jackpotId: string;
@@ -171,6 +179,9 @@ export type GameEvent =
       readonly type: 'round-settled';
       readonly totalStake: Cents;
       readonly totalPayout: Cents;
+      /** Fees charged during the round; present only when there were any. */
+      readonly totalFees?: Cents;
+      /** totalPayout − totalStake − totalFees. */
       readonly net: Cents;
     };
 
@@ -197,6 +208,8 @@ export interface RoundState<
   readonly phase: RoundPhase;
   /** Current stakes per bet, including stakes added by decisions. */
   readonly bets: Bets;
+  /** Fees charged per bet so far (see DecisionOption.fee); empty when none were. */
+  readonly fees: Readonly<Record<BetId, Cents>>;
   readonly events: readonly (GameEvent | TEvent)[];
   /** Lines for the bets settled so far; complete once phase is 'settled'. */
   readonly settlement: Settlement;

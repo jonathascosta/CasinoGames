@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { RANK_SETS } from '../cards/card.ts';
 import { Shoe } from '../cards/shoe.ts';
+import type { DicePair } from '../dice/dice.ts';
 import { createDiceFixture } from '../fixtures/dice-fixture.ts';
+import { createRerollFixture, type RerollChoice } from '../fixtures/reroll-fixture.ts';
 import { createWarFixture } from '../fixtures/war-fixture.ts';
 import { createSeededRng } from '../rng/seeded.ts';
 import { createScriptedCardSource } from '../testing/scripted-cards.ts';
@@ -168,6 +170,135 @@ describe('a round with a decision', () => {
 
     const next = game.start({ ante: 100 }, rng); // the short stack is replaced
     expect(next.events[1]).toEqual({ type: 'shoe-shuffled', cards: 24 });
+  });
+});
+
+describe('a decision with a fee', () => {
+  const game = createRerollFixture();
+  const play = (dice: DicePair[], choice: RerollChoice) => {
+    const rng = createScriptedRng(scriptForDice(dice.flat()));
+    const pending = game.start({ main: 100 }, rng);
+    return { pending, settled: game.decide(pending, choice) };
+  };
+
+  it('takes the fee when the option is chosen and charges it against the bet', () => {
+    const { pending, settled } = play(
+      [
+        [2, 3],
+        [6, 6],
+      ],
+      'reroll',
+    );
+    expect(pending.fees).toEqual({});
+    expect(types(settled.events.slice(pending.events.length))).toEqual([
+      'decision-made',
+      'fee-charged',
+      'dice-rolled',
+      'bet-settled',
+      'round-settled',
+    ]);
+    expect(settled.events[pending.events.length + 1]).toEqual({
+      type: 'fee-charged',
+      betId: 'main',
+      amount: 60,
+    });
+    // A fee is not a stake: the bet still pays 1 to 1 on 1.00.
+    expect(settled.bets).toEqual({ main: 100 });
+    expect(settled.fees).toEqual({ main: 60 });
+    expect(settled.settlement.main).toEqual({
+      stake: 100,
+      payout: 200,
+      fee: 60,
+      net: 40,
+      outcome: 'win',
+      entryId: 'high',
+    });
+    expect(settled.events.at(-2)).toEqual({
+      type: 'bet-settled',
+      betId: 'main',
+      ...settled.settlement.main,
+    });
+    expect(settled.events.at(-1)).toEqual({
+      type: 'round-settled',
+      totalStake: 100,
+      totalPayout: 200,
+      totalFees: 60,
+      net: 40,
+    });
+  });
+
+  it('keeps the fee whatever the result', () => {
+    const { settled } = play(
+      [
+        [2, 3],
+        [1, 2],
+      ],
+      'reroll',
+    );
+    expect(settled.settlement.main).toEqual({
+      stake: 100,
+      payout: 0,
+      fee: 60,
+      net: -160,
+      outcome: 'lose',
+    });
+  });
+
+  it('charges nothing for a choice without a fee', () => {
+    const { settled } = play([[6, 5]], 'keep');
+    expect(types(settled.events)).not.toContain('fee-charged');
+    expect(settled.fees).toEqual({});
+    expect(settled.settlement.main).not.toHaveProperty('fee');
+    expect(settled.events.at(-1)).not.toHaveProperty('totalFees');
+  });
+
+  it('adds a choice’s stake, then charges its fee', () => {
+    const { pending, settled } = play(
+      [
+        [2, 3],
+        [4, 4],
+      ],
+      'raise',
+    );
+    expect(types(settled.events.slice(pending.events.length, -3))).toEqual([
+      'decision-made',
+      'stake-added',
+      'fee-charged',
+    ]);
+    expect(settled.settlement.main).toEqual({
+      stake: 200,
+      payout: 400,
+      fee: 60,
+      net: 140,
+      outcome: 'win',
+      entryId: 'high',
+    });
+  });
+
+  it('charges fees only against placed, unsettled bets, in whole cents', () => {
+    const round = startRound(game, { main: 100 }, createSeededRng('fees'));
+    expectEngineError(() => round.chargeFee('side', 10), 'BET_NOT_PLACED');
+    expectEngineError(() => round.chargeFee('main', 0), 'INVALID_STAKE');
+    expectEngineError(() => round.chargeFee('main', 2.5), 'INVALID_STAKE');
+    round.chargeFee('main', 10).chargeFee('main', 15);
+    expect(round.feeOf('main')).toBe(25);
+    // A line handed to settle() is computed without the fee: the builder charges it.
+    expectEngineError(
+      () => round.settle('main', { stake: 100, payout: 0, fee: 25, net: -125, outcome: 'lose' }),
+      'INVALID_STAKE',
+    );
+    round.lose('main');
+    expect(round.feeOf('main')).toBe(25);
+    expectEngineError(() => round.chargeFee('main', 10), 'BET_ALREADY_SETTLED');
+    const state = round.finish([1, 1]);
+    expect(state.settlement.main).toEqual({
+      stake: 100,
+      payout: 0,
+      fee: 25,
+      net: -125,
+      outcome: 'lose',
+    });
+    expectEngineError(() => round.chargeFee('main', 10), 'ROUND_CLOSED');
   });
 });
 

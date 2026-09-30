@@ -7,6 +7,7 @@ import {
   settleWin,
   settleWithPayout,
   settlementTotals,
+  withFee,
 } from './settlement.ts';
 
 describe('settlement lines', () => {
@@ -46,15 +47,57 @@ describe('settlement lines', () => {
   });
 });
 
+describe('fees', () => {
+  it('charges a fee against a line: the net and the outcome count it', () => {
+    expect(withFee(settleWin(100, odds(1), 'higher'), 40)).toEqual({
+      stake: 100,
+      payout: 200,
+      fee: 40,
+      net: 60,
+      outcome: 'win',
+      entryId: 'higher',
+    });
+    expect(withFee(settleLoss(100), 40)).toEqual({
+      stake: 100,
+      payout: 0,
+      fee: 40,
+      net: -140,
+      outcome: 'lose',
+    });
+    // The stake came back, the fee did not.
+    expect(withFee(settlePush(100), 40).outcome).toBe('lose');
+  });
+
+  it('leaves a line without a fee as it was', () => {
+    const line = settleWin(100, odds(1));
+    expect(withFee(line, 0)).toBe(line);
+    expect(withFee(line, 0)).not.toHaveProperty('fee');
+  });
+
+  it.each([-1, 0.5, Number.NaN])('rejects a fee of %d', (fee) => {
+    expect(() => withFee(settleLoss(100), fee)).toThrow(EngineError);
+  });
+
+  it('never charges a line twice', () => {
+    expect(() => withFee(withFee(settleLoss(100), 40), 40)).toThrow(EngineError);
+  });
+});
+
 describe('settlementTotals', () => {
-  it('sums stakes, payouts and net', () => {
+  it('sums stakes, payouts, fees and net', () => {
     expect(
       settlementTotals({
         main: settleWin(100, odds(1)),
         side: settleLoss(50),
         tie: settlePush(25),
       }),
-    ).toEqual({ stake: 175, payout: 225, net: 50 });
-    expect(settlementTotals({})).toEqual({ stake: 0, payout: 0, net: 0 });
+    ).toEqual({ stake: 175, payout: 225, fee: 0, net: 50 });
+    expect(settlementTotals({})).toEqual({ stake: 0, payout: 0, fee: 0, net: 0 });
+    expect(settlementTotals({ main: withFee(settleWin(100, odds(1)), 40) })).toEqual({
+      stake: 100,
+      payout: 200,
+      fee: 40,
+      net: 60,
+    });
   });
 });

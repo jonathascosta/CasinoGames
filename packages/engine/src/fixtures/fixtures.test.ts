@@ -7,9 +7,12 @@ import { describe, expect, it } from 'vitest';
 import { Shoe } from '../cards/shoe.ts';
 import { exactReturns } from '../math/exact.ts';
 import { DICE_FIXTURE_BETS, createDiceFixture } from './dice-fixture.ts';
+import { REROLL_FIXTURE_BETS, createRerollFixture, rerollBelowEight } from './reroll-fixture.ts';
 import { WAR_FIXTURE_BETS, createWarFixture, raiseOnEightOrBetter } from './war-fixture.ts';
 
-function declared(bets: typeof DICE_FIXTURE_BETS | typeof WAR_FIXTURE_BETS, id: string): number {
+type FixtureBets = typeof DICE_FIXTURE_BETS | typeof WAR_FIXTURE_BETS | typeof REROLL_FIXTURE_BETS;
+
+function declared(bets: FixtureBets, id: string): number {
   return bets.find((bet) => bet.id === id)!.rtp;
 }
 
@@ -69,5 +72,41 @@ describe('war fixture — exact math (infinite shoe, raise on 8+)', () => {
     expect(report.bets.play!.pushFrequency.toString()).toBe('1/13');
     expect(report.bets.ante!.entries.higher!.toString()).toBe('57/169');
     expect(report.bets.play!.entries.higher!.toString()).toBe('57/169');
+  });
+});
+
+describe('re-roll fixture — exact math (re-roll below 8, a fee of 60% of the stake)', () => {
+  const report = exactReturns(createRerollFixture, { main: 100 }, rerollBelowEight);
+  const main = report.bets.main!;
+
+  it('enumerates every roll, and every re-roll of the 21 rolls below 8', () => {
+    expect(report.outcomes).toBe(15 + 21 * 36);
+  });
+
+  it('counts the fees against the return, not as stakes', () => {
+    expect(main.expectedStake.toString()).toBe('100');
+    expect(main.expectedFee.toString()).toBe('35'); // 60¢ in 7/12 of rounds
+    expect(main.expectedPayout.toString()).toBe('2375/18'); // 200 × 95/144
+    expect(main.rtp.toString()).toBe('349/360');
+    expect(main.rtp.toNumber()).toBe(declared(REROLL_FIXTURE_BETS, 'main'));
+    expect(report.total.rtp.equals(main.rtp)).toBe(true);
+  });
+
+  it('counts a win as the bet paying, whatever the fee', () => {
+    expect(main.hitFrequency.toString()).toBe('95/144');
+    expect(main.entries.high!.toString()).toBe('95/144');
+  });
+
+  it('measures the volatility of the return net of fees', () => {
+    // Net per unit: +1 (a winning roll kept), +0.4 or −1.6 (after a re-roll), with no push.
+    const outcomes = [
+      [15 / 36, 1],
+      [(21 / 36) * (15 / 36), 0.4],
+      [(21 / 36) * (21 / 36), -1.6],
+    ] as const;
+    const mean = outcomes.reduce((sum, [p, x]) => sum + p * x, 0);
+    const variance = outcomes.reduce((sum, [p, x]) => sum + p * (x - mean) ** 2, 0);
+    expect(mean).toBeCloseTo(349 / 360 - 1, 14);
+    expect(main.standardDeviation).toBeCloseTo(Math.sqrt(variance), 12);
   });
 });

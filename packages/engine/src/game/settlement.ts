@@ -6,13 +6,16 @@ export type Outcome = 'win' | 'lose' | 'push';
 
 /**
  * How one bet ended. `payout` is everything handed back to the player, stake
- * included: 0 on a loss, the stake on a push, stake + winnings on a win. RTP
- * is therefore Σ payout ÷ Σ stake.
+ * included: 0 on a loss, the stake on a push, stake + winnings on a win. A
+ * fee charged against the bet during the round (a re-roll, say) is never
+ * returned. RTP is therefore Σ (payout − fee) ÷ Σ stake.
  */
 export interface SettlementLine {
   readonly stake: Cents;
   readonly payout: Cents;
-  /** payout − stake. */
+  /** Fees charged against the bet during the round; present only when there were any. */
+  readonly fee?: Cents;
+  /** payout − stake − fee: what the bet made or cost the player. */
   readonly net: Cents;
   readonly outcome: Outcome;
   /** The paytable entry that decided the bet, when there is one. */
@@ -21,6 +24,8 @@ export interface SettlementLine {
 
 /** Settlement lines per bet id. */
 export type Settlement = Readonly<Record<string, SettlementLine>>;
+
+const outcomeOf = (net: Cents): Outcome => (net > 0 ? 'win' : net < 0 ? 'lose' : 'push');
 
 /**
  * The general case: the bet returns `payout` in total. The outcome is derived
@@ -40,7 +45,7 @@ export function settleWithPayout(stake: Cents, payout: Cents, entryId?: string):
     );
   }
   const net = payout - stake;
-  const outcome: Outcome = net > 0 ? 'win' : net < 0 ? 'lose' : 'push';
+  const outcome = outcomeOf(net);
   return entryId === undefined
     ? { stake, payout, net, outcome }
     : { stake, payout, net, outcome, entryId };
@@ -59,19 +64,40 @@ export function settlePush(stake: Cents, entryId?: string): SettlementLine {
   return settleWithPayout(stake, stake, entryId);
 }
 
+/**
+ * The line with `fee` charged against it: the net and the outcome take the
+ * fee into account, so a bet that wins less than its fee is a loss. A zero
+ * fee returns the line unchanged.
+ */
+export function withFee(line: SettlementLine, fee: Cents): SettlementLine {
+  if (!isCents(fee) || fee < 0) {
+    throw new EngineError('INVALID_STAKE', `A fee must be a non-negative integer of cents`);
+  }
+  if (line.fee !== undefined) {
+    throw new EngineError('INVALID_STAKE', 'This line already carries its fee');
+  }
+  if (fee === 0) return line;
+  const net = line.net - fee;
+  return { ...line, fee, net, outcome: outcomeOf(net) };
+}
+
 export interface SettlementTotals {
   readonly stake: Cents;
   readonly payout: Cents;
+  readonly fee: Cents;
+  /** payout − stake − fee. */
   readonly net: Cents;
 }
 
 export function settlementTotals(settlement: Settlement): SettlementTotals {
   let stake = 0;
   let payout = 0;
+  let fee = 0;
   for (const betId in settlement) {
     const line = settlement[betId]!;
     stake += line.stake;
     payout += line.payout;
+    fee += line.fee ?? 0;
   }
-  return { stake, payout, net: payout - stake };
+  return { stake, payout, fee, net: payout - stake - fee };
 }

@@ -10,6 +10,7 @@ import {
   settleWin,
   settleWithPayout,
   settlementTotals,
+  withFee,
   type SettlementLine,
 } from './settlement.ts';
 import type {
@@ -29,6 +30,7 @@ type ManagedEventType =
   | 'decision-requested'
   | 'decision-made'
   | 'stake-added'
+  | 'fee-charged'
   | 'bet-settled'
   | 'round-settled';
 
@@ -63,7 +65,8 @@ export function startRound<
 
 /**
  * Reopens a round that awaits a decision, applying the chosen option: the
- * choice is recorded and its additional stake, if any, is added.
+ * choice is recorded, then its additional stake and its fee, if any, are
+ * taken.
  */
 export function continueRound<TChoice extends string, TData, TEvent extends CustomEvent>(
   state: RoundState<TChoice, TData, TEvent>,
@@ -87,6 +90,8 @@ export class RoundBuilder<
   readonly rng: Rng;
   /** Never mutated: addStake replaces it, so snapshots can share it. */
   #bets: Bets;
+  /** Fees charged per bet; never mutated either (chargeFee replaces it). */
+  #fees: Readonly<Record<BetId, Cents>>;
   readonly #events: (GameEvent | TEvent)[];
   readonly #settlement: Record<BetId, SettlementLine>;
   #closed = false;
@@ -95,12 +100,14 @@ export class RoundBuilder<
     gameId: string,
     rng: Rng,
     bets: Bets,
+    fees: Readonly<Record<BetId, Cents>>,
     events: (GameEvent | TEvent)[],
     settlement: Record<BetId, SettlementLine>,
   ) {
     this.gameId = gameId;
     this.rng = rng;
     this.#bets = bets;
+    this.#fees = fees;
     this.#events = events;
     this.#settlement = settlement;
   }
@@ -112,7 +119,7 @@ export class RoundBuilder<
     rng: Rng,
   ): RoundBuilder<TChoice, TData, TEvent> {
     const placed = validateBets(game.bets, bets);
-    const round = new RoundBuilder<TChoice, TData, TEvent>(game.id, rng, placed, [], {});
+    const round = new RoundBuilder<TChoice, TData, TEvent>(game.id, rng, placed, {}, [], {});
     round.#push({ type: 'round-started', bets: placed });
     return round;
   }
@@ -133,6 +140,7 @@ export class RoundBuilder<
       state.gameId,
       state.rng,
       state.bets,
+      state.fees,
       [...state.events],
       { ...state.settlement },
     );
@@ -140,6 +148,7 @@ export class RoundBuilder<
     if (option.additionalStake !== undefined) {
       round.addStake(option.additionalStake.betId, option.additionalStake.amount);
     }
+    if (option.fee !== undefined) round.chargeFee(option.fee.betId, option.fee.amount);
     return round;
   }
 
@@ -150,6 +159,11 @@ export class RoundBuilder<
 
   stakeOf(betId: BetId): Cents {
     return Object.hasOwn(this.#bets, betId) ? this.#bets[betId]! : 0;
+  }
+
+  /** Fees charged against a bet so far in the round. */
+  feeOf(betId: BetId): Cents {
+    return Object.hasOwn(this.#fees, betId) ? this.#fees[betId]! : 0;
   }
 
   isPlaced(betId: BetId): boolean {
@@ -214,7 +228,22 @@ export class RoundBuilder<
     return this;
   }
 
-  /** Settles a bet with a line computed for its full current stake. */
+  /**
+   * Charges a fee against a placed, unsettled bet (a re-roll, say). The fee
+   * is never returned: the bet's line carries it when the bet settles, and
+   * it lowers the bet's return. Choosing an option with a fee calls this.
+   */
+  chargeFee(betId: BetId, amount: Cents): this {
+    if (!isCents(amount) || amount <= 0) {
+      throw new EngineError('INVALID_STAKE', `A fee must be positive integer cents`);
+    }
+    this.#unsettledStake(betId);
+    this.#fees = { ...this.#fees, [betId]: this.feeOf(betId) + amount };
+    this.#push({ type: 'fee-charged', betId, amount });
+    return this;
+  }
+
+  /** Settles a bet with a line computed for its full current stake (without its fee). */
   settle(betId: BetId, line: SettlementLine): this {
     const stake = this.#unsettledStake(betId);
     if (line.stake !== stake) {
@@ -268,6 +297,7 @@ export class RoundBuilder<
       type: 'round-settled',
       totalStake: totals.stake,
       totalPayout: totals.payout,
+      ...(totals.fee === 0 ? {} : { totalFees: totals.fee }),
       net: totals.net,
     });
     return this.#close('settled', [], data);
@@ -285,6 +315,7 @@ export class RoundBuilder<
       gameId: this.gameId,
       phase,
       bets: this.#bets,
+      fees: this.#fees,
       events: this.#events,
       settlement: this.#settlement,
       options,
@@ -304,15 +335,14 @@ export class RoundBuilder<
     return stake;
   }
 
-  /** Stores a validated line and records it as a bet-settled event. */
+  /**
+   * Stores a validated line, with the fees charged against the bet, and
+   * records it as a bet-settled event.
+   */
   #record(betId: BetId, line: SettlementLine): this {
-    this.#settlement[betId] = line;
-    const { stake, payout, net, outcome, entryId } = line;
-    this.#push(
-      entryId === undefined
-        ? { type: 'bet-settled', betId, stake, payout, net, outcome }
-        : { type: 'bet-settled', betId, stake, payout, net, outcome, entryId },
-    );
+    const settled = withFee(line, this.feeOf(betId));
+    this.#settlement[betId] = settled;
+    this.#push({ type: 'bet-settled', betId, ...settled });
     return this;
   }
 
