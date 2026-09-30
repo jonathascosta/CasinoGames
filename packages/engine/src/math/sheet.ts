@@ -20,14 +20,27 @@ export function renderMathSection(summary: MathSummary): string {
   return blocks.join('\n\n');
 }
 
-/** Replaces what lies between the math markers; the markers themselves stay. */
+const PRETTIER_IGNORE_START = '<!-- prettier-ignore-start -->';
+const PRETTIER_IGNORE_END = '<!-- prettier-ignore-end -->';
+
+/**
+ * Replaces what lies between the math markers; the markers themselves stay.
+ * The section is fenced off from Prettier, which would otherwise re-align
+ * the generated tables and make the sheet look stale to `pnpm docs:check`.
+ */
 export function replaceMathSection(markdown: string, section: string): string {
   const start = markdown.indexOf(MATH_START);
   const end = markdown.indexOf(MATH_END);
   if (start === -1 || end === -1 || end < start) {
     throw new Error(`Expected ${MATH_START} … ${MATH_END} markers in the game sheet`);
   }
-  return `${markdown.slice(0, start + MATH_START.length)}\n\n${section}\n\n${markdown.slice(end)}`;
+  return [
+    markdown.slice(0, start + MATH_START.length),
+    PRETTIER_IGNORE_START,
+    section,
+    PRETTIER_IGNORE_END,
+    markdown.slice(end),
+  ].join('\n\n');
 }
 
 type Column = readonly [title: string, align: string, cell: (bet: BetMath) => string];

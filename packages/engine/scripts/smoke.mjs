@@ -3,8 +3,10 @@
 import assert from 'node:assert/strict';
 import {
   ProgressiveJackpot,
+  RANK_SETS,
   Shoe,
   createCryptoRng,
+  createEntreDados,
   createSeededRng,
   defineBets,
   exactReturns,
@@ -13,6 +15,7 @@ import {
   startRound,
   summarizeMath,
 } from '../dist/index.js';
+import { createUniformRankSource } from '../dist/testing/index.js';
 
 const SEVEN = odds(4);
 const bets = defineBets([
@@ -67,7 +70,22 @@ const jackpot = new ProgressiveJackpot({ id: 'grand', seed: 100_000, contributio
 jackpot.contribute(10_000);
 assert.equal(jackpot.amount, 100_100);
 
+// A real game: Entre Dados, exactly and on its six-deck shoe.
+const entre = exactReturns(
+  () => createEntreDados({ source: createUniformRankSource(RANK_SETS.aceToSix) }),
+  { entre: 100, triplo: 100 },
+);
+assert.equal(entre.outcomes, 216);
+assert.equal(entre.bets.entre.rtp.toString(), '26/27');
+assert.equal(entre.bets.triplo.rtp.toString(), '31/36');
+const table = createEntreDados();
+for (let round = 0; round < 1_000; round++) {
+  const state = table.start({ entre: 100, exato: 50 }, rng);
+  assert.equal(state.phase, 'settled');
+}
+
 console.log(
   `engine dist OK on Node ${process.versions.node}: exact RTP ${exact.bets.seven.rtp}, ` +
-    `simulated ${report.bets.seven.rtp.toFixed(4)} over ${report.rounds} rounds`,
+    `simulated ${report.bets.seven.rtp.toFixed(4)} over ${report.rounds} rounds; ` +
+    `Entre Dados exact RTP ${entre.bets.entre.rtp} over ${entre.outcomes} outcomes`,
 );

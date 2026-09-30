@@ -29,6 +29,7 @@ describe('dice fixture — exact math', () => {
 
   it('reports hit frequency and volatility', () => {
     expect(report.bets.over!.hitFrequency.toString()).toBe('5/12');
+    expect(report.bets.over!.variance.toString()).toBe('35/36');
     expect(report.bets.over!.standardDeviation).toBeCloseTo(Math.sqrt(35 / 36), 12);
     expect(report.bets.doubles!.standardDeviation).toBeCloseTo(5.5 * Math.sqrt(5 / 36), 12);
     expect(report.bets.over!.frequency.toString()).toBe('1');

@@ -99,6 +99,29 @@ export { Fraction } from './math/fraction.ts';
 export { MATH_END, MATH_START, renderMathSection, replaceMathSection } from './math/sheet.ts';
 export { GAMES } from './games/index.ts';
 export {
+  DOBROS_ODDS,
+  ENTRE_DADOS_BETS,
+  ENTRE_DADOS_BET_IDS,
+  ENTRE_DADOS_DEALER,
+  ENTRE_DADOS_ID,
+  ENTRE_DADOS_NAME,
+  ENTRE_ODDS,
+  EXATO_ODDS,
+  OLHO_DE_BOI_ODDS,
+  TRIPLO_ODDS,
+  createEntreDados,
+  createEntreDadosShoe,
+  entreDadosMathSummary,
+  readEntreDadosRoll,
+  resolveEntreDadosBet,
+  type EntreDadosBetId,
+  type EntreDadosGame,
+  type EntreDadosOptions,
+  type EntreDadosResolution,
+  type EntreDadosRoll,
+  type Spread,
+} from './games/entre-dados/index.ts';
+export {
   roundsForTolerance,
   simulate,
   type BetStatistics,

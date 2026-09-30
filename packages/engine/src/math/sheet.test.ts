@@ -83,10 +83,11 @@ describe('renderMathSection', () => {
 describe('replaceMathSection', () => {
   const sheet = `# Game\n\n## Bets\n\n${MATH_START}\n\nold text\n\n${MATH_END}\n\n## Math\n`;
 
-  it('replaces only the generated section and is idempotent', () => {
+  it('replaces only the generated section, fenced off from Prettier, and is idempotent', () => {
     const once = replaceMathSection(sheet, 'new table');
     expect(once).toBe(
-      `# Game\n\n## Bets\n\n${MATH_START}\n\nnew table\n\n${MATH_END}\n\n## Math\n`,
+      `# Game\n\n## Bets\n\n${MATH_START}\n\n<!-- prettier-ignore-start -->\n\nnew table\n\n` +
+        `<!-- prettier-ignore-end -->\n\n${MATH_END}\n\n## Math\n`,
     );
     expect(replaceMathSection(once, 'new table')).toBe(once);
   });

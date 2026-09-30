@@ -22,6 +22,11 @@ export interface ExactReturn {
    */
   readonly entries: Readonly<Record<string, Fraction>>;
   /**
+   * Variance of the return of one round in which the bet is made, per unit
+   * of average stake squared (σ²), as an exact fraction.
+   */
+  readonly variance: Fraction;
+  /**
    * Standard deviation of the return of one round in which the bet is made,
    * per unit of average stake — the same measure the simulator reports.
    */
@@ -112,6 +117,7 @@ class Sums {
     const residual = this.#payout2
       .sub(Fraction.of(2).mul(rtp).mul(this.#cross))
       .add(rtp.mul(rtp).mul(this.#stake2));
+    const variance = residual.mul(this.#made).div(this.#stake.mul(this.#stake));
     return {
       expectedStake: this.#stake,
       expectedPayout: this.#payout,
@@ -120,7 +126,8 @@ class Sums {
       hitFrequency: this.#hits.div(this.#made),
       pushFrequency: this.#pushes.div(this.#made),
       entries: Object.fromEntries(this.#entries),
-      standardDeviation: Math.sqrt(residual.mul(this.#made).toNumber()) / this.#stake.toNumber(),
+      variance,
+      standardDeviation: Math.sqrt(variance.toNumber()),
     };
   }
 }
