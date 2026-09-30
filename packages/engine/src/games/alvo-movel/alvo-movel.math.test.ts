@@ -20,6 +20,13 @@ import { alvoMovelMathSummary, createAlvoMovel } from './game.ts';
 const TOLERANCE = 0.0015;
 const MIN_ROUNDS = 2_000_000;
 const Z = 3.29;
+const SEED = 'alvo-movel/infinite-shoe';
+
+const percent = (ratio: number) => `${(ratio * 100).toFixed(3)}%`.padStart(8);
+const points = (ratio: number) => {
+  const text = Math.abs(ratio * 100).toFixed(3);
+  return `${ratio < 0 && Number(text) !== 0 ? '−' : '+'}${text} pp`;
+};
 
 describe('Alvo Móvel — Monte Carlo against the declared figures (infinite shoe)', () => {
   it('lands every bet within ±0.15 pp of its declared RTP', () => {
@@ -30,13 +37,21 @@ describe('Alvo Móvel — Monte Carlo against the declared figures (infinite sho
 
     const report = simulate(createAlvoMovel({ source: infiniteShoe }), {
       rounds,
-      rng: createSeededRng('alvo-movel/infinite-shoe'),
+      rng: createSeededRng(SEED),
       bets,
     });
 
     expect(report.rounds).toBeGreaterThan(40_000_000);
+    const lines = [
+      `Alvo Móvel on an infinite shoe, ${rounds.toLocaleString('en-US')} rounds (seed ${SEED})`,
+      'RTP              declared   simulated  difference  standard error',
+    ];
     for (const bet of alvoMovelMathSummary().bets) {
       const measured = report.bets[bet.betId]!;
+      lines.push(
+        `${bet.label.padEnd(16)} ${percent(bet.rtp)}   ${percent(measured.rtp)}   ` +
+          `${points(measured.rtp - bet.rtp)}   ${(measured.standardError * 100).toFixed(3)} pp`,
+      );
       expect(measured.rounds).toBe(rounds);
       expect(
         Math.abs(measured.rtp - bet.rtp),
@@ -52,5 +67,6 @@ describe('Alvo Móvel — Monte Carlo against the declared figures (infinite sho
       ).toBeLessThanOrEqual(Z * Math.sqrt((p * (1 - p)) / rounds));
       expect(measured.pushFrequency).toBe(0);
     }
+    process.stdout.write(`${lines.join('\n')}\n`);
   });
 });
