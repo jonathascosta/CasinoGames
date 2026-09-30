@@ -158,9 +158,9 @@ function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
-/** Fees arrived with Trancar: stats stored before then have none, which reads as zero. */
+/** A fees total: every stored tally has one, zero when nothing was charged. */
 function parseFees(fees: unknown): number | undefined {
-  return fees === undefined ? 0 : isCount(fees) ? fees : undefined;
+  return isCount(fees) ? fees : undefined;
 }
 
 function parseTally(value: unknown): BetTally | undefined {

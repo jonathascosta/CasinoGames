@@ -116,18 +116,16 @@ describe('RtpTracker', () => {
     expect(liveRtp({ staked: 0, returned: 0, fees: 0 })).toBeNaN();
   });
 
-  it('reads stats stored before fees existed as fee-free', () => {
-    const stored = {
-      rounds: 1,
-      staked: 100,
-      returned: 200,
-      bets: { main: { rounds: 1, staked: 100, returned: 200, wins: 1, history: [] } },
-    };
+  it('needs a fees total on the stats and on every bet', () => {
+    const tally = { rounds: 1, staked: 100, returned: 200, fees: 0, wins: 1, history: [] };
+    const stored = { rounds: 1, staked: 100, returned: 200, fees: 0, bets: { main: tally } };
     expect(parseStats(stored)).toMatchObject({ fees: 0, bets: { main: { fees: 0 } } });
+    const { fees: _total, ...withoutTotal } = stored;
+    const { fees: _bet, ...tallyWithoutFees } = tally;
+    expect(parseStats(withoutTotal)).toBeUndefined();
+    expect(parseStats({ ...stored, bets: { main: tallyWithoutFees } })).toBeUndefined();
     expect(parseStats({ ...stored, fees: -1 })).toBeUndefined();
-    expect(
-      parseStats({ ...stored, bets: { main: { ...stored.bets.main, fees: 0.5 } } }),
-    ).toBeUndefined();
+    expect(parseStats({ ...stored, bets: { main: { ...tally, fees: 0.5 } } })).toBeUndefined();
   });
 
   it('ignores empty settlements and rejects malformed stored stats', () => {

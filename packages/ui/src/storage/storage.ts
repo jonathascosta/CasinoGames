@@ -24,7 +24,19 @@ export interface SafeStorage {
   remove(key: string): void;
 }
 
-export const STORAGE_NAMESPACE = 'casinogames:v1';
+/**
+ * Every key the kit stores lives under this namespace. Its version is the
+ * storage schema: bump it when stored data stops meaning what it did (v2: the
+ * games and bets took their English ids), and discardStaleVersions() drops
+ * what older versions left behind. Nothing is migrated.
+ */
+export const STORAGE_NAMESPACE = 'casinogames:v2';
+
+/** A backend whose keys can be listed, as localStorage's can. */
+export interface EnumerableBackend extends KeyValueBackend {
+  readonly length: number;
+  key(index: number): string | null;
+}
 
 /**
  * @param backend defaults to localStorage when usable; pass null to force
@@ -66,8 +78,40 @@ export function createSafeStorage(
   };
 }
 
+/**
+ * Removes every key stored under another version of `namespace`
+ * (`<app>:v<n>:…`), so data written for an older schema is dropped cleanly
+ * instead of being read with the wrong meaning. Keys of other apps and of the
+ * current version stay. Returns how many keys went; storage that cannot be
+ * listed or written is left as it is.
+ */
+export function discardStaleVersions(
+  backend: EnumerableBackend | null,
+  namespace = STORAGE_NAMESPACE,
+): number {
+  const versioned = /^(.+):v\d+$/.exec(namespace);
+  if (backend === null || versioned === null) return 0;
+  const stale = new RegExp(`^${escapeRegExp(versioned[1]!)}:v\\d+:`);
+  const current = `${namespace}:`;
+  try {
+    const keys: string[] = [];
+    for (let index = 0; index < backend.length; index++) {
+      const key = backend.key(index);
+      if (key !== null && stale.test(key) && !key.startsWith(current)) keys.push(key);
+    }
+    for (const key of keys) backend.removeItem(key);
+    return keys.length;
+  } catch {
+    return 0;
+  }
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /** localStorage if it exists and accepts a write, otherwise null. */
-export function detectLocalStorage(): KeyValueBackend | null {
+export function detectLocalStorage(): EnumerableBackend | null {
   try {
     const storage = globalThis.localStorage;
     const probe = `${STORAGE_NAMESPACE}:probe`;
@@ -79,9 +123,13 @@ export function detectLocalStorage(): KeyValueBackend | null {
   }
 }
 
-export function createMemoryBackend(): KeyValueBackend {
+export function createMemoryBackend(): EnumerableBackend {
   const values = new Map<string, string>();
   return {
+    get length() {
+      return values.size;
+    },
+    key: (index) => [...values.keys()][index] ?? null,
     getItem: (key) => values.get(key) ?? null,
     setItem: (key, value) => {
       values.set(key, value);

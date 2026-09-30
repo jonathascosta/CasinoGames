@@ -25,6 +25,8 @@ export {
   createMemoryBackend,
   createSafeStorage,
   detectLocalStorage,
+  discardStaleVersions,
+  type EnumerableBackend,
   type KeyValueBackend,
   type SafeStorage,
 } from './storage/storage.ts';
