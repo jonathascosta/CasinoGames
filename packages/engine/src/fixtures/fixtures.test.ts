@@ -33,6 +33,13 @@ describe('dice fixture — exact math', () => {
     expect(report.bets.doubles!.standardDeviation).toBeCloseTo(5.5 * Math.sqrt(5 / 36), 12);
     expect(report.bets.over!.frequency.toString()).toBe('1');
   });
+
+  it('reports the probability of every paytable entry and of pushes', () => {
+    expect(Object.keys(report.bets.over!.entries)).toEqual(['eight-plus']);
+    expect(report.bets.over!.entries['eight-plus']!.toString()).toBe('5/12');
+    expect(report.bets.doubles!.entries.double!.toString()).toBe('1/6');
+    expect(report.bets.over!.pushFrequency.toString()).toBe('0');
+  });
 });
 
 describe('war fixture — exact math (infinite shoe, raise on 8+)', () => {
@@ -53,5 +60,13 @@ describe('war fixture — exact math (infinite shoe, raise on 8+)', () => {
     expect(report.total.rtp.toString()).toBe('240/247');
     expect(report.bets.ante!.rtp.toNumber()).toBe(declared(WAR_FIXTURE_BETS, 'ante'));
     expect(report.bets.play!.rtp.toNumber()).toBe(declared(WAR_FIXTURE_BETS, 'play'));
+  });
+
+  it('counts pushes given that the bet is made, and entries per round', () => {
+    // Raise (6/13) and tie (1/13): a push per round of 6/169.
+    expect(report.bets.ante!.pushFrequency.toString()).toBe('6/169');
+    expect(report.bets.play!.pushFrequency.toString()).toBe('1/13');
+    expect(report.bets.ante!.entries.higher!.toString()).toBe('57/169');
+    expect(report.bets.play!.entries.higher!.toString()).toBe('57/169');
   });
 });

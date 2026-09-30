@@ -40,6 +40,12 @@
   border-color: var(--line);
 }
 
+.cg-paytable__description {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  color: var(--ink-300);
+}
+
 .cg-paytable__stats {
   display: flex;
   flex-wrap: wrap;

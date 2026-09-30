@@ -12,7 +12,9 @@ export const MATH_END = '<!-- math:end -->';
  */
 export function renderMathSection(summary: MathSummary): string {
   const blocks = [
-    `_Generated from \`mathSummary()\` of \`${summary.gameId}\` by \`pnpm docs:sheets\`. Do not edit by hand._`,
+    `<!-- Generated from mathSummary() of ${summary.gameId} by pnpm docs:sheets. Do not edit by hand. -->`,
+    renderOverview(summary.bets),
+    renderLegend(summary.bets),
     ...summary.bets.map(renderBet),
   ];
   return blocks.join('\n\n');
@@ -28,6 +30,44 @@ export function replaceMathSection(markdown: string, section: string): string {
   return `${markdown.slice(0, start + MATH_START.length)}\n\n${section}\n\n${markdown.slice(end)}`;
 }
 
+type Column = readonly [title: string, align: string, cell: (bet: BetMath) => string];
+
+/** One row per bet with the figures operators compare across games. */
+function renderOverview(bets: readonly BetMath[]): string {
+  const columns: Column[] = [
+    ['Bet', ':--', (bet) => `${bet.label} (${bet.kind})`],
+    ['RTP', '--:', (bet) => percent(bet.rtp, 2)],
+    ['House edge', '--:', (bet) => percent(bet.houseEdge, 2)],
+    ['Hit frequency', '--:', (bet) => optional(bet.hitFrequency, (value) => percent(value, 2))],
+    ['Max exposure', '--:', (bet) => optional(bet.maxExposure, (value) => `${trim(value)}×`)],
+    ['Volatility index', '--:', (bet) => optional(bet.standardDeviation, (v) => v.toFixed(3))],
+    ['Limits', '--:', (bet) => `${amount(bet.min)} – ${amount(bet.max)}`],
+  ];
+  if (bets.some((bet) => bet.pushFrequency !== undefined)) {
+    columns.splice(4, 0, [
+      'Push',
+      '--:',
+      (bet) => optional(bet.pushFrequency, (value) => percent(value, 2)),
+    ]);
+  }
+  return [
+    row(columns.map(([title]) => title)),
+    row(columns.map(([, align]) => align)),
+    ...bets.map((bet) => row(columns.map(([, , cell]) => cell(bet)))),
+  ].join('\n');
+}
+
+function renderLegend(bets: readonly BetMath[]): string {
+  const push = bets.some((bet) => bet.pushFrequency !== undefined)
+    ? ' Push is the chance that the stake is simply returned.'
+    : '';
+  return (
+    `RTP and house edge are per unit staked, pushes included. Hit frequency is the chance that a ` +
+    `bet wins in a round.${push} Max exposure is the largest net win per unit staked. The ` +
+    `volatility index is the standard deviation of the net result per unit staked.`
+  );
+}
+
 function renderBet(bet: BetMath): string {
   const withProbability = bet.paytable.some((entry) => entry.probability !== undefined);
   const header = withProbability
@@ -38,31 +78,37 @@ function renderBet(bet: BetMath): string {
     if (withProbability) {
       cells.push(entry.probability === undefined ? '—' : percent(entry.probability, 3));
     }
-    return `| ${cells.join(' | ')} |`;
+    return row(cells);
   });
-  const stats = [
-    `RTP **${percent(bet.rtp, 2)}**`,
-    `house edge **${percent(bet.houseEdge, 2)}**`,
-    ...(bet.standardDeviation === undefined
-      ? []
-      : [`standard deviation **${bet.standardDeviation.toFixed(3)}**`]),
-    `limits ${amount(bet.min)} – ${amount(bet.max)}`,
-  ];
   return [
     `### ${bet.label} (${bet.kind === 'main' ? 'main bet' : 'side bet'})`,
+    ...(bet.description === undefined ? [] : [bet.description]),
     [header, ...rows].join('\n'),
-    stats.join(' · '),
   ].join('\n\n');
 }
 
 function pays(entry: PaytableEntry): string {
   if ('odds' in entry) return oddsLabel(entry.odds);
+  if ('push' in entry) return 'Push';
   const share = entry.jackpot.share === 1 ? '' : `${percent(entry.jackpot.share, 0)} of `;
   return `${share}${entry.jackpot.jackpotId} jackpot`;
 }
 
+function row(cells: readonly string[]): string {
+  return `| ${cells.join(' | ')} |`;
+}
+
+function optional(value: number | undefined, format: (value: number) => string): string {
+  return value === undefined ? '—' : format(value);
+}
+
 function percent(ratio: number, digits: number): string {
   return `${(ratio * 100).toFixed(digits)}%`;
+}
+
+/** 4 → "4", 0.5 → "0.5", 1/3 → "0.33". */
+function trim(value: number): string {
+  return String(Number(value.toFixed(2)));
 }
 
 function amount(cents: number): string {

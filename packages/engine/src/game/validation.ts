@@ -84,6 +84,17 @@ export function defineBets<const T extends readonly BetDefinition[]>(definitions
     if (bet.paytable.length === 0 || entryIds.size !== bet.paytable.length) {
       throw new TypeError(`${where}: paytable entries must be present with unique ids`);
     }
+    let total = 0;
+    for (const entry of bet.paytable) {
+      if (entry.probability === undefined) continue;
+      if (!(entry.probability > 0 && entry.probability <= 1)) {
+        throw new TypeError(`${where}: entry "${entry.id}" probability must be in (0, 1]`);
+      }
+      total += entry.probability;
+    }
+    if (total > 1 + 1e-9) {
+      throw new TypeError(`${where}: entry probabilities add up to more than 1`);
+    }
   }
   return definitions;
 }

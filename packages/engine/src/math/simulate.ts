@@ -23,6 +23,8 @@ export interface BetStatistics {
   readonly houseEdge: number;
   /** Share of rounds the bet won. */
   readonly hitFrequency: number;
+  /** Share of rounds the bet pushed (the stake came back). */
+  readonly pushFrequency: number;
   /** Standard deviation of one round's return, per unit of average stake. */
   readonly standardDeviation: number;
   /** Standard error of the RTP estimate: standardDeviation ÷ √rounds. */
@@ -60,11 +62,11 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
       const line = settlement[betId]!;
       let accumulator = perBet.get(betId);
       if (accumulator === undefined) perBet.set(betId, (accumulator = new RatioAccumulator()));
-      accumulator.add(line.stake, line.payout, line.outcome === 'win');
+      accumulator.add(line.stake, line.payout);
       stake += line.stake;
       payout += line.payout;
     }
-    total.add(stake, payout, payout > stake);
+    total.add(stake, payout);
   }
 
   return {
@@ -83,6 +85,7 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
 class RatioAccumulator {
   #n = 0;
   #wins = 0;
+  #pushes = 0;
   #scale = 0;
   #stake = 0;
   #payout = 0;
@@ -92,12 +95,13 @@ class RatioAccumulator {
   #stakeCents = 0;
   #payoutCents = 0;
 
-  add(stake: number, payout: number, won: boolean): void {
+  add(stake: number, payout: number): void {
     if (this.#scale === 0) this.#scale = stake;
     const s = stake / this.#scale;
     const p = payout / this.#scale;
     this.#n++;
-    if (won) this.#wins++;
+    if (payout > stake) this.#wins++;
+    else if (payout === stake) this.#pushes++;
     this.#stake += s;
     this.#payout += p;
     this.#stake2 += s * s;
@@ -122,6 +126,7 @@ class RatioAccumulator {
       rtp,
       houseEdge: 1 - rtp,
       hitFrequency: this.#wins / n,
+      pushFrequency: this.#pushes / n,
       standardDeviation,
       standardError: standardDeviation / Math.sqrt(n),
     };

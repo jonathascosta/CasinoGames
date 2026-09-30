@@ -46,6 +46,8 @@ describe('simulate', () => {
     });
     expect(report.bets.ante!.rounds).toBe(20_000);
     expect(report.bets.play!.rounds / 20_000).toBeCloseTo(6 / 13, 1);
+    // The ante pushes when the player raises and the ranks tie: 6/13 × 1/13.
+    expect(report.bets.ante!.pushFrequency).toBeCloseTo(6 / 169, 2);
   });
 
   it('rejects silly round counts', () => {

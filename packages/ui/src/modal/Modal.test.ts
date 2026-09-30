@@ -16,7 +16,11 @@ const SUMMARY = summarizeMath({
       max: 10_000,
       rtp: 30 / 36,
       standardDeviation: Math.sqrt(35 / 36),
-      paytable: [{ id: 'win', label: 'Total 8–12', odds: odds(1), probability: 15 / 36 }],
+      description: 'Wins when the dice total 8 or more.',
+      paytable: [
+        { id: 'win', label: 'Total 8–12', odds: odds(1), probability: 15 / 36 },
+        { id: 'seven', label: 'Total 7', push: true, probability: 6 / 36 },
+      ],
     },
     {
       id: 'grand',
@@ -84,9 +88,15 @@ describe('paytable', () => {
     expect(sections).toHaveLength(2);
     const first = sections[0]!;
     expect(first.querySelector('h3')!.textContent).toBe('Over 7');
-    expect(first.querySelector('tbody')!.textContent).toBe('Total 8–121 to 141.667%');
+    expect(first.querySelector('.cg-paytable__description')!.textContent).toBe(
+      'Wins when the dice total 8 or more.',
+    );
+    expect(first.querySelector('tbody')!.textContent).toBe(
+      'Total 8–121 to 141.667%Total 7Push16.667%',
+    );
     expect(first.querySelector('dl')!.textContent).toBe(
-      'RTP83.33%House edge16.67%Std. deviation0.99Limits0.50 – 100.00',
+      'RTP83.33%House edge16.67%Hit frequency41.67%Push16.67%Max exposure1× stake' +
+        'Volatility index0.99Limits0.50 – 100.00',
     );
   });
 

@@ -68,6 +68,16 @@ describe('defineBets', () => {
         ],
       },
     ],
+    ['a zero probability', { paytable: [{ id: 'x', label: 'X', odds: odds(1), probability: 0 }] }],
+    [
+      'probabilities adding up to more than 1',
+      {
+        paytable: [
+          { id: 'x', label: 'X', odds: odds(1), probability: 0.6 },
+          { id: 'y', label: 'Y', push: true, probability: 0.5 },
+        ],
+      },
+    ],
   ])('rejects %s', (_, override) => {
     expect(() => defineBets([{ ...valid, ...override }])).toThrow(TypeError);
   });
