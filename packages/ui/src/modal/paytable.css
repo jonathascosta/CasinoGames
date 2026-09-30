@@ -4,6 +4,7 @@
 }
 
 .cg-paytable__bet {
+  min-width: 0;
   padding: 14px 14px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -91,4 +92,20 @@
   color: var(--ink-400);
   font-size: 12px;
   text-align: left;
+}
+
+.cg-paytable__lines {
+  overflow-x: auto;
+}
+
+/* Phones: five columns fit with tighter cells. */
+@media (max-width: 480px) {
+  .cg-paytable__breakdown th,
+  .cg-paytable__breakdown td {
+    padding: 7px 5px;
+  }
+
+  .cg-paytable__breakdown thead th {
+    letter-spacing: 0.06em;
+  }
 }

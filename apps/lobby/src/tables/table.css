@@ -326,6 +326,8 @@
 @media (min-width: 760px), (orientation: landscape) and (max-height: 520px) {
   .tb-table {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    /* The controls follow the felt; a taller view leaves its slack below them. */
+    grid-template-rows: auto 1fr;
     grid-template-areas:
       'view felt'
       'view controls';

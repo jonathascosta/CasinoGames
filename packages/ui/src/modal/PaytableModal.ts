@@ -53,7 +53,12 @@ function renderBet(bet: BetMath): HTMLElement {
     bet.description === undefined
       ? null
       : h('p', { class: 'cg-paytable__description' }, bet.description),
-    bet.breakdown === undefined ? renderLines(bet) : renderBreakdown(bet.breakdown),
+    // Wide tables scroll inside the card rather than widening the dialog.
+    h(
+      'div',
+      { class: 'cg-paytable__lines' },
+      bet.breakdown === undefined ? renderLines(bet) : renderBreakdown(bet.breakdown),
+    ),
     h(
       'dl',
       { class: 'cg-paytable__stats' },
