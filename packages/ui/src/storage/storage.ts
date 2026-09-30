@@ -22,6 +22,12 @@ export interface SafeStorage {
   /** Writes a JSON value; returns false if it could not be stored. */
   write(key: string, value: unknown): boolean;
   remove(key: string): void;
+  /**
+   * Calls `listener` when another tab of the page changes `key` (the
+   * browser's storage event), so a page can show what is played elsewhere.
+   * Returns the unsubscribe. Storage kept only in memory never calls it.
+   */
+  watch(key: string, listener: () => void): () => void;
 }
 
 /**
@@ -74,6 +80,18 @@ export function createSafeStorage(
       } catch {
         // Nothing to clean up if storage is unreachable.
       }
+    },
+    watch(key, listener) {
+      if (backend === null || typeof window === 'undefined') return () => undefined;
+      const watched = fullKey(key);
+      // A null key means the other tab cleared the whole storage.
+      const onStorage = (event: StorageEvent) => {
+        if (event.key === watched || event.key === null) listener();
+      };
+      window.addEventListener('storage', onStorage);
+      return () => {
+        window.removeEventListener('storage', onStorage);
+      };
     },
   };
 }

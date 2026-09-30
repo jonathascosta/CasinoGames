@@ -78,9 +78,12 @@ export {
 } from './jackpot/jackpot-storage.ts';
 export {
   RtpTracker,
+  clearRtpStats,
   liveRtp,
   nextCheckpoint,
   parseStats,
+  readRtpStats,
+  rtpKey,
   type BetTally,
   type RtpSample,
   type RtpStats,

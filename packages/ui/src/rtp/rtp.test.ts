@@ -14,7 +14,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from '../state/store.ts';
 import { createMemoryBackend, createSafeStorage } from '../storage/storage.ts';
 import { RtpPanel } from './RtpPanel.ts';
-import { RtpTracker, liveRtp, nextCheckpoint, parseStats } from './RtpTracker.ts';
+import {
+  RtpTracker,
+  clearRtpStats,
+  liveRtp,
+  nextCheckpoint,
+  parseStats,
+  readRtpStats,
+} from './RtpTracker.ts';
 import { renderSparkline } from './sparkline.ts';
 
 const MATH = summarizeMath({
@@ -114,6 +121,24 @@ describe('RtpTracker', () => {
     expect(liveRtp(tracker.stats)).toBeCloseTo(320 / 300, 12);
     expect(tracker.stats.bets.main!.history.at(-1)!.rtp).toBeCloseTo(320 / 300, 12);
     expect(liveRtp({ staked: 0, returned: 0, fees: 0 })).toBeNaN();
+  });
+
+  it("stores a game's stats, which a page can read and clear without a tracker", () => {
+    const storage = createSafeStorage('test', createMemoryBackend());
+    const tracker = new RtpTracker({ gameId: 'dice', storage });
+    tracker.record({ main: { stake: 100, payout: 200, net: 100, outcome: 'win' } });
+    tracker.flush();
+    expect(readRtpStats(storage, 'dice')).toMatchObject({ rounds: 1, staked: 100, returned: 200 });
+    expect(readRtpStats(storage, 'cards')).toEqual({
+      rounds: 0,
+      staked: 0,
+      returned: 0,
+      fees: 0,
+      bets: {},
+    });
+    clearRtpStats(storage, 'dice');
+    expect(readRtpStats(storage, 'dice').rounds).toBe(0);
+    expect(new RtpTracker({ gameId: 'dice', storage }).stats.rounds).toBe(0);
   });
 
   it('needs a fees total on the stats and on every bet', () => {

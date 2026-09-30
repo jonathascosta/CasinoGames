@@ -52,6 +52,26 @@ describe('createSafeStorage', () => {
     }).not.toThrow();
   });
 
+  it('tells a watcher when another tab changes its key, until it unsubscribes', () => {
+    const storage = createSafeStorage('test', createMemoryBackend());
+    const listener = vi.fn();
+    const stop = storage.watch('meter', listener);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'test:other' }));
+    expect(listener).not.toHaveBeenCalled();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'test:meter' }));
+    window.dispatchEvent(new StorageEvent('storage', { key: null })); // the other tab cleared it all
+    expect(listener).toHaveBeenCalledTimes(2);
+    stop();
+    window.dispatchEvent(new StorageEvent('storage', { key: 'test:meter' }));
+    expect(listener).toHaveBeenCalledTimes(2);
+    // Storage kept in memory is this tab's alone: nothing to watch.
+    const memory = createSafeStorage('test', null);
+    const unheard = vi.fn();
+    memory.watch('meter', unheard);
+    window.dispatchEvent(new StorageEvent('storage', { key: 'test:meter' }));
+    expect(unheard).not.toHaveBeenCalled();
+  });
+
   it('keeps working in memory when there is no storage at all', () => {
     const storage = createSafeStorage('test', null);
     expect(storage.persistent).toBe(false);
