@@ -20,6 +20,19 @@ describe('validateBets', () => {
     expect(validateBets(DICE_FIXTURE_BETS, { over: 500, doubles: 0 })).toEqual({ over: 500 });
   });
 
+  it('validates a frozen bet map once and returns the same frozen result', () => {
+    const bets = Object.freeze({ over: 500, doubles: 0 });
+    const first = validateBets(DICE_FIXTURE_BETS, bets);
+    expect(first).toEqual({ over: 500 });
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(validateBets(DICE_FIXTURE_BETS, bets)).toBe(first);
+    const open = { over: 500 };
+    expect(validateBets(DICE_FIXTURE_BETS, open)).not.toBe(validateBets(DICE_FIXTURE_BETS, open));
+    const invalid = Object.freeze({ over: 25 });
+    expect(errorCode(() => validateBets(DICE_FIXTURE_BETS, invalid))).toBe('STAKE_BELOW_MIN');
+    expect(errorCode(() => validateBets(DICE_FIXTURE_BETS, invalid))).toBe('STAKE_BELOW_MIN');
+  });
+
   it.each<[Bets, EngineErrorCode]>([
     [{}, 'NO_BETS'],
     [{ over: 0 }, 'NO_BETS'],
