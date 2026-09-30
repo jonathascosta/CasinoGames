@@ -1,5 +1,5 @@
 import { playRound, type Strategy } from '../game/play.ts';
-import type { BetId, Bets, CustomEvent, Game } from '../game/types.ts';
+import type { BetId, Bets, CustomEvent, Game, RoundState } from '../game/types.ts';
 import type { Rng } from '../rng/rng.ts';
 
 export interface SimulationOptions<TChoice extends string, TData, TEvent extends CustomEvent> {
@@ -9,6 +9,11 @@ export interface SimulationOptions<TChoice extends string, TData, TEvent extends
   readonly bets: Bets;
   /** Required when the game asks for decisions. */
   readonly strategy?: Strategy<TChoice, TData, TEvent>;
+  /**
+   * Called with every settled round, for statistics the report does not
+   * keep: a bet's figures per target, say. Keep it cheap: it runs per round.
+   */
+  readonly observe?: (round: RoundState<TChoice, TData, TEvent>) => void;
 }
 
 export interface BetStatistics {
@@ -47,7 +52,7 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
   game: Game<TChoice, TData, TEvent>,
   options: SimulationOptions<TChoice, TData, TEvent>,
 ): SimulationReport {
-  const { rounds, rng, strategy } = options;
+  const { rounds, rng, strategy, observe } = options;
   // Frozen, the same map is validated once instead of every round.
   const bets = Object.freeze({ ...options.bets });
   if (!Number.isSafeInteger(rounds) || rounds < 2) {
@@ -57,7 +62,9 @@ export function simulate<TChoice extends string, TData, TEvent extends CustomEve
   const total = new RatioAccumulator();
 
   for (let round = 0; round < rounds; round++) {
-    const { settlement } = playRound(game, bets, rng, strategy);
+    const round = playRound(game, bets, rng, strategy);
+    observe?.(round);
+    const { settlement } = round;
     let stake = 0;
     let payout = 0;
     for (const betId in settlement) {

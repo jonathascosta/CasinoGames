@@ -50,6 +50,23 @@ describe('simulate', () => {
     expect(report.bets.ante!.pushFrequency).toBeCloseTo(6 / 169, 2);
   });
 
+  it('shows every settled round to an observer', () => {
+    let rounds = 0;
+    let doubles = 0;
+    const report = simulate(createDiceFixture(), {
+      rounds: 5_000,
+      rng: createSeededRng('observe'),
+      bets: { over: 200, doubles: 100 },
+      observe(round) {
+        rounds++;
+        expect(round.phase).toBe('settled');
+        if (round.settlement.doubles?.outcome === 'win') doubles++;
+      },
+    });
+    expect(rounds).toBe(5_000);
+    expect(doubles / rounds).toBe(report.bets.doubles!.hitFrequency);
+  });
+
   it('rejects silly round counts', () => {
     expect(() => run('x', 1)).toThrow(RangeError);
   });
