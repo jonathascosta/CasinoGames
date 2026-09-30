@@ -41,7 +41,9 @@ export function formatPoints(delta: number, digits = 2): string {
   return `${delta < 0 ? MINUS : '+'}${text} pp`;
 }
 
-/** 1234567 → "1,234,567". */
-export function formatCount(count: number): string {
-  return count.toLocaleString(LOCALE);
+/** 1234567 → "1,234,567"; with a noun, 1 → "1 round" and 1000 → "1,000 rounds". */
+export function formatCount(count: number, noun?: string): string {
+  const text = count.toLocaleString(LOCALE);
+  if (noun === undefined) return text;
+  return `${text} ${count === 1 ? noun : `${noun}s`}`;
 }
