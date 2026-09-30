@@ -230,4 +230,11 @@
     grid-template-columns: minmax(96px, 1fr) auto auto minmax(120px, 1.3fr);
     grid-template-areas: 'name live declared chart';
   }
+
+  /* The notes keep a row of their own under the figures and the chart. */
+  .cg-rtp__bet--noted {
+    grid-template-areas:
+      'name live declared chart'
+      'notes notes notes notes';
+  }
 }
