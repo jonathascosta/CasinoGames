@@ -67,7 +67,8 @@ function renderBet(bet: BetMath): HTMLElement {
       stat('House edge', formatPercent(bet.houseEdge)),
       bet.hitFrequency === undefined
         ? null
-        : stat('Hit frequency', formatPercent(bet.hitFrequency)),
+        : // Rare hits keep a third decimal: 0.077%, not 0.08%.
+          stat('Hit frequency', formatPercent(bet.hitFrequency, bet.hitFrequency < 0.01 ? 3 : 2)),
       bet.pushFrequency === undefined ? null : stat('Push', formatPercent(bet.pushFrequency)),
       bet.maxExposure === undefined
         ? null
@@ -105,7 +106,11 @@ function renderLines(bet: BetMath): HTMLElement {
           'tr',
           null,
           h('td', null, entry.label),
-          h('td', { class: 'cg-num' }, pays(entry)),
+          h(
+            'td',
+            { class: 'jackpot' in entry ? 'cg-num cg-paytable__meter-pays' : 'cg-num' },
+            pays(entry),
+          ),
           withProbability
             ? h(
                 'td',

@@ -1,7 +1,13 @@
-import type { BetMath, MathSummary } from '@casinogames/engine';
+import {
+  progressiveRtpAtMeter,
+  type BetMath,
+  type Cents,
+  type MathSummary,
+} from '@casinogames/engine';
 import { Disposer, h } from '../dom/h.ts';
 import { icon } from '../dom/icons.ts';
 import { formatCents, formatCount, formatPercent, formatPoints } from '../format/format.ts';
+import type { Store } from '../state/store.ts';
 import type { BetTally, RtpSample, RtpStats, RtpTracker } from './RtpTracker.ts';
 import { renderSparkline } from './sparkline.ts';
 import './rtp-panel.css';
@@ -12,6 +18,11 @@ export interface RtpPanelOptions {
   readonly math: MathSummary;
   /** Starts collapsed. Default false. */
   readonly collapsed?: boolean;
+  /**
+   * Live progressive meters by jackpot id: a progressive bet then shows its
+   * RTP at the current meter beside the declared one, which excludes the seed.
+   */
+  readonly meters?: Readonly<Record<string, Store<Cents>>>;
 }
 
 /**
@@ -65,14 +76,16 @@ export class RtpPanel {
     });
     // Rounds can settle far faster than frames (turbo autoplay, batch runs):
     // render at most once per animation frame.
-    this.#disposer.add(
-      options.tracker.subscribe(() => {
-        this.#frame ||= requestAnimationFrame(() => {
-          this.#frame = 0;
-          this.#render(options.tracker.stats);
-        });
-      }),
-    );
+    const schedule = () => {
+      this.#frame ||= requestAnimationFrame(() => {
+        this.#frame = 0;
+        this.#render(options.tracker.stats);
+      });
+    };
+    this.#disposer.add(options.tracker.subscribe(schedule));
+    for (const meter of Object.values(options.meters ?? {})) {
+      this.#disposer.add(meter.subscribe(schedule));
+    }
     this.#disposer.add(() => {
       cancelAnimationFrame(this.#frame);
     });
@@ -102,7 +115,15 @@ export class RtpPanel {
       h(
         'ul',
         { class: 'cg-rtp__bets' },
-        ...this.#options.math.bets.map((bet) => renderBet(bet, stats.bets[bet.betId])),
+        ...this.#options.math.bets.map((bet) =>
+          renderBet(bet, stats.bets[bet.betId], {
+            shoe: this.#options.math.finiteShoe,
+            meter:
+              bet.progressive === undefined
+                ? undefined
+                : this.#options.meters?.[bet.progressive.jackpotId]?.get(),
+          }),
+        ),
       ),
     );
   }
@@ -112,7 +133,13 @@ function total(label: string, value: string): HTMLElement {
   return h('div', null, h('dt', null, label), h('dd', { class: 'cg-num' }, value));
 }
 
-function renderBet(bet: BetMath, tally: BetTally | undefined): HTMLElement {
+/** What a bet's card adds under its figures: the table's shoe, and a progressive's meter. */
+interface BetExtras {
+  readonly shoe: string | undefined;
+  readonly meter: Cents | undefined;
+}
+
+function renderBet(bet: BetMath, tally: BetTally | undefined, extras: BetExtras): HTMLElement {
   const rounds = tally?.rounds ?? 0;
   const live =
     tally === undefined || tally.staked === 0 ? Number.NaN : tally.returned / tally.staked;
@@ -120,9 +147,10 @@ function renderBet(bet: BetMath, tally: BetTally | undefined): HTMLElement {
   if (tally !== undefined && (samples.at(-1)?.rounds ?? 0) < rounds)
     samples.push({ rounds, rtp: live });
 
+  const notes = renderNotes(bet, extras);
   return h(
     'li',
-    { class: 'cg-rtp__bet' },
+    { class: notes === null ? 'cg-rtp__bet' : 'cg-rtp__bet cg-rtp__bet--noted' },
     h(
       'div',
       { class: 'cg-rtp__bet-name' },
@@ -145,7 +173,9 @@ function renderBet(bet: BetMath, tally: BetTally | undefined): HTMLElement {
       { class: 'cg-rtp__figure' },
       h('span', { class: 'cg-rtp__label' }, 'Declared'),
       h('strong', { class: 'cg-num' }, formatPercent(bet.rtp)),
+      bet.progressive === undefined ? null : h('span', { class: 'cg-rtp__delta' }, 'excl. seed'),
     ),
+    notes,
     h(
       'div',
       { class: 'cg-rtp__chart' },
@@ -158,4 +188,26 @@ function renderBet(bet: BetMath, tally: BetTally | undefined): HTMLElement {
       }),
     ),
   );
+}
+
+/**
+ * The figures that qualify the declared one: a progressive bet's RTP at the
+ * meter as it stands and its break-even meter, and the exact figure on the
+ * table's own shoe when the game declares one.
+ */
+function renderNotes(bet: BetMath, { shoe, meter }: BetExtras): HTMLElement | null {
+  const notes: string[] = [];
+  if (bet.progressive !== undefined && meter !== undefined) {
+    notes.push(
+      `At the current meter (${formatCents(meter)}): ` +
+        formatPercent(progressiveRtpAtMeter(bet.progressive, meter)),
+      `Break-even meter ${formatCents(Math.round(bet.progressive.breakEvenMeter))}`,
+    );
+  }
+  if (bet.finiteShoe !== undefined && shoe !== undefined) {
+    notes.push(`On the ${shoe}: ${formatPercent(bet.finiteShoe.rtp)}`);
+  }
+  return notes.length === 0
+    ? null
+    : h('p', { class: 'cg-rtp__notes cg-num' }, ...notes.map((note) => h('span', null, note)));
 }

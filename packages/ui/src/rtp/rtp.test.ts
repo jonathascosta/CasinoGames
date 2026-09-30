@@ -9,6 +9,7 @@ import {
   type Settlement,
 } from '@casinogames/engine';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createStore } from '../state/store.ts';
 import { createMemoryBackend, createSafeStorage } from '../storage/storage.ts';
 import { RtpPanel } from './RtpPanel.ts';
 import { RtpTracker, nextCheckpoint, parseStats } from './RtpTracker.ts';
@@ -178,6 +179,71 @@ describe('RtpPanel', () => {
     expect(main.querySelector('.cg-sparkline')!.getAttribute('aria-label')).toBe(
       'Live RTP 200.00% after 1 round; declared 50.00%',
     );
+  });
+
+  it("shows a progressive bet's RTP at the meter as it stands, and every bet on the table's shoe", () => {
+    const math = summarizeMath({
+      id: 'p',
+      name: 'P',
+      finiteShoe: 'test shoe',
+      bets: defineBets([
+        {
+          id: 'main',
+          label: 'Main',
+          kind: 'main',
+          min: 100,
+          max: 10_000,
+          rtp: 0.5,
+          finiteShoe: { rtp: 0.49, hitFrequency: 0.245 },
+          paytable: [{ id: 'win', label: 'Win', odds: odds(1) }],
+        },
+        {
+          id: 'meter',
+          label: 'Meter',
+          kind: 'side',
+          min: 50,
+          max: 2_500,
+          rtp: 0.6,
+          standardDeviation: 20,
+          progressive: {
+            jackpotId: 'house',
+            seed: 500_000,
+            contributionRate: 0.1,
+            fullShareStake: 2_500,
+            hitProbability: 0.001,
+            fixedRtp: 0.5,
+          },
+          paytable: [
+            {
+              id: 'hit',
+              label: 'Hit',
+              odds: odds(499),
+              jackpot: { jackpotId: 'house', share: 1, fullShareStake: 2_500 },
+              probability: 0.001,
+            },
+          ],
+        },
+      ]),
+    });
+    const meter = createStore(500_000);
+    const panel = new RtpPanel({
+      tracker: new RtpTracker({ gameId: 'p' }),
+      math,
+      meters: { house: meter },
+    });
+    const [main, progressive] = panel.element.querySelectorAll('.cg-rtp__bet');
+    expect(main!.querySelector('.cg-rtp__notes')!.textContent).toBe('On the test shoe: 49.00%');
+    expect(progressive!.textContent).toContain('Declared60.00%excl. seed');
+    // 50% + 0.001 × meter ÷ 25.00: 70% at the seed, break-even at 12,500.00.
+    expect(progressive!.querySelector('.cg-rtp__notes')!.textContent).toBe(
+      'At the current meter (5,000.00): 70.00%Break-even meter 12,500.00',
+    );
+    meter.set(750_000);
+    vi.advanceTimersToNextFrame();
+    expect(panel.element.querySelectorAll('.cg-rtp__notes')[1]!.textContent).toContain(
+      'At the current meter (7,500.00): 80.00%',
+    );
+    panel.destroy();
   });
 
   it('resets the stats from its button and can start collapsed', () => {
