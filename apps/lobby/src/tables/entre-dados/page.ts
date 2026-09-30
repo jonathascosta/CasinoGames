@@ -8,6 +8,7 @@ import { createTopBar } from '../../shell/topbar.ts';
 import { createRulesModal, loadSheet, tableTitle } from '../shell.ts';
 import { EntreDadosTable } from './table.ts';
 import '../../pages/game.css';
+import '../table.css';
 import './entre-dados.css';
 
 function iconButton(label: string, name: 'info' | 'paytable', modal: Modal): HTMLButtonElement {
@@ -55,7 +56,7 @@ export async function entreDadosPage(
           'div',
           { class: 'table-page ed-page', style: `--accent: ${game.accent}` },
           topbar.element,
-          h('main', { class: 'ed-main' }, table.element, rtp.element),
+          h('main', { class: 'tb-main' }, table.element, rtp.element),
           siteFooter(),
         ),
       );

@@ -47,7 +47,7 @@ async function setup(seed = 'table', initial = 1_000_00) {
   await table.ready;
   const spot = (bet: string) =>
     table.element.querySelector<HTMLButtonElement>(`[data-bet="${bet}"] .cg-bet-spot`)!;
-  const roll = table.element.querySelector<HTMLButtonElement>('.ed-actions__roll')!;
+  const roll = table.element.querySelector<HTMLButtonElement>('.tb-actions__roll')!;
   const caption = () => table.element.querySelector('.ed-strip__caption')!.textContent;
   return { table, services, tracker, spot, roll, caption };
 }
@@ -64,7 +64,7 @@ describe('EntreDadosTable', () => {
     expect(spot('entre').getAttribute('aria-label')).toMatch(/^Entre: 1\.00\./);
     expect(roll.disabled).toBe(false);
     expect(caption()).toBe('Tap the dice or press Roll.');
-    expect(table.element.querySelector('.ed-bet__amount')!.textContent).toBe('1.00');
+    expect(table.element.querySelector('.tb-bet__amount')!.textContent).toBe('1.00');
   });
 
   it('plays a round exactly as the engine settles it and pays it out', async () => {
@@ -119,7 +119,7 @@ describe('EntreDadosTable', () => {
     spot('dobros').click();
     expect(caption()).toBe('Your balance does not cover another chip.');
     expect(spot('dobros').getAttribute('aria-label')).toMatch(/^Dobros: no bet\./);
-    expect(table.element.querySelector('.ed-bet__amount')!.textContent).toBe('1.50');
+    expect(table.element.querySelector('.tb-bet__amount')!.textContent).toBe('1.50');
   });
 
   it('pays out a round interrupted by leaving the table', async () => {
