@@ -58,6 +58,23 @@ jobs:
           path: docs/GAME-SHEETS.pdf
           if-no-files-found: error
 
+  lighthouse:
+    name: Lighthouse (mobile)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # Every page at 90 or more for performance and accessibility, measured
+      # as a phone, with the runner's Chrome.
+      - run: pnpm lighthouse
+
   math:
     name: Monte Carlo suites
     runs-on: ubuntu-latest
