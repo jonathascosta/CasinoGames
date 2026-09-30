@@ -167,6 +167,19 @@ describe('RtpPanel', () => {
     expect(main!.querySelector('.cg-sparkline__band')).not.toBeNull();
   });
 
+  it('counts a single round in the singular', () => {
+    const tracker = new RtpTracker({ gameId: 'g' });
+    const panel = new RtpPanel({ tracker, math: MATH });
+    tracker.record(win());
+    vi.advanceTimersToNextFrame();
+    expect(panel.element.querySelector('.cg-rtp__headline')!.textContent).toBe('200.00% · 1 round');
+    const main = panel.element.querySelector('.cg-rtp__bet')!;
+    expect(main.textContent).toContain('Main1 roundLive');
+    expect(main.querySelector('.cg-sparkline')!.getAttribute('aria-label')).toBe(
+      'Live RTP 200.00% after 1 round; declared 50.00%',
+    );
+  });
+
   it('resets the stats from its button and can start collapsed', () => {
     const tracker = new RtpTracker({ gameId: 'g' });
     tracker.record(win());

@@ -35,7 +35,7 @@ export function renderSparkline(options: SparklineOptions): SVGSVGElement {
     'aria-label':
       last === undefined
         ? `No rounds yet; declared RTP ${formatPercent(declared)}`
-        : `Live RTP ${formatPercent(last.rtp)} after ${formatCount(last.rounds)} rounds; ` +
+        : `Live RTP ${formatPercent(last.rtp)} after ${formatCount(last.rounds, 'round')}; ` +
           `declared ${formatPercent(declared)}`,
   });
   if (last === undefined) return root;

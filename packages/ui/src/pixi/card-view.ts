@@ -40,6 +40,7 @@ interface Pose {
 export async function createPixiCardView(
   container: HTMLElement,
   hands: readonly HandLayout[],
+  scale = 1,
 ): Promise<CardView> {
   const host = await createPixiHost(container);
   const palette: Palette = {
@@ -61,7 +62,15 @@ export async function createPixiCardView(
   let shoe: ShoeDisplay = { remaining: 0, size: 0, cutCardOut: false };
 
   const cardSize = () => {
-    const height = Math.max(64, Math.min(150, host.height * 0.3, host.width * 0.2 * 1.4));
+    const height = Math.max(
+      64,
+      Math.min(
+        150 * scale,
+        host.height * 0.3 * scale,
+        host.width * 0.28 * scale,
+        host.height * 0.8,
+      ),
+    );
     return { w: height / 1.4, h: height };
   };
   const shoePoint = () => {

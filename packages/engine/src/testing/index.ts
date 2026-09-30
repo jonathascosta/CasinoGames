@@ -5,3 +5,4 @@
 export * from './chi-square.ts';
 export * from './scripted-cards.ts';
 export * from './scripted-rng.ts';
+export * from './uniform-ranks.ts';

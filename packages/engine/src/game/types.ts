@@ -26,9 +26,12 @@ interface PaytableEntryBase {
   readonly probability?: number;
 }
 
-/** One line of a bet's paytable: fixed odds or a progressive jackpot. */
+/**
+ * One line of a bet's paytable: fixed odds, a progressive jackpot, or a push
+ * (the stake is returned). Losing outcomes are not listed.
+ */
 export type PaytableEntry = PaytableEntryBase &
-  ({ readonly odds: Odds } | { readonly jackpot: JackpotPayout });
+  ({ readonly odds: Odds } | { readonly jackpot: JackpotPayout } | { readonly push: true });
 
 /**
  * Everything the UI, docs and simulations need to know about a bet. The
@@ -177,7 +180,21 @@ export interface BetMath {
   readonly max: Cents;
   readonly rtp: number;
   readonly houseEdge: number;
+  /** Standard deviation of the net result per unit staked (the volatility index). */
   readonly standardDeviation?: number;
+  /**
+   * Chance per round that the bet wins: the sum of its winning entries'
+   * probabilities. Present when every winning entry declares one.
+   */
+  readonly hitFrequency?: number;
+  /** Chance per round of a push, when the paytable lists push entries with probabilities. */
+  readonly pushFrequency?: number;
+  /**
+   * Largest net win per unit staked, the house's worst case per unit. Absent
+   * when a progressive jackpot can decide the bet, since the pool sets it.
+   */
+  readonly maxExposure?: number;
+  readonly description?: string;
   readonly paytable: readonly PaytableEntry[];
 }
 

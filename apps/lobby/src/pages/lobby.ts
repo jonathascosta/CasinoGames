@@ -5,6 +5,7 @@ import type { Page } from '../router/router.ts';
 import type { Router } from '../router/router.ts';
 import type { Services } from '../services.ts';
 import { brand, createTopBar } from '../shell/topbar.ts';
+import { isPlayable } from '../tables/index.ts';
 import './lobby.css';
 
 const PILLARS = [
@@ -53,9 +54,9 @@ export function lobbyPage(services: Services, router: Router): Page {
             h(
               'p',
               { class: 'hero__text' },
-              'A portfolio build for aggregators and live-dealer studios. The tables are in ' +
-                'development; the engine, the math tooling and the shared table kit behind them ' +
-                'are live today.',
+              'A portfolio build for aggregators and live-dealer studios. Entre Dados is open, ' +
+                'with its math proven exactly and by simulation; the other three tables are in ' +
+                'development on the same engine and table kit.',
             ),
           ),
           h(
@@ -96,17 +97,27 @@ export function lobbyPage(services: Services, router: Router): Page {
 }
 
 function gameCard(game: GameEntry, router: Router): HTMLAnchorElement {
+  const playable = isPlayable(game);
   return h(
     'a',
-    { class: 'game-card', href: router.href(`/${game.slug}`), style: `--accent: ${game.accent}` },
+    {
+      class: 'game-card',
+      href: router.href(`/${game.slug}`),
+      style: `--accent: ${game.accent}`,
+      dataset: { playable: String(playable) },
+    },
     h('div', { class: 'game-card__art' }, gameArt(game)),
     h(
       'div',
       { class: 'game-card__body' },
-      h('span', { class: 'game-card__status' }, 'In development'),
+      h('span', { class: 'game-card__status' }, playable ? 'Open · play now' : 'In development'),
       h('h3', { class: 'game-card__name' }, game.name),
       h('p', { class: 'game-card__gloss' }, `“${game.gloss}”`),
-      h('span', { class: 'game-card__cta', 'aria-hidden': 'true' }, 'Preview the table'),
+      h(
+        'span',
+        { class: 'game-card__cta', 'aria-hidden': 'true' },
+        playable ? 'Take a seat' : 'Preview the table',
+      ),
     ),
   );
 }

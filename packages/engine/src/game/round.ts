@@ -85,7 +85,8 @@ export class RoundBuilder<
   readonly gameId: string;
   /** The round's Rng: every draw in this round comes from here. */
   readonly rng: Rng;
-  readonly #bets: Record<BetId, Cents>;
+  /** Never mutated: addStake replaces it, so snapshots can share it. */
+  #bets: Bets;
   readonly #events: (GameEvent | TEvent)[];
   readonly #settlement: Record<BetId, SettlementLine>;
   #closed = false;
@@ -93,7 +94,7 @@ export class RoundBuilder<
   private constructor(
     gameId: string,
     rng: Rng,
-    bets: Record<BetId, Cents>,
+    bets: Bets,
     events: (GameEvent | TEvent)[],
     settlement: Record<BetId, SettlementLine>,
   ) {
@@ -111,7 +112,7 @@ export class RoundBuilder<
     rng: Rng,
   ): RoundBuilder<TChoice, TData, TEvent> {
     const placed = validateBets(game.bets, bets);
-    const round = new RoundBuilder<TChoice, TData, TEvent>(game.id, rng, { ...placed }, [], {});
+    const round = new RoundBuilder<TChoice, TData, TEvent>(game.id, rng, placed, [], {});
     round.#push({ type: 'round-started', bets: placed });
     return round;
   }
@@ -131,7 +132,7 @@ export class RoundBuilder<
     const round = new RoundBuilder<TChoice, TData, TEvent>(
       state.gameId,
       state.rng,
-      { ...state.bets },
+      state.bets,
       [...state.events],
       { ...state.settlement },
     );
@@ -144,7 +145,7 @@ export class RoundBuilder<
 
   /** Current stakes, including stakes added by decisions. */
   get bets(): Bets {
-    return { ...this.#bets };
+    return this.#bets;
   }
 
   stakeOf(betId: BetId): Cents {
@@ -208,7 +209,7 @@ export class RoundBuilder<
     if (this.isSettled(betId)) {
       throw new EngineError('BET_ALREADY_SETTLED', `"${betId}" is already settled`);
     }
-    this.#bets[betId] = this.stakeOf(betId) + amount;
+    this.#bets = { ...this.#bets, [betId]: this.stakeOf(betId) + amount };
     this.#push({ type: 'stake-added', betId, amount });
     return this;
   }
@@ -256,9 +257,11 @@ export class RoundBuilder<
   /** Ends the round; every placed bet must have been settled. */
   finish(data: TData): RoundState<TChoice, TData, TEvent> {
     this.#assertOpen();
-    const unsettled = this.unsettledBets();
-    if (unsettled.length > 0) {
-      throw new EngineError('UNSETTLED_BETS', `Unsettled bets: ${unsettled.join(', ')}`);
+    for (const betId in this.#bets) {
+      if (!this.isSettled(betId)) {
+        const unsettled = this.unsettledBets().join(', ');
+        throw new EngineError('UNSETTLED_BETS', `Unsettled bets: ${unsettled}`);
+      }
     }
     const totals = settlementTotals(this.#settlement);
     this.#push({
@@ -275,13 +278,15 @@ export class RoundBuilder<
     options: readonly DecisionOption<TChoice>[],
     data: TData,
   ): RoundState<TChoice, TData, TEvent> {
+    // A closed step never changes again, so the snapshot can take its
+    // collections without copying them; continueRound copies before appending.
     this.#closed = true;
     return {
       gameId: this.gameId,
       phase,
-      bets: { ...this.#bets },
-      events: [...this.#events],
-      settlement: { ...this.#settlement },
+      bets: this.#bets,
+      events: this.#events,
+      settlement: this.#settlement,
       options,
       data,
       rng: this.rng,

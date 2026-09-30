@@ -8,3 +8,4 @@ exactly as written.
 | #   | Prompt                          | Date       | Scope                                                                  |
 | :-- | :------------------------------ | :--------- | :--------------------------------------------------------------------- |
 | 001 | [Foundation](001-foundation.md) | 2026-09-29 | Monorepo, engine, UI kit, lobby, CI/CD and documentation; no game rules |
+| 002 | [Entre Dados](002-entre-dados.md)  | 2026-09-30 | The first game: rules, exact and Monte Carlo math, game sheet, the table |

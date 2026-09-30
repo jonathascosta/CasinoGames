@@ -40,4 +40,13 @@ describe('percentages', () => {
   it('groups counts', () => {
     expect(formatCount(2_000_000)).toBe('2,000,000');
   });
+
+  it('counts a noun in the singular only for one', () => {
+    expect([0, 1, 2, 1_000].map((count) => formatCount(count, 'round'))).toEqual([
+      '0 rounds',
+      '1 round',
+      '2 rounds',
+      '1,000 rounds',
+    ]);
+  });
 });

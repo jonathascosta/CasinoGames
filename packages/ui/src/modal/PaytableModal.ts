@@ -13,9 +13,11 @@ export function createPaytable(summary: MathSummary): HTMLElement {
     h(
       'p',
       { class: 'cg-paytable__note' },
-      'RTP (return to player) is the long-run share of wagers paid back; house edge = 1 − RTP. ' +
-        'These figures are generated from the game code and verified by exact enumeration and ' +
-        'multi-million-round seeded simulations.',
+      'RTP (return to player) is the long-run share of wagers paid back, pushes included; ' +
+        'house edge = 1 − RTP. Hit frequency is the chance that a bet wins in a round, max ' +
+        'exposure the largest net win per unit staked, and the volatility index the standard ' +
+        'deviation of the net result per unit staked. These figures are generated from the game ' +
+        'code and verified by exact enumeration and multi-million-round seeded simulations.',
     ),
   );
 }
@@ -43,6 +45,9 @@ function renderBet(bet: BetMath): HTMLElement {
         bet.kind === 'main' ? 'Main bet' : 'Side bet',
       ),
     ),
+    bet.description === undefined
+      ? null
+      : h('p', { class: 'cg-paytable__description' }, bet.description),
     h(
       'table',
       { class: 'cg-table' },
@@ -82,9 +87,16 @@ function renderBet(bet: BetMath): HTMLElement {
       { class: 'cg-paytable__stats' },
       stat('RTP', formatPercent(bet.rtp)),
       stat('House edge', formatPercent(bet.houseEdge)),
+      bet.hitFrequency === undefined
+        ? null
+        : stat('Hit frequency', formatPercent(bet.hitFrequency)),
+      bet.pushFrequency === undefined ? null : stat('Push', formatPercent(bet.pushFrequency)),
+      bet.maxExposure === undefined
+        ? null
+        : stat('Max exposure', `${Number(bet.maxExposure.toFixed(2))}× stake`),
       bet.standardDeviation === undefined
         ? null
-        : stat('Std. deviation', bet.standardDeviation.toFixed(2)),
+        : stat('Volatility index', bet.standardDeviation.toFixed(2)),
       stat('Limits', `${formatCents(bet.min)} – ${formatCents(bet.max)}`),
     ),
   );
@@ -92,6 +104,7 @@ function renderBet(bet: BetMath): HTMLElement {
 
 function pays(entry: PaytableEntry): string {
   if ('odds' in entry) return oddsLabel(entry.odds);
+  if ('push' in entry) return 'Push';
   const share = entry.jackpot.share === 1 ? '' : `${formatPercent(entry.jackpot.share, 0)} of `;
   return `${share}${entry.jackpot.jackpotId} jackpot`;
 }

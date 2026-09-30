@@ -14,6 +14,18 @@ export interface ExactReturn {
   readonly frequency: Fraction;
   /** Probability that the bet wins, given that it is made. */
   readonly hitFrequency: Fraction;
+  /** Probability that the bet pushes (the stake comes back), given that it is made. */
+  readonly pushFrequency: Fraction;
+  /**
+   * Probability per round that each paytable entry decided the bet, keyed by
+   * the entryId of the settlement lines; checks the declared probabilities.
+   */
+  readonly entries: Readonly<Record<string, Fraction>>;
+  /**
+   * Variance of the return of one round in which the bet is made, per unit
+   * of average stake squared (σ²), as an exact fraction.
+   */
+  readonly variance: Fraction;
   /**
    * Standard deviation of the return of one round in which the bet is made,
    * per unit of average stake — the same measure the simulator reports.
@@ -56,11 +68,11 @@ export function exactReturns<TChoice extends string, TData, TEvent extends Custo
     for (const [betId, line] of Object.entries(settlement)) {
       let sums = perBet.get(betId);
       if (sums === undefined) perBet.set(betId, (sums = new Sums()));
-      sums.add(probability, line.stake, line.payout, line.outcome === 'win');
+      sums.add(probability, line.stake, line.payout, line.entryId);
       stake += line.stake;
       payout += line.payout;
     }
-    total.add(probability, stake, payout, payout > stake);
+    total.add(probability, stake, payout);
   }
 
   return {
@@ -74,17 +86,23 @@ export function exactReturns<TChoice extends string, TData, TEvent extends Custo
 class Sums {
   #made = Fraction.ZERO;
   #hits = Fraction.ZERO;
+  #pushes = Fraction.ZERO;
+  readonly #entries = new Map<string, Fraction>();
   #stake = Fraction.ZERO;
   #payout = Fraction.ZERO;
   #stake2 = Fraction.ZERO;
   #payout2 = Fraction.ZERO;
   #cross = Fraction.ZERO;
 
-  add(probability: Fraction, stake: number, payout: number, won: boolean): void {
+  add(probability: Fraction, stake: number, payout: number, entryId?: string): void {
     const s = Fraction.of(stake);
     const p = Fraction.of(payout);
     this.#made = this.#made.add(probability);
-    if (won) this.#hits = this.#hits.add(probability);
+    if (payout > stake) this.#hits = this.#hits.add(probability);
+    if (payout === stake) this.#pushes = this.#pushes.add(probability);
+    if (entryId !== undefined) {
+      this.#entries.set(entryId, (this.#entries.get(entryId) ?? Fraction.ZERO).add(probability));
+    }
     this.#stake = this.#stake.add(probability.mul(s));
     this.#payout = this.#payout.add(probability.mul(p));
     this.#stake2 = this.#stake2.add(probability.mul(s.mul(s)));
@@ -99,13 +117,17 @@ class Sums {
     const residual = this.#payout2
       .sub(Fraction.of(2).mul(rtp).mul(this.#cross))
       .add(rtp.mul(rtp).mul(this.#stake2));
+    const variance = residual.mul(this.#made).div(this.#stake.mul(this.#stake));
     return {
       expectedStake: this.#stake,
       expectedPayout: this.#payout,
       rtp,
       frequency: this.#made,
       hitFrequency: this.#hits.div(this.#made),
-      standardDeviation: Math.sqrt(residual.mul(this.#made).toNumber()) / this.#stake.toNumber(),
+      pushFrequency: this.#pushes.div(this.#made),
+      entries: Object.fromEntries(this.#entries),
+      variance,
+      standardDeviation: Math.sqrt(variance.toNumber()),
     };
   }
 }

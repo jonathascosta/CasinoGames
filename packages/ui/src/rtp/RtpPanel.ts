@@ -89,7 +89,7 @@ export class RtpPanel {
     this.#headline.textContent =
       stats.rounds === 0
         ? 'No rounds yet'
-        : `${formatPercent(liveRtp)} · ${formatCount(stats.rounds)} rounds`;
+        : `${formatPercent(liveRtp)} · ${formatCount(stats.rounds, 'round')}`;
     this.#body.replaceChildren(
       h(
         'dl',
@@ -127,7 +127,7 @@ function renderBet(bet: BetMath, tally: BetTally | undefined): HTMLElement {
       'div',
       { class: 'cg-rtp__bet-name' },
       h('strong', null, bet.label),
-      h('span', { class: 'cg-num' }, `${formatCount(rounds)} rounds`),
+      h('span', { class: 'cg-num' }, formatCount(rounds, 'round')),
     ),
     h(
       'div',

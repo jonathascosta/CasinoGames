@@ -68,7 +68,8 @@ export interface SettlementTotals {
 export function settlementTotals(settlement: Settlement): SettlementTotals {
   let stake = 0;
   let payout = 0;
-  for (const line of Object.values(settlement)) {
+  for (const betId in settlement) {
+    const line = settlement[betId]!;
     stake += line.stake;
     payout += line.payout;
   }

@@ -8,8 +8,12 @@ import type { CardView, HandLayout } from './card-view.ts';
  * Cards as DOM elements (the fallback renderer): CSS transitions slide them
  * from the shoe and a 3D rotateY turns them over.
  */
-export function createDomCardView(container: HTMLElement, hands: readonly HandLayout[]): CardView {
-  const table = h('div', { class: 'cg-dom-cards' });
+export function createDomCardView(
+  container: HTMLElement,
+  hands: readonly HandLayout[],
+  scale = 1,
+): CardView {
+  const table = h('div', { class: 'cg-dom-cards', style: `--card-scale: ${scale}` });
   const shoe = h('div', { class: 'cg-dom-cards__shoe', 'aria-hidden': 'true' });
   const counter = h('span', { class: 'cg-dom-cards__counter cg-num', 'aria-hidden': 'true' });
   table.append(

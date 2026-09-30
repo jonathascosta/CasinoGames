@@ -123,6 +123,12 @@
   color: var(--gold-300);
 }
 
+.game-card[data-playable='true'] .game-card__status {
+  border-color: color-mix(in srgb, var(--win) 55%, transparent);
+  background: color-mix(in srgb, var(--win) 12%, transparent);
+  color: var(--win);
+}
+
 .game-card__name {
   font-size: 25px;
 }

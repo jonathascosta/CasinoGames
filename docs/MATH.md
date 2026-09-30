@@ -50,12 +50,14 @@ exercise decisions and added stakes, not to be a good game.
 
 ### Statistics reported per bet
 
-| Statistic             | Definition                                                                                                                                                                  |
-| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `probability`         | Per paytable entry: exact chance per round that this entry decides the bet (enumerable games)                                                                               |
-| `frequency`           | Chance that the bet is made in a round (1 for bets placed up front)                                                                                                         |
-| `hitFrequency`        | Chance that the bet wins, given that it is made                                                                                                                             |
-| `standardDeviation` σ | Standard deviation of (payout − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked |
+| Statistic             | Definition                                                                                                                                                                                                                                                  |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `probability`         | Per paytable entry: exact chance per round that this entry decides the bet (enumerable games)                                                                                                                                                               |
+| `frequency`           | Chance that the bet is made in a round (1 for bets placed up front)                                                                                                                                                                                         |
+| `hitFrequency`        | Chance that the bet wins, given that it is made                                                                                                                                                                                                             |
+| `pushFrequency`       | Chance that the stake is simply returned, given that the bet is made                                                                                                                                                                                        |
+| `maxExposure`         | Largest net win per unit staked, from the fixed-odds entries: the house's worst case per unit                                                                                                                                                               |
+| `standardDeviation` σ | Standard deviation of (payout − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
 
 The exact enumerator and the simulator use the same definitions, so their figures are directly
 comparable.
@@ -83,9 +85,11 @@ comparable.
   the usual basis for published table-game figures.
 - **Tables deal from a finite shoe**: N decks, with a cut card at 75% penetration. Removing cards
   shifts the odds slightly from round to round. Each game sheet reports the finite-shoe RTP,
-  simulated with the real `Shoe`, whenever it differs materially. For side bets that depend on
-  specific cards, the sheet also states whether card counting could gain an edge at the configured
-  penetration.
+  simulated with the real `Shoe`, whenever it differs materially. For bets that depend on specific
+  cards, the sheet also states whether card counting could gain an edge at the configured
+  penetration. The [Entre Dados sheet](games/entre-dados.md#card-counting) is the worked example:
+  its counting exposure is computed exactly, as a hypergeometric sum over the rounds of a shoe,
+  and asserted by a test.
 
 ## Exact method
 
@@ -127,8 +131,11 @@ different number of values, which would mean the game is not deterministic.
 
 ## Monte Carlo method
 
-Each game ships a seeded simulation, run in infinite-shoe mode with its reference strategy. The test
-asserts |simulated RTP − declared RTP| ≤ 0.15 percentage points for every bet.
+Each game ships a seeded simulation with its reference strategy. The test asserts |simulated RTP −
+declared RTP| ≤ 0.15 percentage points for every bet. The fixtures deal from an infinite shoe.
+Entre Dados deals from its real six-deck shoe: one card per round and a fixed number of rounds per
+shoe keep its long-run RTP equal to the infinite-shoe figure, and the run checks the shoe's
+reshuffles and cut card along the way.
 
 ### Sizing the run
 
@@ -155,10 +162,12 @@ two-sided confidence (`roundsForTolerance`):
 | Dice fixture, Doubles (9 to 2)   | 2.050 |    20,211,669 |
 | War fixture, Ante                | 0.938 |     4,235,501 |
 | War fixture, Play (made in 6/13) | 0.796 |     6,599,310 |
+| Entre Dados, Triplo (30 to 1)    | 5.094 |   124,852,059 |
 
 A run covers all bets of a game at once, sized by its most demanding bet. The dice suite plays
 20,211,669 rounds. The war suite plays 9,176,919: the ante's requirement divided by the play bet's
-frequency. On a CI runner the whole `pnpm test:math` takes about 30 seconds.
+frequency. The Entre Dados suite plays 124,852,059 rounds, sized by Triplo. On a CI runner the
+whole `pnpm test:math` takes about three minutes.
 
 ### What it catches
 
@@ -225,8 +234,9 @@ keeps that accounting exact.
    `probability` in the bet definitions.
 2. Exact test: `exactReturns` equals the declared fraction for every bet and for the game, under
    the reference strategy.
-3. Monte Carlo test: seeded, infinite shoe, rounds sized as above, every bet within ±0.15 pp.
+3. Monte Carlo test: seeded, rounds sized as above, every bet within ±0.15 pp and every hit and
+   push frequency within 3.29 binomial standard errors.
 4. Finite shoe: simulate the real `Shoe` with its cut card and report the difference if it is
-   material.
+   material; when a bet depends on the composition, measure its card counting exposure.
 5. Register the game in `packages/engine/src/games`, run `pnpm docs:sheets`, and commit the
    regenerated sheet. CI's `pnpm docs:check` keeps it in sync from then on.
