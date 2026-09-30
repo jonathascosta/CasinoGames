@@ -1,6 +1,6 @@
 /**
- * Card counting exposure of the Entre bet, computed exactly (no simulation)
- * for the table's shoe. The figures are quoted in docs/games/entre-dados.md.
+ * Card counting exposure, computed exactly (no simulation) for the table's
+ * shoe. The figures are quoted in docs/games/entre-dados.md.
  *
  * Entre's expectation depends on the cards left in the shoe: aces and sixes
  * can never fall between the dice, while threes and fours often do. A player
@@ -13,14 +13,14 @@ import { DIE_FACES } from '../../dice/dice.ts';
 import { winnings } from '../../game/money.ts';
 import { Fraction } from '../../math/fraction.ts';
 import { createEntreDadosShoe } from './game.ts';
-import { resolveEntreDadosBet } from './rules.ts';
+import { ENTRE_DADOS_BET_IDS, resolveEntreDadosBet, type EntreDadosBetId } from './rules.ts';
 
-/** Expected net of one unit on Entre when the card is `value`, over the 36 rolls. */
-function entreValue(value: Rank): Fraction {
+/** Expected net of one unit on `bet` when the card is `value`, over the 36 rolls. */
+function cardValue(bet: EntreDadosBetId, value: Rank): Fraction {
   let sum = Fraction.ZERO;
   for (const a of DIE_FACES) {
     for (const b of DIE_FACES) {
-      const result = resolveEntreDadosBet('entre', [a, b], value);
+      const result = resolveEntreDadosBet(bet, [a, b], value);
       // Net per unit, exactly: stake a large even amount so every payout is whole.
       const stake = 1_000;
       const net =
@@ -47,17 +47,18 @@ interface Exposure {
 }
 
 /**
- * Exact exposure over the rounds of one shoe. The card values fall into
- * three classes of equal expectation (A/6, 2/5, 3/4), so the composition
- * before the card of round d + 1 is a 3-class hypergeometric draw of d cards.
+ * Exact exposure of `bet` over the rounds of one shoe. For every bet the card
+ * values fall into three classes of equal expectation (A/6, 2/5, 3/4), so the
+ * composition before the card of round d + 1 is a 3-class hypergeometric
+ * draw of d cards.
  */
-function exposure(penetration: number): Exposure {
+function exposure(bet: EntreDadosBetId, penetration: number): Exposure {
   const shoe = createEntreDadosShoe();
   const size = shoe.size();
   const perClass = size / 3;
   const rounds = size - Math.round(size * (1 - penetration));
-  const [ends, near, middle] = [entreValue(1), entreValue(2), entreValue(3)].map((f) =>
-    f.toNumber(),
+  const [ends, near, middle] = ([1, 2, 3] as const).map((value) =>
+    cardValue(bet, value).toNumber(),
   ) as [number, number, number];
   const choose = binomials(size);
 
@@ -76,7 +77,9 @@ function exposure(penetration: number): Exposure {
         const ev =
           ((perClass - xe) * ends + (perClass - xn) * near + (perClass - xm) * middle) / left;
         total += p * ev;
-        if (ev > 0) {
+        // Non-zero expectations are multiples of 1/(36 · left): the threshold
+        // only keeps rounding noise from counting a neutral shoe as favourable.
+        if (ev > 1e-9) {
           favourable += p;
           gain += p * ev;
         }
@@ -103,15 +106,33 @@ function binomials(n: number): (n: number, k: number) => number {
 
 describe('Entre Dados — card counting exposure', () => {
   it('values each card for Entre by class: aces and sixes hurt, threes and fours help', () => {
-    const values = DIE_FACES.map((value) => entreValue(value).toString());
+    const values = DIE_FACES.map((value) => cardValue('entre', value).toString());
     expect(values).toEqual(['-5/9', '1/12', '13/36', '13/36', '1/12', '-5/9']);
     // Over a uniform card this is the declared house edge of 1/27.
-    const average = DIE_FACES.reduce((sum, value) => sum.add(entreValue(value)), Fraction.ZERO);
+    const average = DIE_FACES.reduce(
+      (sum, value) => sum.add(cardValue('entre', value)),
+      Fraction.ZERO,
+    );
     expect(average.div(Fraction.of(6)).toString()).toBe('-1/27');
   });
 
-  it('favours a perfect counter in 8.57% of rounds at the default 75% penetration', () => {
-    const result = exposure(createEntreDadosShoe().penetration);
+  it('values the cards of every bet symmetrically, so three classes cover the shoe', () => {
+    for (const bet of ENTRE_DADOS_BET_IDS) {
+      const values = DIE_FACES.map((value) => cardValue(bet, value));
+      expect([values[0]!.equals(values[5]!), values[1]!.equals(values[4]!)]).toEqual([true, true]);
+      expect(values[2]!.equals(values[3]!)).toBe(true);
+    }
+  });
+
+  it('leaves Exato, Dobros and Triplo immune: every card value is worth the same', () => {
+    for (const bet of ['exato', 'dobros', 'triplo'] as const) {
+      const values = new Set(DIE_FACES.map((value) => cardValue(bet, value).toString()));
+      expect(values.size, bet).toBe(1);
+    }
+  });
+
+  it('favours a perfect counter on Entre in 8.57% of rounds at the default 75% penetration', () => {
+    const result = exposure('entre', createEntreDadosShoe().penetration);
     expect(result.rounds).toBe(108);
     expect((result.favourable * 100).toFixed(2)).toBe('8.57');
     expect((result.edgeWhenFavourable * 100).toFixed(2)).toBe('2.05');
@@ -119,8 +140,8 @@ describe('Entre Dados — card counting exposure', () => {
   });
 
   it('shrinks with shallower penetration', () => {
-    const half = exposure(0.5);
-    const quarter = exposure(0.25);
+    const half = exposure('entre', 0.5);
+    const quarter = exposure('entre', 0.25);
     expect([
       half.rounds,
       (half.favourable * 100).toFixed(2),
@@ -128,5 +149,10 @@ describe('Entre Dados — card counting exposure', () => {
     ]).toEqual([72, '3.66', '87']);
     expect([quarter.rounds, (quarter.favourable * 100).toFixed(2)]).toEqual([36, '0.47']);
     expect(quarter.breakEvenSpread).toBeGreaterThan(1_000);
+  });
+
+  it('rarely favours Olho de Boi, which also depends on the composition', () => {
+    const result = exposure('olho-de-boi', createEntreDadosShoe().penetration);
+    expect((result.favourable * 100).toFixed(2)).toBe('0.47');
   });
 });
