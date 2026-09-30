@@ -1,4 +1,4 @@
-import { ESPELHO_CONFIG, createEspelhoJackpot } from '@casinogames/engine';
+import { MIRROR_CONFIG, createMirrorJackpot } from '@casinogames/engine';
 import {
   Bankroll,
   SoundEngine,
@@ -43,21 +43,21 @@ afterEach(() => {
 });
 
 describe('lobby', () => {
-  it("shows Espelho's progressive meter on its card: the seed before any play", () => {
+  it("shows Mirror's progressive meter on its card: the seed before any play", () => {
     const { card } = mount(services());
-    expect(card('espelho').querySelector('.game-card__meter')!.textContent).toBe(
+    expect(card('mirror').querySelector('.game-card__meter')!.textContent).toBe(
       'Progressive5,000.00',
     );
-    expect(card('espelho').dataset.playable).toBe('true');
-    expect(card('entre-dados').querySelector('.game-card__meter')).toBeNull();
+    expect(card('mirror').dataset.playable).toBe('true');
+    expect(card('dice-spread').querySelector('.game-card__meter')).toBeNull();
   });
 
   it('shows the meter as the table left it', () => {
     const page = services();
-    const jackpot = createEspelhoJackpot();
+    const jackpot = createMirrorJackpot();
     for (let round = 0; round < 12; round++) jackpot.contribute(2_500); // +2.50 a round
-    writeJackpotState(page.storage, ESPELHO_CONFIG.jackpot.id, jackpot.state());
+    writeJackpotState(page.storage, MIRROR_CONFIG.jackpot.id, jackpot.state());
     const { card } = mount(page);
-    expect(card('espelho').querySelector('.game-card__meter-value')!.textContent).toBe('5,030.00');
+    expect(card('mirror').querySelector('.game-card__meter-value')!.textContent).toBe('5,030.00');
   });
 });

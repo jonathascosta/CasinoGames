@@ -2,7 +2,7 @@
   "name": "casinogames",
   "version": "0.0.0",
   "private": true,
-  "description": "Client-side demo lobby of four original casino table games: dice rolled by the player, cards dealt by the dealer.",
+  "description": "Roll & Deal: a client-side demo lobby of four original casino table games, with dice rolled by the player and cards dealt by the dealer.",
   "license": "UNLICENSED",
   "type": "module",
   "packageManager": "pnpm@10.34.6",

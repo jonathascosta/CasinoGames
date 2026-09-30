@@ -133,7 +133,7 @@
   font-size: 25px;
 }
 
-.game-card__gloss {
+.game-card__tagline {
   margin: 0;
   font-family: var(--font-display);
   font-style: italic;

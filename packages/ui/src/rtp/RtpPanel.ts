@@ -35,7 +35,7 @@ export interface RtpPanelOptions {
  * Live RTP monitor: rounds, wagered, won, and per bet the live RTP next to
  * the declared value with a convergence sparkline. It makes the math visible:
  * anyone can play a few hundred rounds (or autoplay) and watch each bet
- * settle into its band. In a game whose choices cost a fee (Trancar's
+ * settle into its band. In a game whose choices cost a fee (Lock & Roll's
  * re-roll), the fees show beside the totals and count against the return,
  * as they do in the declared RTP.
  */

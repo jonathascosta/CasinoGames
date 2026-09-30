@@ -259,7 +259,7 @@ function diceSection(): HTMLElement {
   let dice: DicePair = [5, 2];
   let locked: 0 | 1 | null = null;
 
-  // After each roll the dice can be locked, as at Trancar: tap one, then re-roll the other.
+  // After each roll the dice can be locked, as at Lock & Roll: tap one, then re-roll the other.
   const offerLock = () => {
     locked = null;
     rerollButton.disabled = true;
@@ -313,7 +313,7 @@ function diceSection(): HTMLElement {
     'Tap the felt to throw, or hold to shake and release: the longer the hold, the harder the ' +
       'throw. 3D dice in PixiJS (lit, bevelled, perspective), landing exactly on the values the ' +
       'engine rolled with the crypto RNG. After a roll, tap a die to lock it (a padlock) and ' +
-      're-roll the other, as at Trancar.',
+      're-roll the other, as at Lock & Roll.',
     stage,
     h(
       'div',

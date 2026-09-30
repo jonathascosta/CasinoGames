@@ -31,9 +31,9 @@ export interface RouterOptions {
 }
 
 export interface Router {
-  /** Path inside the app, without the base ("/", "/espelho"). */
+  /** Path inside the app, without the base ("/", "/mirror"). */
   readonly path: string;
-  /** Absolute URL path for an app path, e.g. href("/espelho"). */
+  /** Absolute URL path for an app path, e.g. href("/mirror"). */
   href(path: string): string;
   navigate(path: string, options?: { replace?: boolean }): Promise<void>;
   start(): Promise<void>;

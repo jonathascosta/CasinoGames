@@ -54,7 +54,7 @@ const THROW_MS = 1_250;
  * result the engine drew. Rendering is delegated to a DiceView — PixiJS 3D
  * dice when available, loaded on demand, else flat CSS dice.
  *
- * For a choice made by pointing at a die (Trancar's lock), offerDice() lays
+ * For a choice made by pointing at a die (Lock & Roll's lock), offerDice() lays
  * a button over each die, in the host (which must be positioned), beside
  * the tray: the tray itself is a button.
  */

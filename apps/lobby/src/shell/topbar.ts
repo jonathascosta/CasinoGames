@@ -45,8 +45,8 @@ export function createTopBar(
 export function brand(href: string): HTMLAnchorElement {
   return h(
     'a',
-    { class: 'brand', href, 'aria-label': 'Original Table Games, lobby' },
+    { class: 'brand', href, 'aria-label': 'Roll & Deal, lobby' },
     h('span', { class: 'brand__chip', 'aria-hidden': 'true' }),
-    h('span', { class: 'brand__name' }, 'Original ', h('em', null, 'Table Games')),
+    h('span', { class: 'brand__name' }, 'Roll ', h('em', null, '& Deal')),
   );
 }

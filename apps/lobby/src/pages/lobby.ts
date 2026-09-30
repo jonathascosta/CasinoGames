@@ -1,4 +1,4 @@
-import { ESPELHO_CONFIG, type Cents } from '@casinogames/engine';
+import { MIRROR_CONFIG, type Cents } from '@casinogames/engine';
 import { formatCents, h, storedMeterAmount } from '@casinogames/ui';
 import { gameArt } from '../art/art.ts';
 import { GAMES, type GameEntry } from '../catalog.ts';
@@ -11,7 +11,7 @@ import './lobby.css';
 
 /** Tables with a progressive meter, shown live on their card. */
 const METERS: Readonly<Partial<Record<string, { readonly id: string; readonly seed: Cents }>>> = {
-  espelho: ESPELHO_CONFIG.jackpot,
+  mirror: MIRROR_CONFIG.jackpot,
 };
 
 const PILLARS = [
@@ -61,7 +61,7 @@ export function lobbyPage(services: Services, router: Router): Page {
               'p',
               { class: 'hero__text' },
               'A portfolio build for aggregators and live-dealer studios. All four tables are ' +
-                'open (Entre Dados, Alvo Móvel, Espelho and Trancar, where the player decides), ' +
+                'open (Dice Spread, Moving Target, Mirror and Lock & Roll, where the player decides), ' +
                 'with their math proven exactly and by simulation on one engine and table kit.',
             ),
           ),
@@ -119,7 +119,7 @@ function gameCard(game: GameEntry, router: Router, services: Services): HTMLAnch
       { class: 'game-card__body' },
       h('span', { class: 'game-card__status' }, playable ? 'Open · play now' : 'In development'),
       h('h3', { class: 'game-card__name' }, game.name),
-      h('p', { class: 'game-card__gloss' }, `“${game.gloss}”`),
+      h('p', { class: 'game-card__tagline' }, game.tagline),
       meter === undefined
         ? null
         : h(

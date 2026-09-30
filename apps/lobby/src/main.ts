@@ -15,7 +15,7 @@ const services = createServices();
 const router = createRouter({
   outlet,
   base: import.meta.env.BASE_URL,
-  titleSuffix: ' · Original Table Games',
+  titleSuffix: ' · Roll & Deal',
   notFound: ({ router: r }) => notFoundPage(services, r),
   routes: [
     { path: '/', load: ({ router: r }) => lobbyPage(services, r) },

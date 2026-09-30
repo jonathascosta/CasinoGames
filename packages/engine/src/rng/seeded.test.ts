@@ -12,7 +12,7 @@ function firstUint32s(seed: Seed, count: number): number[] {
  * Vectors produced by the reference C code of SplitMix64 and xoshiro128** 1.1
  * (https://prng.di.unimi.it/), seeding the four state words with the low and
  * high halves of the first two SplitMix64 outputs. String seeds are hashed
- * with FNV-1a 64 over UTF-8 first (e.g. 'entre-dados' → 0xa4e895682dd0dcbd).
+ * with FNV-1a 64 over UTF-8 first (e.g. 'dice-spread' → 0xf299d989ccd7333a).
  */
 const REFERENCE_VECTORS: readonly (readonly [Seed, readonly number[]])[] = [
   [
@@ -34,12 +34,12 @@ const REFERENCE_VECTORS: readonly (readonly [Seed, readonly number[]])[] = [
     ],
   ],
   [
-    'entre-dados',
-    [3623662512, 2277839483, 1240470053, 2035840964, 635838086, 2076942927, 3933920999, 513495773],
+    'dice-spread',
+    [1610868199, 751684692, 2622328293, 329137522, 3397571742, 2934363019, 656570310, 642948077],
   ],
   [
-    'Alvo Móvel 🎲',
-    [2517935802, 4036427837, 2043780429, 3023713416, 4044601193, 198571180, 4098011061, 3201455589],
+    'Roll & Deal · 🎲',
+    [4047610185, 2832687327, 1291976285, 108092422, 2267079273, 2711302273, 1806618281, 2503070151],
   ],
 ];
 

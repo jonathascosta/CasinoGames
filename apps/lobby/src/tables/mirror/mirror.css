@@ -1,0 +1,283 @@
+/* Mirror: the mirror (the dealer's cards above, the player's dice below and
+   the glass between them) and the felt with the progressive meter across the
+   top. The shared table styles are in ../table.css. Every transition runs on
+   the duration tokens, so turbo mode shows the result at once. */
+
+.mr-view {
+  gap: 8px;
+}
+
+.mr-mirror {
+  display: grid;
+  gap: 6px;
+  perspective: 700px;
+}
+
+.mr-half {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  transition:
+    opacity var(--dur-3) var(--ease-out),
+    filter var(--dur-3) var(--ease-out);
+}
+
+.mr-box {
+  height: clamp(112px, 16svh, 170px);
+  transition:
+    border-color var(--dur-3) var(--ease-out),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+
+/* A hand's label: the same for the dice and the cards. */
+.mr-hand {
+  justify-self: center;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  padding: 3px 14px 4px;
+  border: 1px solid rgb(221 189 119 / 0.3);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 0.28);
+}
+
+.mr-hand__who {
+  color: var(--gold-400);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.mr-hand__value {
+  min-width: 9ch;
+  color: var(--ink-100);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.mr-hand[data-kind='pair'] .mr-hand__value {
+  color: var(--gold-200);
+}
+
+.mr-hand[data-kind='partial'] .mr-hand__value,
+.mr-hand[data-kind='none'] .mr-hand__value {
+  color: var(--ink-400);
+}
+
+/* The glass: a silvered band between the two hands. */
+.mr-glass {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 6px;
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.3),
+    rgb(205 222 235 / 0.14) 46%,
+    rgb(255 255 255 / 0.05) 54%,
+    rgb(190 208 224 / 0.22)
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 4px 14px rgb(0 0 0 / 0.35);
+  transform: translateY(0) rotateX(0deg);
+  transition:
+    transform calc(var(--dur-3) * 1.6) var(--ease-spring),
+    box-shadow var(--dur-3) var(--ease-out);
+}
+
+/* A sheen across the glass. */
+.mr-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.32) 45%,
+    transparent 60%
+  );
+  transform: translateX(-60%);
+  transition: transform calc(var(--dur-3) * 2) var(--ease-out);
+}
+
+.mr-glass__verdict {
+  position: relative;
+  color: var(--ink-100);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+  text-transform: uppercase;
+}
+
+/* The result: the glass turns its face toward the winning hand, which lights
+   up while the other dims. A tie leaves it level, and the house wins. */
+.mr-mirror[data-tilt='dice'] .mr-glass {
+  transform: translateY(4px) rotateX(-34deg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 14px 24px rgb(91 214 145 / 0.4);
+}
+
+.mr-mirror[data-tilt='cards'] .mr-glass {
+  transform: translateY(-4px) rotateX(34deg);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.45),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 -14px 24px rgb(255 131 115 / 0.35);
+}
+
+.mr-mirror[data-tilt='dice'] .mr-glass::before,
+.mr-mirror[data-tilt='cards'] .mr-glass::before,
+.mr-mirror[data-tilt='level'] .mr-glass::before {
+  transform: translateX(60%);
+}
+
+.mr-mirror[data-tilt='dice'] .mr-half--cards,
+.mr-mirror[data-tilt='cards'] .mr-half--dice,
+.mr-mirror[data-tilt='level'] .mr-half {
+  opacity: 0.6;
+  filter: saturate(0.6);
+}
+
+.mr-mirror[data-tilt='dice'] .mr-dice {
+  border-color: var(--win);
+  box-shadow:
+    0 0 0 1px var(--win),
+    0 0 24px rgb(91 214 145 / 0.35);
+}
+
+.mr-mirror[data-tilt='cards'] .mr-cards {
+  border-color: rgb(255 131 115 / 0.8);
+  box-shadow: 0 0 22px rgb(255 131 115 / 0.3);
+}
+
+.mr-mirror[data-tilt='dice'] .mr-half--dice .mr-hand {
+  border-color: var(--win);
+}
+
+.mr-mirror[data-tilt='cards'] .mr-half--cards .mr-hand {
+  border-color: rgb(255 131 115 / 0.8);
+}
+
+.mr-caption {
+  min-height: 1.45em;
+  margin: 0;
+  color: var(--ink-200);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+/* The felt: the meter across the top, then the bets. */
+.mr-felt {
+  display: grid;
+  gap: 10px;
+}
+
+.mr-felt__meter {
+  display: grid;
+}
+
+.mr-felt__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'mirror mirror'
+    'tie sums'
+    'pairs perfect'
+    'sixes sixes';
+  gap: 8px;
+}
+
+.mr-felt__spot {
+  display: grid;
+  min-width: 0;
+}
+
+.mr-felt__spot[data-bet='mirror'] {
+  grid-area: mirror;
+}
+
+.mr-felt__spot[data-bet='tie'] {
+  grid-area: tie;
+}
+
+.mr-felt__spot[data-bet='equal-sums'] {
+  grid-area: sums;
+}
+
+.mr-felt__spot[data-bet='pair-vs-pair'] {
+  grid-area: pairs;
+}
+
+.mr-felt__spot[data-bet='perfect-mirror'] {
+  grid-area: perfect;
+}
+
+.mr-felt__spot[data-bet='double-sixes'] {
+  grid-area: sixes;
+}
+
+/* The jackpot bet sits under the meter's brass. */
+.mr-felt__spot[data-bet='double-sixes'] .cg-bet-spot {
+  border-color: rgb(221 189 119 / 0.55);
+}
+
+@container (min-width: 520px) {
+  .mr-felt__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas:
+      'tie mirror sums'
+      'pairs sixes perfect';
+  }
+}
+
+/* Two columns (see ../table.css): taller boxes. */
+@media (min-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .mr-box {
+    height: clamp(130px, 21svh, 220px);
+  }
+}
+
+/* Phones held sideways: the whole mirror fits the screen's height. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .mr-view,
+  .mr-mirror {
+    gap: 4px;
+  }
+
+  .mr-cards {
+    height: clamp(88px, 25svh, 120px);
+  }
+
+  .mr-dice {
+    height: clamp(76px, 22svh, 104px);
+  }
+
+  .mr-glass {
+    height: 22px;
+  }
+
+  .mr-hand {
+    padding: 1px 12px 2px;
+  }
+
+  .mr-hand__value {
+    font-size: 14px;
+  }
+
+  .mr-caption {
+    font-size: 12.5px;
+  }
+}

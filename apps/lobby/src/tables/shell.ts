@@ -13,7 +13,7 @@ export async function loadSheet(slug: string): Promise<string> {
   return load === undefined ? '# Rules\nThe game sheet is not available yet.' : load();
 }
 
-/** The leading part of a table's top bar: a back link, the name and its gloss. */
+/** The leading part of a table's top bar: a back link, the name and its tagline. */
 export function tableTitle(game: GameEntry, router: Router): HTMLElement {
   return h(
     'div',
@@ -31,7 +31,7 @@ export function tableTitle(game: GameEntry, router: Router): HTMLElement {
       'div',
       null,
       h('h1', null, game.name),
-      h('span', { class: 'table-title__gloss' }, game.gloss),
+      h('span', { class: 'table-title__tagline' }, game.tagline),
     ),
   );
 }

@@ -1,4 +1,4 @@
-# Original Table Games
+# Roll & Deal
 
 A client-side demo lobby of four original casino table games. In each one **the player rolls two
 dice and the dealer deals cards from a shoe**. It is a portfolio piece for game aggregators and
@@ -12,24 +12,24 @@ component playground: [`/dev.html`](https://jonathascosta.github.io/CasinoGames/
 
 ## Status
 
-All four games, **Entre Dados**, **Alvo Móvel**, **Espelho** and **Trancar**, are playable, with
-their math proven exactly and by simulation. Trancar is the one with a decision: the player may
-lock a die and re-roll the other for a fee.
+All four games, **Dice Spread**, **Moving Target**, **Mirror** and **Lock & Roll**, are playable,
+with their math proven exactly and by simulation. Lock & Roll is the one with a decision: the
+player may lock a die and re-roll the other for the Lock fee.
 
-| Area                                              | State                                                                                                                                                                                                            |
-| :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine with decisions and fees, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                 |
-| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                        |
-| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the four tables on a shared table controller that also plays rounds waiting for the player's decision                                                                      |
-| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                                                                    |
-| The games                                         | [Entre Dados](docs/games/entre-dados.md), [Alvo Móvel](docs/games/alvo-movel.md), [Espelho](docs/games/espelho.md) and [Trancar](docs/games/trancar.md): playable, with game sheets, exact and Monte Carlo tests |
+| Area                                              | State                                                                                                                                                                                                                          |
+| :------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine with decisions and fees, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                               |
+| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                                      |
+| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the four tables on a shared table controller that also plays rounds waiting for the player's decision                                                                                    |
+| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                                                                                  |
+| The games                                         | [Dice Spread](docs/games/dice-spread.md), [Moving Target](docs/games/moving-target.md), [Mirror](docs/games/mirror.md) and [Lock & Roll](docs/games/lock-and-roll.md): playable, with game sheets, exact and Monte Carlo tests |
 
-| Game                                     | Gloss            | Route          | State    |
-| :--------------------------------------- | :--------------- | :------------- | :------- |
-| [Entre Dados](docs/games/entre-dados.md) | Between the dice | `/entre-dados` | Playable |
-| [Alvo Móvel](docs/games/alvo-movel.md)   | Moving target    | `/alvo-movel`  | Playable |
-| [Espelho](docs/games/espelho.md)         | Mirror           | `/espelho`     | Playable |
-| [Trancar](docs/games/trancar.md)         | Lock it in       | `/trancar`     | Playable |
+| Game                                         | In one line                                          | Route            | State    |
+| :------------------------------------------- | :--------------------------------------------------- | :--------------- | :------- |
+| [Dice Spread](docs/games/dice-spread.md)     | Will the card land between your dice?                | `/dice-spread`   | Playable |
+| [Moving Target](docs/games/moving-target.md) | Your dice set the target. Will the cards land on it? | `/moving-target` | Playable |
+| [Mirror](docs/games/mirror.md)               | Your dice against the dealer's cards, hand for hand. | `/mirror`        | Playable |
+| [Lock & Roll](docs/games/lock-and-roll.md)   | Lock a die, roll the other, beat the cards.          | `/lock-and-roll` | Playable |
 
 ## Quick start
 
@@ -67,7 +67,7 @@ packages/
     src/game/          Game and RoundState types, RoundBuilder, money, settlement, bet validation
     src/progressive/   In-memory progressive jackpot pool
     src/math/          Exact enumeration, BigInt fractions, Monte Carlo simulator, sheet renderer
-    src/games/         The games (Entre Dados, Alvo Móvel, Espelho, Trancar) and the GAMES registry
+    src/games/         The games (Dice Spread, Moving Target, Mirror, Lock & Roll) and the GAMES registry
     src/testing/       Scripted RNG and cards, chi-square test (@casinogames/engine/testing)
     src/fixtures/      Two toy games that exercise the engine and its math tooling
   ui/                Table kit: DOM + CSS components with a PixiJS animation layer
@@ -237,41 +237,42 @@ Every declared RTP is proven twice, against the real game code:
   standard errors (99.9%). Where the real shoe returns slightly different figures, a second run
   measures the shift and the game sheet publishes it.
 
-Entre Dados shows the standard on a real game. All 36 rolls × 6 card values give exactly the
-declared fractions: 26/27 for Entre, 11/12, 23/27, 5/6 and 31/36 for the side bets. A seeded run of
-124,852,059 rounds against the real six-deck shoe lands every bet within 0.062 pp. The
-[game sheet](docs/games/entre-dados.md) also measures card counting exactly, and flags that Entre
-is countable at the default shoe penetration.
+Dice Spread shows the standard on a real game. All 36 rolls × 6 card values give exactly the
+declared fractions: 26/27 for Between, 11/12, 23/27, 5/6 and 31/36 for the side bets. A seeded run
+of 124,852,059 rounds against the real six-deck shoe lands every bet within 0.043 pp. The
+[game sheet](docs/games/dice-spread.md) also measures card counting exactly, and flags that
+Between is countable at the default shoe penetration.
 
-Alvo Móvel deals several cards a round, which a finite shoe changes. A memoised recursion over the
-dealer's running total reproduces its published table, equals the declared figures and equals the
-real game run over all 71,469 roll and card sequences, fraction for fraction. A seeded run of 40
-million rounds on an infinite shoe lands every bet within 0.03 pp. A second run, of 184 million
-rounds on the real six-deck shoe, measures how far each house edge moves: +0.03 pp for Acerta,
-+0.09 pp for Primeira Carta and −0.09 pp for Três ou Mais, all published in the
-[game sheet](docs/games/alvo-movel.md) with Acerta's per target. [docs/MATH.md](docs/MATH.md) covers
-the RTP conventions, the RNG, finite and infinite shoes, round-count sizing and progressive
-jackpots.
+Moving Target deals several cards a round, which a finite shoe changes. A memoised recursion over
+the dealer's running total reproduces its published table, equals the declared figures and equals
+the real game run over all 71,469 roll and card sequences, fraction for fraction. A seeded run of
+40 million rounds on an infinite shoe lands every bet within 0.01 pp. A second run, of 184 million
+rounds on the real six-deck shoe, measures how far each house edge moves: +0.04 pp for Exact Hit,
++0.06 pp for First Card and −0.11 pp for 3+ Cards, all published in the
+[game sheet](docs/games/moving-target.md) with Exact Hit's shift per target.
+[docs/MATH.md](docs/MATH.md) covers the RTP conventions, the RNG, finite and infinite shoes,
+round-count sizing and progressive jackpots.
 
-Espelho has a progressive meter. Its published table is reproduced from 36 rolls × 24 × 24 cards
-(one figure corrected: Somas Iguais' edge is 8/81 = 9.88%, not 9.85%), and the game run over all
+Mirror has a progressive meter. Its published table is reproduced from 36 rolls × 24 × 24 cards
+(one figure corrected: Equal Sums' edge is 8/81 = 9.88%, not 9.85%), and the game run over all
 20,736 draws equals every declared fraction. Two cards a round and 54 rounds a shoe make every
 round of the six-deck shoe a uniform draw from the full shoe, so its figures are exact too: the
-pair bets lose about three points there. 6-6 vs 6-6 pays 1000 to 1 plus stake ÷ 25.00 of a meter
+pair bets lose about three points there. Double Sixes pays 1000 to 1 plus stake ÷ 25.00 of a meter
 fed by 10% of its stakes; its declared 87.24% excludes the seed, and the sheet sets out the
 meter's economics, including the seed's cost. Seeded runs of 125 million rounds on an infinite
 shoe and 31 million on the real one confirm every figure, and measure the card counting exposure
-per bet in the [game sheet](docs/games/espelho.md).
+per bet in the [game sheet](docs/games/mirror.md).
 
-Trancar has a decision. After the roll the player may lock one die and re-roll the other for 40%
-of the bet (free on 1-1); the fee is never returned and counts against the return. The best choice
-on each of the 21 rolls is computed by expected value, never typed in, and a test derives it from
-scratch: it is the published strategy, and the house edge follows exactly, 791/19440 = 4.07% with
-the free 1-1 and 161/3240 = 4.97% without. The game, enumerated with that strategy deciding,
-returns the declared 18649/19440, and 148219/154440 on every pair of cards a six-deck shoe can deal.
-Seeded runs of 5.1 million rounds on each shoe, with the strategy bot deciding as autoplay does,
-confirm both, and the [game sheet](docs/games/trancar.md) publishes the strategy card and the card
-counting exposure.
+Lock & Roll has a decision. After the roll the player may Stand, or Lock: keep one die and
+re-roll the other for the Lock fee, 40% of the bet (free on 1-1). The fee is never returned and
+counts against the return. The best choice on each of the 21 rolls is computed by expected value,
+never typed in, and a test derives it from scratch: it is the published strategy, and the house
+edge follows exactly, 791/19440 = 4.07% with the free 1-1 and 161/3240 = 4.97% without. The game,
+enumerated with that strategy deciding, returns the declared 18649/19440, and 148219/154440 on
+every pair of cards a six-deck shoe can deal. Seeded runs of 5.1 million rounds on each shoe, with
+the strategy bot deciding as autoplay does, confirm both, and the
+[game sheet](docs/games/lock-and-roll.md) publishes the strategy card and the card counting
+exposure.
 
 ## Quality gates
 
@@ -295,7 +296,7 @@ deployment → Source: GitHub Actions**. The base path (`/CasinoGames/`) comes f
 `actions/configure-pages`, so a custom domain needs no code change.
 
 GitHub Pages only serves static files. For that reason the build writes a copy of `index.html` into
-each game's folder, so deep links such as `/CasinoGames/espelho/` load directly. It also writes a
+each game's folder, so deep links such as `/CasinoGames/mirror/` load directly. It also writes a
 `404.html` that lets the client-side router handle any other path.
 
 ## Toolchain decisions

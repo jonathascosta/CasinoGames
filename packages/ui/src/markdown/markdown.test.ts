@@ -53,7 +53,7 @@ describe('renderMarkdown blocks', () => {
   it('keeps a readable width for text columns that would wrap, not for labels or numbers', () => {
     const table = html(
       '| Roll | Play | Chance |\n|:--|:--|--:|\n| 2-1 | Lock the 2, re-roll the 1 | 5.56% |\n' +
-        '| 6-6 | Ficar | 2.78% |',
+        '| 6-6 | Stand | 2.78% |',
     );
     const cells = (tag: string) =>
       [...new DOMParser().parseFromString(table, 'text/html').querySelectorAll(tag)].map((cell) =>
@@ -89,8 +89,8 @@ describe('renderMarkdown inline', () => {
   });
 
   it('renders safe links and marks external ones', () => {
-    expect(html('[sheet](./games/espelho.md) [site](https://example.com "Title")')).toBe(
-      '<p><a href="./games/espelho.md">sheet</a> ' +
+    expect(html('[sheet](./games/mirror.md) [site](https://example.com "Title")')).toBe(
+      '<p><a href="./games/mirror.md">sheet</a> ' +
         '<a href="https://example.com" target="_blank" rel="noopener noreferrer">site</a></p>',
     );
   });

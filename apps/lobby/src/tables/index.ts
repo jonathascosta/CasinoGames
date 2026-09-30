@@ -10,10 +10,10 @@ export type TablePage = (game: GameEntry, services: Services, router: Router) =>
  * placeholder page.
  */
 export const TABLES: Readonly<Partial<Record<string, () => Promise<TablePage>>>> = {
-  'entre-dados': async () => (await import('./entre-dados/page.ts')).entreDadosPage,
-  'alvo-movel': async () => (await import('./alvo-movel/page.ts')).alvoMovelPage,
-  espelho: async () => (await import('./espelho/page.ts')).espelhoPage,
-  trancar: async () => (await import('./trancar/page.ts')).trancarPage,
+  'dice-spread': async () => (await import('./dice-spread/page.ts')).diceSpreadPage,
+  'moving-target': async () => (await import('./moving-target/page.ts')).movingTargetPage,
+  mirror: async () => (await import('./mirror/page.ts')).mirrorPage,
+  'lock-and-roll': async () => (await import('./lock-and-roll/page.ts')).lockAndRollPage,
 };
 
 export function isPlayable(game: GameEntry): boolean {

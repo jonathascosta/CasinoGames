@@ -126,7 +126,7 @@ function renderLines(bet: BetMath): HTMLElement {
   );
 }
 
-/** A bet paid under a condition (Alvo Móvel's target): one row per value, with the figures given it. */
+/** A bet paid under a condition (Moving Target's target): one row per value, with the figures given it. */
 function renderBreakdown({ by, rows }: BetBreakdown): HTMLElement {
   return h(
     'table',

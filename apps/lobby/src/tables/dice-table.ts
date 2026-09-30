@@ -95,7 +95,7 @@ export interface TableGame<
   TChoice extends string = never,
   TData = undefined,
 > {
-  /** Accessible name of the table, e.g. "Entre Dados table". */
+  /** Accessible name of the table, e.g. "Dice Spread table". */
   readonly label: string;
   /** Extra class on the table element, for the game's layout. */
   readonly className: string;
@@ -121,7 +121,7 @@ export interface TableGame<
    * Plays the round on the view, from the first step the engine returned;
    * in a game with decisions, it asks for them and makes them through
    * round.decide(). Resolves once the round is settled with what it showed,
-   * for the result line ("Card 3 · Entre wins"), or ''.
+   * for the result line ("Card 3 · Between wins"), or ''.
    */
   playRound(
     state: RoundState<TChoice, TData, TEvent>,
@@ -208,7 +208,7 @@ export class DiceTable<
   } | null = null;
   /** The last round's summary, shown until the bets change. */
   #result: string | null = null;
-  /** What the round just played showed ("Card 3 · Entre wins"). */
+  /** What the round just played showed ("Card 3 · Between wins"). */
   #reveal = '';
   #notice: string | null = null;
   /** True while the table itself places chips (the opening bet): no chip sound. */

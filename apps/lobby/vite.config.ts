@@ -5,7 +5,7 @@ import { GAMES } from './src/catalog.ts';
 
 /**
  * GitHub Pages serves static files only. Writing index.html into a folder per
- * route makes deep links such as /<repo>/espelho/ load with a 200, and
+ * route makes deep links such as /<repo>/mirror/ load with a 200, and
  * 404.html lets the router handle any other path.
  */
 function staticRoutes(slugs: readonly string[]): Plugin {
