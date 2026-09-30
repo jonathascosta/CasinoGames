@@ -12,6 +12,7 @@ export type TablePage = (game: GameEntry, services: Services, router: Router) =>
 export const TABLES: Readonly<Partial<Record<string, () => Promise<TablePage>>>> = {
   'entre-dados': async () => (await import('./entre-dados/page.ts')).entreDadosPage,
   'alvo-movel': async () => (await import('./alvo-movel/page.ts')).alvoMovelPage,
+  espelho: async () => (await import('./espelho/page.ts')).espelhoPage,
 };
 
 export function isPlayable(game: GameEntry): boolean {

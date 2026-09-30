@@ -1,5 +1,13 @@
-import type { MathSummary } from '@casinogames/engine';
-import { RtpPanel, RtpTracker, createPaytableModal, h, icon, type Modal } from '@casinogames/ui';
+import type { Cents, MathSummary } from '@casinogames/engine';
+import {
+  RtpPanel,
+  RtpTracker,
+  createPaytableModal,
+  h,
+  icon,
+  type Modal,
+  type Store,
+} from '@casinogames/ui';
 import { siteFooter } from '../pages/lobby.ts';
 import { createTopBar } from '../shell/topbar.ts';
 import type { TableOptions } from './dice-table.ts';
@@ -14,6 +22,8 @@ export interface TablePageConfig {
   readonly math: () => MathSummary;
   readonly createTable: (options: TableOptions) => {
     readonly element: HTMLElement;
+    /** The table's live progressive meters by jackpot id, for the RTP monitor. */
+    readonly meters?: Readonly<Record<string, Store<Cents>>>;
     destroy(): void;
   };
 }
@@ -51,11 +61,16 @@ export function tablePage(config: TablePageConfig): TablePage {
         const rules = createRulesModal(game, sheet);
         const paytable = createPaytableModal(math);
         const tracker = new RtpTracker({ gameId: config.gameId, storage: services.storage });
-        const rtp = new RtpPanel({ tracker, math, collapsed: true });
         const table = config.createTable({
           services,
           tracker,
           tools: [iconButton('Rules', 'info', rules), iconButton('Paytable', 'paytable', paytable)],
+        });
+        const rtp = new RtpPanel({
+          tracker,
+          math,
+          collapsed: true,
+          ...(table.meters === undefined ? {} : { meters: table.meters }),
         });
 
         outlet.append(
