@@ -24,6 +24,11 @@
   inset: 0;
 }
 
+/* The PixiJS dice being prepared (enhance()): laid out, not shown. */
+.cg-dice-tray__stage.is-pending {
+  visibility: hidden;
+}
+
 .cg-pixi-canvas {
   position: absolute;
   inset: 0;
@@ -234,4 +239,14 @@
 
 .cg-die-pick:disabled:not(.is-held) {
   border-color: transparent;
+}
+
+/* Reduced motion: no loops and no rattle; the hint and the offered dice
+   stay lit, held dice stay put. */
+@media (prefers-reduced-motion: reduce) {
+  .cg-dice-tray.is-armed .cg-dice-tray__hint,
+  .cg-dom-dice.is-holding .cg-die,
+  .cg-die-pick {
+    animation: none;
+  }
 }

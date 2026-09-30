@@ -16,13 +16,13 @@ examples below.
   is everything handed back, stake included (0 on a loss, the stake on a push). The stake includes
   any amount added to that bet during the round, such as a raise. The **house edge** is 1 − RTP.
 - **RTP of the game** is the same ratio over all bets together.
-- **Fees.** A choice may cost a fee (Trancar's re-roll): taken when the choice is made, never
+- **Fees.** A choice may cost a fee (Lock & Roll's Lock fee): taken when the choice is made, never
   returned, and nothing pays on it. A fee is not a stake. It counts against the return of the bet
   it is charged to: RTP = Σ (payout − fee) ÷ Σ stake, and the house edge is the loss, fees
   included, per unit staked. The **element of risk** divides the same loss by everything the
   player pays, the stakes and the fees; the game sheet publishes both.
 - Declared RTPs assume the reference strategy stated on the game sheet, which is the optimal
-  strategy whenever the game has decisions. Trancar's is computed from exact expected values, not
+  strategy whenever the game has decisions. Lock & Roll's is computed from exact expected values, not
   written down: on each roll, standing on a total _t_ is worth 2·P(dealer < _t_) − 1 per unit
   of the bet, and a re-roll the average of that over the six faces of the re-rolled die, less the
   fee.
@@ -66,9 +66,9 @@ exercise decisions and added stakes, not to be a good game.
 | `hitFrequency`        | Chance that the bet wins, given that it is made                                                                                                                                                                                                                   |
 | `pushFrequency`       | Chance that the stake is simply returned, given that the bet is made                                                                                                                                                                                              |
 | `maxExposure`         | Largest net win per unit staked, from the fixed-odds entries: the house's worst case per unit                                                                                                                                                                     |
-| `breakdown`           | For a bet whose lines name the condition they are paid under (Alvo Móvel's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                      |
-| `progressive`         | For a bet with a progressive meter (Espelho's 6-6 vs 6-6): its terms, and the RTP excluding the seed, the RTP at the seed, the break-even meter, the cycle, the seed's cost and the exposure at the seed                                                          |
-| `finiteShoe`          | Exact figures on the table's own shoe, when every round deals the same cards (Espelho, Trancar): RTP and hit frequency                                                                                                                                            |
+| `breakdown`           | For a bet whose lines name the condition they are paid under (Moving Target's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                   |
+| `progressive`         | For a bet with a progressive meter (Mirror's Double Sixes): its terms, and the RTP excluding the seed, the RTP at the seed, the break-even meter, the cycle, the seed's cost and the exposure at the seed                                                         |
+| `finiteShoe`          | Exact figures on the table's own shoe, when every round deals the same cards (Mirror, Lock & Roll): RTP and hit frequency                                                                                                                                         |
 | `standardDeviation` σ | Standard deviation of (payout − fee − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
 
 The exact enumerator and the simulator use the same definitions, so their figures are directly
@@ -101,23 +101,23 @@ variants of them.
   shifts the odds slightly from round to round. Each game sheet reports the finite-shoe RTP,
   simulated with the real `Shoe`, whenever it differs materially. For bets that depend on specific
   cards, the sheet also states whether card counting could gain an edge at the configured
-  penetration. The [Entre Dados sheet](games/entre-dados.md#card-counting) is the worked example:
+  penetration. The [Dice Spread sheet](games/dice-spread.md#card-counting) is the worked example:
   its counting exposure is computed exactly, as a hypergeometric sum over the rounds of a shoe,
   and asserted by a test.
 - **When the finite shoe changes the long run.** One card per round, with a fixed number of rounds
-  per shoe (Entre Dados), leaves the long-run RTP equal to the infinite shoe's. Several cards per
+  per shoe (Dice Spread), leaves the long-run RTP equal to the infinite shoe's. Several cards per
   round do not: within a round the cards are drawn without replacement, and the number of rounds a
-  shoe deals depends on its cards. The [Alvo Móvel sheet](games/alvo-movel.md#the-six-deck-shoe)
+  shoe deals depends on its cards. The [Moving Target sheet](games/moving-target.md#the-six-deck-shoe)
   is the worked example. It computes the first round after a shuffle exactly (a recursion over the
   values drawn from a full shoe), simulates the long run, and publishes both per bet and per
   target.
 - **When the finite shoe's figures are exact.** Several cards per round, but always the same number
-  and a fixed number of rounds per shoe (Espelho: two cards, 54 rounds), put every round's cards at
+  and a fixed number of rounds per shoe (Mirror: two cards, 54 rounds), put every round's cards at
   fixed positions of a uniformly shuffled shoe: a uniform draw from the full shoe, however deep it
   has been dealt. The first round's exact figures are then the long-run figures. The
-  [Espelho sheet](games/espelho.md#card-source) proves them by running the game over every pair of
+  [Mirror sheet](games/mirror.md#card-source) proves them by running the game over every pair of
   cards a full shoe can deal, declares them in the bets (`finiteShoe`), and confirms them by
-  simulating the real shoe. Trancar deals the same two cards a round after the player's decision,
+  simulating the real shoe. Lock & Roll deals the same two cards a round after the player's decision,
   which does not look at the cards, so the same holds for it.
 
 ## Exact method
@@ -168,18 +168,18 @@ fee of 60% of the stake. Re-rolling below 8 is optimal: it pays the fee in 7/12 
 
 Each game ships a seeded simulation with its reference strategy. The test asserts |simulated RTP −
 declared RTP| ≤ 0.15 percentage points for every bet. The fixtures deal from an infinite shoe.
-Entre Dados deals from its real six-deck shoe: one card per round and a fixed number of rounds per
+Dice Spread deals from its real six-deck shoe: one card per round and a fixed number of rounds per
 shoe keep its long-run RTP equal to the infinite-shoe figure, and the run checks the shoe's
 reshuffles and cut card along the way.
 
-Where the real shoe returns different figures, as in Alvo Móvel, the check against the declared
+Where the real shoe returns different figures, as in Moving Target, the check against the declared
 RTP runs on an infinite shoe, the source the figures assume, through the production game. A second
 seeded run on the real shoe then measures each bet's shift, sized to the precision wanted rather
 than to the ±0.15 pp tolerance, bounds it, and prints the table the game sheet publishes. Where the
-real shoe's figures are exact (Espelho), the second run checks it against them.
+real shoe's figures are exact (Mirror), the second run checks it against them.
 
-Some bets are too volatile for ±0.15 pp at any practical size: Espelho Perfeito (200 to 1, σ 13.6)
-would need about 0.9 billion rounds and 6-6 vs 6-6 (σ 33 with its meter at the seed) about 5.4
+Some bets are too volatile for ±0.15 pp at any practical size: Perfect Mirror (200 to 1, σ 13.6)
+would need about 0.9 billion rounds and Double Sixes (σ 33 with its meter at the seed) about 5.4
 billion. A suite is sized by the bets it can hold to ±0.15 pp within 200 million rounds; the others
 are held to 3.29 of their own standard errors, and their exact tests are the proof.
 
@@ -201,28 +201,28 @@ two-sided confidence (`roundsForTolerance`):
 
 σ is taken from the exact report, so the suite sizes itself.
 
-| Bet                                    |     σ | Rounds needed |
-| :------------------------------------- | ----: | ------------: |
-| Any even-money bet                     | 1.000 |     4,810,712 |
-| Dice fixture, Over 7                   | 0.986 |     4,677,081 |
-| Dice fixture, Doubles (9 to 2)         | 2.050 |    20,211,669 |
-| War fixture, Ante                      | 0.938 |     4,235,501 |
-| War fixture, Play (made in 6/13)       | 0.796 |     6,599,310 |
-| Entre Dados, Triplo (30 to 1)          | 5.094 |   124,852,059 |
-| Alvo Móvel, Primeira Carta (9 to 1)    | 2.886 |    40,055,852 |
-| Alvo Móvel, six-deck shift to ±0.07 pp | 2.886 |   183,929,931 |
-| Espelho, Par vs Par (30 to 1)          | 5.094 |   124,852,059 |
-| Espelho, six-deck run to ±0.3 pp       | 5.094 |    31,213,015 |
-| Trancar, the bet with its fee          | 1.034 |     5,144,842 |
+| Bet                                       |     σ | Rounds needed |
+| :---------------------------------------- | ----: | ------------: |
+| Any even-money bet                        | 1.000 |     4,810,712 |
+| Dice fixture, Over 7                      | 0.986 |     4,677,081 |
+| Dice fixture, Doubles (9 to 2)            | 2.050 |    20,211,669 |
+| War fixture, Ante                         | 0.938 |     4,235,501 |
+| War fixture, Play (made in 6/13)          | 0.796 |     6,599,310 |
+| Dice Spread, Triple (30 to 1)             | 5.094 |   124,852,059 |
+| Moving Target, First Card (9 to 1)        | 2.886 |    40,055,852 |
+| Moving Target, six-deck shift to ±0.07 pp | 2.886 |   183,929,931 |
+| Mirror, Pair vs Pair (30 to 1)            | 5.094 |   124,852,059 |
+| Mirror, six-deck run to ±0.3 pp           | 5.094 |    31,213,015 |
+| Lock & Roll, the bet with its fee         | 1.034 |     5,144,842 |
 
 A run covers all bets of a game at once, sized by its most demanding bet. The dice suite plays
 20,211,669 rounds. The war suite plays 9,176,919: the ante's requirement divided by the play bet's
-frequency. The Entre Dados suite plays 124,852,059 rounds, sized by Triplo. The Alvo Móvel suite
-on an infinite shoe plays 40,055,852 rounds, sized by Primeira Carta; its six-deck run plays
-183,929,931, enough to measure each shift to ±0.07 pp at 3.29 standard errors. The Espelho suite on
-an infinite shoe plays 124,852,059 rounds, sized by Par vs Par; its six-deck run plays 31,213,015.
-Trancar's two suites play 5,144,842 rounds each, on an infinite and on the six-deck shoe, with the
-reference strategy deciding every round.
+frequency. The Dice Spread suite plays 124,852,059 rounds, sized by Triple. The Moving Target suite
+on an infinite shoe plays 40,055,852 rounds, sized by First Card; its six-deck run plays
+183,929,931, enough to measure each shift to ±0.07 pp at 3.29 standard errors. The Mirror suite on
+an infinite shoe plays 124,852,059 rounds, sized by Pair vs Pair; its six-deck run plays 31,213,015.
+Lock & Roll's two suites play 5,144,842 rounds each, on an infinite and on the six-deck shoe, with
+the reference strategy deciding every round.
 The suites run in parallel; on a CI runner the whole `pnpm test:math` takes about six minutes.
 
 ### What it catches
@@ -284,7 +284,7 @@ The formula stops holding with partial awards or when the pool reaches its cap:
 In those cases the declared RTP comes from simulating the pool itself. The conservation identity
 keeps that accounting exact.
 
-**A meter fed by its own bet and paid in proportion to the stake.** Espelho's 6-6 vs 6-6 pays fixed
+**A meter fed by its own bet and paid in proportion to the stake.** Mirror's Double Sixes pays fixed
 odds plus stake ÷ _F_ of the meter, _F_ being the stake that wins it all; 10% of every stake on the
 bet feeds the meter, and a hit leaves the rest of it there (topped up to the seed if it fell
 below). Let _p_ be the chance of the hit and RTP₀ the fixed pays' RTP.
@@ -298,7 +298,7 @@ below). Let _p_ be the chance of the hit and RTP₀ the fixed pays' RTP.
   mean stake _s̄_. That is exact at a constant _F_, where each hit takes the whole meter. Smaller
   stakes leave part of the meter behind, so it settles higher; the Monte Carlo suites measure it.
 - **The seed's cost.** At a constant _F_ the house re-seeds _J₀_ after every hit: _p_·_J₀_ per
-  round, 15.43% of the stake for Espelho, more than the 12.76% the bet holds excluding the seed.
+  round, 15.43% of the stake for Mirror, more than the 12.76% the bet holds excluding the seed.
 
 The exact test checks the fixed pays with the meter at zero and one round's return with the meter
 frozen at a value; the conservation identity checks the rest, to the millionth of a cent.
@@ -315,7 +315,7 @@ frozen at a value; the conservation identity checks the rest, to the millionth o
    push frequency within 3.29 binomial standard errors, on the card source the declared figures
    assume.
 4. Finite shoe: simulate the real `Shoe` with its cut card and report the difference if it is
-   material (Alvo Móvel publishes it per bet and per target; Espelho declares its exact six-deck
+   material (Moving Target publishes it per bet and per target; Mirror declares its exact six-deck
    figures); when a bet depends on the composition, measure its card counting exposure.
 5. Register the game in `packages/engine/src/games`, run `pnpm docs:sheets`, and commit the
    regenerated sheet. CI's `pnpm docs:check` keeps it in sync from then on.

@@ -13,7 +13,7 @@ export async function loadSheet(slug: string): Promise<string> {
   return load === undefined ? '# Rules\nThe game sheet is not available yet.' : load();
 }
 
-/** The leading part of a table's top bar: a back link, the name and its gloss. */
+/** The leading part of a table's top bar: a back link, the name and its tagline. */
 export function tableTitle(game: GameEntry, router: Router): HTMLElement {
   return h(
     'div',
@@ -31,15 +31,22 @@ export function tableTitle(game: GameEntry, router: Router): HTMLElement {
       'div',
       null,
       h('h1', null, game.name),
-      h('span', { class: 'table-title__gloss' }, game.gloss),
+      h('span', { class: 'table-title__tagline' }, game.tagline),
     ),
   );
 }
 
-/** The Rules dialog: the game sheet, without its title (the dialog names the game). */
-export function createRulesModal(game: GameEntry, sheet: string): Modal {
+/**
+ * The game sheet in a dialog, without its title (the dialog names the game):
+ * the Rules at a table, the Game sheet in the lobby.
+ */
+export function createRulesModal(
+  game: GameEntry,
+  sheet: string,
+  heading: 'Rules' | 'Game sheet' = 'Rules',
+): Modal {
   return createInfoModal({
-    title: `${game.name} · Rules`,
+    title: `${game.name} · ${heading}`,
     markdown: sheet.replace(/^# .*\n+/, ''),
   });
 }

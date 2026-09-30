@@ -14,7 +14,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createStore } from '../state/store.ts';
 import { createMemoryBackend, createSafeStorage } from '../storage/storage.ts';
 import { RtpPanel } from './RtpPanel.ts';
-import { RtpTracker, liveRtp, nextCheckpoint, parseStats } from './RtpTracker.ts';
+import {
+  RtpTracker,
+  clearRtpStats,
+  liveRtp,
+  nextCheckpoint,
+  parseStats,
+  readRtpStats,
+} from './RtpTracker.ts';
 import { renderSparkline } from './sparkline.ts';
 
 const MATH = summarizeMath({
@@ -116,18 +123,34 @@ describe('RtpTracker', () => {
     expect(liveRtp({ staked: 0, returned: 0, fees: 0 })).toBeNaN();
   });
 
-  it('reads stats stored before fees existed as fee-free', () => {
-    const stored = {
-      rounds: 1,
-      staked: 100,
-      returned: 200,
-      bets: { main: { rounds: 1, staked: 100, returned: 200, wins: 1, history: [] } },
-    };
+  it("stores a game's stats, which a page can read and clear without a tracker", () => {
+    const storage = createSafeStorage('test', createMemoryBackend());
+    const tracker = new RtpTracker({ gameId: 'dice', storage });
+    tracker.record({ main: { stake: 100, payout: 200, net: 100, outcome: 'win' } });
+    tracker.flush();
+    expect(readRtpStats(storage, 'dice')).toMatchObject({ rounds: 1, staked: 100, returned: 200 });
+    expect(readRtpStats(storage, 'cards')).toEqual({
+      rounds: 0,
+      staked: 0,
+      returned: 0,
+      fees: 0,
+      bets: {},
+    });
+    clearRtpStats(storage, 'dice');
+    expect(readRtpStats(storage, 'dice').rounds).toBe(0);
+    expect(new RtpTracker({ gameId: 'dice', storage }).stats.rounds).toBe(0);
+  });
+
+  it('needs a fees total on the stats and on every bet', () => {
+    const tally = { rounds: 1, staked: 100, returned: 200, fees: 0, wins: 1, history: [] };
+    const stored = { rounds: 1, staked: 100, returned: 200, fees: 0, bets: { main: tally } };
     expect(parseStats(stored)).toMatchObject({ fees: 0, bets: { main: { fees: 0 } } });
+    const { fees: _total, ...withoutTotal } = stored;
+    const { fees: _bet, ...tallyWithoutFees } = tally;
+    expect(parseStats(withoutTotal)).toBeUndefined();
+    expect(parseStats({ ...stored, bets: { main: tallyWithoutFees } })).toBeUndefined();
     expect(parseStats({ ...stored, fees: -1 })).toBeUndefined();
-    expect(
-      parseStats({ ...stored, bets: { main: { ...stored.bets.main, fees: 0.5 } } }),
-    ).toBeUndefined();
+    expect(parseStats({ ...stored, bets: { main: { ...tally, fees: 0.5 } } })).toBeUndefined();
   });
 
   it('ignores empty settlements and rejects malformed stored stats', () => {

@@ -1,0 +1,451 @@
+/* Moving Target: the stage (the dice beside the target, the hero), the dealer's
+   cards, the running total and card count, and the felt's layout with
+   Exact Hit's payouts per target. The shared table styles are in ../table.css.
+   Every animation runs on the duration tokens, so turbo mode stops them. */
+
+/* The dice and the target side by side. */
+.mt-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  height: clamp(128px, 17svh, 200px);
+}
+
+.mt-cards {
+  height: clamp(118px, 16svh, 180px);
+}
+
+/* The target: the hero of the table. */
+.mt-target {
+  position: relative;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 2px;
+  min-width: 0;
+  border: 1px solid rgb(221 189 119 / 0.35);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      80% 70% at 50% 45%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(90% 80% at 50% 40%, rgb(255 255 255 / 0.04), rgb(0 0 0 / 0.25));
+  overflow: hidden;
+  text-align: center;
+  transition:
+    border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+.mt-target__label {
+  color: var(--gold-400);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.mt-target__value {
+  color: var(--gold-200);
+  font-family: var(--font-display);
+  font-size: clamp(58px, 17vw, 92px);
+  font-weight: 700;
+  line-height: 0.95;
+  text-shadow:
+    0 2px 0 rgb(0 0 0 / 0.35),
+    0 0 26px rgb(221 189 119 / 0.35);
+}
+
+.mt-target__pays {
+  color: var(--ink-200);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* No target yet: a quiet question mark, breathing while the dice roll. */
+.mt-target[data-state='idle'] .mt-target__value,
+.mt-target[data-state='rolling'] .mt-target__value {
+  color: rgb(221 189 119 / 0.35);
+  text-shadow: none;
+}
+
+.mt-target[data-state='rolling'] .mt-target__value {
+  animation: mt-wait calc(var(--dur-3) * 1.5) ease-in-out infinite alternate;
+}
+
+/* The dice land: the target locks in. */
+.mt-target[data-state='locked'] .mt-target__value {
+  animation: mt-lock calc(var(--dur-3) * 1.4) var(--ease-spring) both;
+}
+
+.mt-target[data-state='locked']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px var(--gold-300),
+    inset 0 0 40px rgb(221 189 119 / 0.35);
+  pointer-events: none;
+  animation: mt-flash calc(var(--dur-3) * 2.2) var(--ease-out) both;
+}
+
+/* A card lies face down: the board glows with the chance that it ends the deal. */
+.mt-target[data-state='waiting'] {
+  border-color: rgb(221 189 119 / calc(0.35 + var(--tension, 0) * 0.55));
+  box-shadow: 0 0 calc(6px + var(--tension, 0) * 26px)
+    rgb(221 189 119 / calc(0.12 + var(--tension, 0) * 0.45));
+}
+
+.mt-target[data-state='waiting'] .mt-target__value {
+  animation: mt-pulse calc(var(--dur-3) * 1.4) ease-in-out infinite alternate;
+}
+
+/* On target, or past it. */
+.mt-target[data-state='hit'] {
+  border-color: var(--win);
+  box-shadow:
+    0 0 0 1px var(--win),
+    0 0 30px rgb(91 214 145 / 0.45);
+}
+
+.mt-target[data-state='hit'] .mt-target__value {
+  color: #dcffe9;
+  text-shadow: 0 0 24px rgb(91 214 145 / 0.8);
+}
+
+.mt-target[data-state='over'] {
+  border-color: rgb(255 131 115 / 0.7);
+}
+
+.mt-target[data-state='over'] .mt-target__value {
+  color: var(--lose);
+  text-shadow: none;
+}
+
+/* The running total and the card count, under the cards. */
+.mt-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'total count'
+    'caption caption';
+  align-items: center;
+  gap: 6px 14px;
+  padding: 0 4px;
+}
+
+.mt-readout__label {
+  color: var(--gold-400);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.mt-total {
+  grid-area: total;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.mt-total__value {
+  min-width: 2ch;
+  color: var(--ink-100);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: right;
+}
+
+/* Fills up to the target; the notch at the end is the target. */
+.mt-meter {
+  position: relative;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 0.35);
+  box-shadow: inset 0 0 0 1px rgb(221 189 119 / 0.25);
+}
+
+.mt-meter::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: 0;
+  bottom: -3px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--gold-200);
+}
+
+.mt-meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(var(--share, 0) * 100%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold-500), var(--gold-300));
+  transition: width var(--dur-3) var(--ease-out);
+}
+
+.mt-readout[data-state='hit'] .mt-meter__fill {
+  background: var(--win);
+  box-shadow: 0 0 12px rgb(91 214 145 / 0.6);
+}
+
+.mt-readout[data-state='over'] .mt-meter__fill {
+  background: linear-gradient(90deg, var(--gold-500), var(--lose));
+}
+
+.mt-count {
+  grid-area: count;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity var(--dur-2) var(--ease-out);
+}
+
+.mt-count__pips {
+  display: flex;
+  gap: 4px;
+}
+
+.mt-pip {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 5px;
+  border: 1px solid rgb(221 189 119 / 0.3);
+  border-radius: var(--radius-pill);
+  color: var(--ink-400);
+  font-size: 11.5px;
+  font-weight: 700;
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.mt-pip[data-on] {
+  border-color: var(--gold-300);
+  background: rgb(221 189 119 / 0.2);
+  color: var(--gold-200);
+}
+
+/* 3+ Cards: won once a third card is certain, dim once it cannot come. */
+.mt-count[data-outlook='won'] .mt-pip:last-child {
+  border-color: var(--win);
+  background: var(--win);
+  box-shadow: 0 0 14px rgb(91 214 145 / 0.6);
+  color: #06140c;
+}
+
+.mt-count[data-outlook='lost'] {
+  opacity: 0.45;
+}
+
+.mt-caption {
+  grid-area: caption;
+  min-height: 1.45em;
+  margin: 0;
+  color: var(--ink-200);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+/* Exact Hit's paytable under the stage: a column per target, the one in play lit.
+   The ":1" after each payout shows where the track is wide enough. */
+.mt-track {
+  container-type: inline-size;
+}
+
+.mt-track__table {
+  table-layout: fixed;
+  font-size: clamp(11px, 3vw, 14px);
+  letter-spacing: 0.04em;
+}
+
+.mt-track__labels {
+  width: 5.6em;
+}
+
+.mt-track__table th {
+  padding-right: 4px;
+}
+
+.mt-track__table td {
+  padding: 3px 1px;
+}
+
+.mt-track__table tr:first-child td {
+  color: var(--gold-200);
+  font-size: 1.15em;
+  font-weight: 700;
+}
+
+/* The target in play: a flash as it locks in, then a steady light. */
+.mt-track__table td[data-lit] {
+  background: rgb(221 189 119 / 0.3);
+  box-shadow: inset 0 0 0 1px var(--gold-400);
+  color: #fff3d4;
+  animation: mt-lit calc(var(--dur-3) * 1.6) var(--ease-out) both;
+}
+
+.mt-track__per {
+  display: none;
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+
+@container (min-width: 460px) {
+  .mt-track__per {
+    display: inline;
+  }
+}
+
+/* The felt: Exact Hit in the centre and a side bet on each side. */
+.mt-felt__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'first three'
+    'exact exact';
+  gap: 8px;
+}
+
+.mt-felt__spot {
+  display: grid;
+  min-width: 0;
+}
+
+.mt-felt__spot[data-bet='exact-hit'] {
+  grid-area: exact;
+}
+
+.mt-felt__spot[data-bet='first-card'] {
+  grid-area: first;
+}
+
+.mt-felt__spot[data-bet='three-plus-cards'] {
+  grid-area: three;
+}
+
+@container (min-width: 520px) {
+  .mt-felt__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+    grid-template-areas: 'first exact three';
+  }
+}
+
+@keyframes mt-wait {
+  from {
+    opacity: 0.35;
+  }
+
+  to {
+    opacity: 0.85;
+  }
+}
+
+@keyframes mt-lock {
+  0% {
+    opacity: 0;
+    transform: scale(1.7);
+    filter: blur(6px);
+  }
+
+  55% {
+    opacity: 1;
+    transform: scale(0.92);
+    filter: blur(0);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes mt-lit {
+  from {
+    background: rgb(221 189 119 / 0.8);
+    color: #1b1406;
+  }
+}
+
+@keyframes mt-flash {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes mt-pulse {
+  to {
+    transform: scale(calc(1 + var(--tension, 0) * 0.07));
+  }
+}
+
+/* Two columns (see ../table.css): a taller stage and a bigger target. */
+@media (min-width: 760px), (orientation: landscape) and (max-height: 520px) {
+  .mt-stage {
+    height: clamp(170px, 28svh, 260px);
+  }
+
+  .mt-cards {
+    height: clamp(150px, 24svh, 230px);
+  }
+
+  .mt-target__value {
+    font-size: clamp(72px, 7vw, 120px);
+  }
+}
+
+/* Phones held sideways: everything the round shows fits the screen's height. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .mt-view {
+    gap: 4px;
+  }
+
+  .mt-stage {
+    height: clamp(88px, 26svh, 130px);
+  }
+
+  .mt-cards {
+    height: clamp(96px, 27svh, 130px);
+  }
+
+  .mt-target__value {
+    font-size: clamp(40px, 11svh, 60px);
+  }
+
+  .mt-track__table {
+    font-size: 11px;
+  }
+
+  .mt-track__table td,
+  .mt-track__table th {
+    padding-top: 1px;
+    padding-bottom: 1px;
+  }
+
+  .mt-readout {
+    gap: 2px 10px;
+  }
+
+  .mt-total__value {
+    font-size: 20px;
+  }
+
+  .mt-pip {
+    min-width: 22px;
+    height: 22px;
+  }
+}

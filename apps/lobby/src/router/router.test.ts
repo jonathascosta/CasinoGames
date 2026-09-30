@@ -42,7 +42,7 @@ describe('router helpers', () => {
   it('normalises bases and strips them from paths', () => {
     expect(normalizeBase('/CasinoGames/')).toBe('/CasinoGames');
     expect(normalizeBase('/')).toBe('');
-    expect(appPath('/CasinoGames/espelho/', '/CasinoGames')).toBe('/espelho');
+    expect(appPath('/CasinoGames/mirror/', '/CasinoGames')).toBe('/mirror');
     expect(appPath('/CasinoGames/', '/CasinoGames')).toBe('/');
     expect(appPath('/CasinoGames', '/CasinoGames')).toBe('/');
     expect(appPath('/index.html', '')).toBe('/');
@@ -54,7 +54,7 @@ describe('router helpers', () => {
       { path: '/:slug', load: () => page('b') },
     ];
     expect(matchRoute(routes, '/')?.route).toBe(routes[0]);
-    expect(matchRoute(routes, '/alvo-m%C3%B3vel')?.params).toEqual({ slug: 'alvo-móvel' });
+    expect(matchRoute(routes, '/caf%C3%A9')?.params).toEqual({ slug: 'café' });
     expect(matchRoute(routes, '/a/b')).toBeNull();
   });
 });
@@ -71,11 +71,11 @@ describe('createRouter', () => {
   });
 
   it('renders the page for the current URL, with title and focus', async () => {
-    history.replaceState(null, '', '/CasinoGames/espelho');
+    history.replaceState(null, '', '/CasinoGames/mirror');
     const { router, outlet } = setup();
     await router.start();
-    expect(outlet.textContent).toBe('Game espelho');
-    expect(document.title).toBe('Game espelho · Demo');
+    expect(outlet.textContent).toBe('Game mirror');
+    expect(document.title).toBe('Game mirror · Demo');
     expect(document.activeElement).toBe(outlet.querySelector('h1'));
     router.destroy();
   });
@@ -84,9 +84,9 @@ describe('createRouter', () => {
     history.replaceState(null, '', '/CasinoGames/');
     const { router, outlet, unmountLobby } = setup();
     await router.start();
-    await router.navigate('/trancar');
-    expect(location.pathname).toBe('/CasinoGames/trancar');
-    expect(outlet.textContent).toBe('Game trancar');
+    await router.navigate('/lock-and-roll');
+    expect(location.pathname).toBe('/CasinoGames/lock-and-roll');
+    expect(outlet.textContent).toBe('Game lock-and-roll');
     expect(unmountLobby).toHaveBeenCalledTimes(1);
     expect(router.href('/')).toBe('/CasinoGames/');
     router.destroy();
@@ -113,15 +113,15 @@ describe('createRouter', () => {
       a.dispatchEvent(event);
       return event.defaultPrevented;
     };
-    expect(click(link('/CasinoGames/alvo-movel'))).toBe(true);
+    expect(click(link('/CasinoGames/moving-target'))).toBe(true);
     await vi.waitFor(() => {
-      expect(outlet.textContent).toBe('Game alvo-movel');
+      expect(outlet.textContent).toBe('Game moving-target');
     });
-    expect(click(link('/CasinoGames/espelho'), { metaKey: true })).toBe(false);
-    expect(click(link('/CasinoGames/espelho', { target: '_blank' }))).toBe(false);
+    expect(click(link('/CasinoGames/mirror'), { metaKey: true })).toBe(false);
+    expect(click(link('/CasinoGames/mirror', { target: '_blank' }))).toBe(false);
     expect(click(link('/CasinoGames/dev.html'))).toBe(false);
-    expect(click(link('https://example.com/CasinoGames/espelho'))).toBe(false);
-    expect(click(link('/elsewhere/espelho'))).toBe(false);
+    expect(click(link('https://example.com/CasinoGames/mirror'))).toBe(false);
+    expect(click(link('/elsewhere/mirror'))).toBe(false);
     router.destroy();
   });
 
@@ -139,11 +139,11 @@ describe('createRouter', () => {
   });
 
   it('works at the site root too', async () => {
-    history.replaceState(null, '', '/espelho/');
+    history.replaceState(null, '', '/mirror/');
     const { router, outlet } = setup('/');
     await router.start();
-    expect(outlet.textContent).toBe('Game espelho');
-    expect(router.href('/espelho')).toBe('/espelho');
+    expect(outlet.textContent).toBe('Game mirror');
+    expect(router.href('/mirror')).toBe('/mirror');
     router.destroy();
   });
 });

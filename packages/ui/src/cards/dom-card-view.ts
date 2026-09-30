@@ -14,9 +14,18 @@ export function createDomCardView(
   scale = 1,
 ): CardView {
   const table = h('div', { class: 'cg-dom-cards', style: `--card-scale: ${scale}` });
+  // The shoe: the cut card behind it once out, the next card peeking from its mouth.
+  const cut = h('div', { class: 'cg-dom-cards__cut', 'aria-hidden': 'true', hidden: true });
+  const peek = h(
+    'div',
+    { class: 'cg-dom-cards__peek', 'aria-hidden': 'true' },
+    h('div', { class: 'cg-dom-card__back' }),
+  );
   const shoe = h('div', { class: 'cg-dom-cards__shoe', 'aria-hidden': 'true' });
   const counter = h('span', { class: 'cg-dom-cards__counter cg-num', 'aria-hidden': 'true' });
   table.append(
+    cut,
+    peek,
     shoe,
     counter,
     ...hands
@@ -124,6 +133,7 @@ export function createDomCardView(
     },
     setShoe({ remaining, size, cutCardOut }) {
       counter.hidden = !Number.isFinite(size);
+      cut.hidden = !cutCardOut;
       counter.textContent = `${formatCount(remaining)} / ${formatCount(size)}`;
       counter.dataset.cut = String(cutCardOut);
     },

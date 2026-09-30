@@ -67,9 +67,9 @@ export function gameArt(game: GameEntry): SVGSVGElement {
 
 const MOTIFS: Readonly<Record<string, () => Node[]>> = {
   // Two dice with a card standing between them.
-  'entre-dados': () => [die(62, 108, 5, -14), card(160, 100, 0), die(258, 108, 2, 12)],
+  'dice-spread': () => [die(62, 108, 5, -14), card(160, 100, 0), die(258, 108, 2, 12)],
   // A target with motion arcs and a die rolling towards it.
-  'alvo-movel': () => [
+  'moving-target': () => [
     svg('circle', { cx: 205, cy: 100, r: 62, 'stroke-opacity': '0.5' }),
     svg('circle', { cx: 205, cy: 100, r: 42, 'stroke-opacity': '0.75' }),
     svg('circle', { cx: 205, cy: 100, r: 21 }),
@@ -87,7 +87,7 @@ const MOTIFS: Readonly<Record<string, () => Node[]>> = {
     die(118, 118, 6, 20, 26),
   ],
   // Two cards reflected across a dashed axis.
-  espelho: () => [
+  mirror: () => [
     svg('line', {
       x1: 160,
       y1: 30,
@@ -100,7 +100,7 @@ const MOTIFS: Readonly<Record<string, () => Node[]>> = {
     card(208, 100, 8, 'A', true),
   ],
   // A padlock whose body holds a die.
-  trancar: () => [
+  'lock-and-roll': () => [
     svg('path', {
       d: 'M126 92 V70 a34 34 0 0 1 68 0 V92',
       'stroke-width': 5,

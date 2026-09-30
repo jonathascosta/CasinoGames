@@ -56,8 +56,11 @@
   list-style: none;
 }
 
+/* A card is an article; its Play link stretches over the whole card, and the
+   Game sheet button sits above that link. */
 .game-card {
   --glow: color-mix(in srgb, var(--accent) 45%, transparent);
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -75,16 +78,12 @@
 }
 
 .game-card:hover,
-.game-card:focus-visible {
+.game-card:focus-within {
   transform: translateY(-4px);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--gold-400));
   box-shadow:
     var(--shadow-2),
     0 22px 44px -18px var(--glow);
-}
-
-.game-card:focus-visible {
-  outline-offset: 4px;
 }
 
 .game-card__art {
@@ -105,35 +104,43 @@
 }
 
 .game-card__body {
-  display: grid;
-  justify-items: start;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
   padding: 14px 16px 16px;
 }
 
-.game-card__status {
-  margin-bottom: 8px;
-  padding: 3px 9px;
-  border: 1px solid var(--line-strong);
+/* The main bet's declared RTP. */
+.game-card__rtp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 3px 10px;
+  border: 1px solid color-mix(in srgb, var(--win) 55%, transparent);
   border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--win) 12%, transparent);
+  color: var(--win);
+}
+
+.game-card__rtp-label {
   font-size: 10.5px;
   font-weight: 650;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold-300);
 }
 
-.game-card[data-playable='true'] .game-card__status {
-  border-color: color-mix(in srgb, var(--win) 55%, transparent);
-  background: color-mix(in srgb, var(--win) 12%, transparent);
-  color: var(--win);
+.game-card__rtp strong {
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .game-card__name {
   font-size: 25px;
 }
 
-.game-card__gloss {
+.game-card__tagline {
   margin: 0;
   font-family: var(--font-display);
   font-style: italic;
@@ -166,23 +173,34 @@
   font-size: 18px;
 }
 
-.game-card__cta {
-  margin-top: 12px;
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  color: var(--gold-300);
+/* At the foot of the card, level across the row whatever the text above. */
+.game-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
 }
 
-.game-card__cta::after {
-  content: '→';
-  display: inline-block;
-  margin-left: 6px;
-  transition: transform var(--dur-2) var(--ease-out);
+.game-card__play {
+  padding: 0 22px;
 }
 
-.game-card:hover .game-card__cta::after {
-  transform: translateX(4px);
+/* The whole card plays; the Game sheet button stays reachable above it. */
+.game-card__play::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.game-card__play:focus-visible {
+  outline-offset: 3px;
+}
+
+.game-card__sheet {
+  position: relative;
+  z-index: 1;
 }
 
 .pillars {

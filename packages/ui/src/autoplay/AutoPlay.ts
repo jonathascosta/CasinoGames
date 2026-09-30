@@ -38,10 +38,11 @@ export class AutoPlay {
   constructor({ controller, choices = [10, 25, 50, 100] }: AutoPlayOptions) {
     this.#controller = controller;
     const menuId = `cg-autoplay-menu-${++nextId}`;
+    // A disclosure: the button shows and hides a group of buttons (not a
+    // menu, which aria-haspopup would announce).
     this.#toggle = h('button', {
       type: 'button',
       class: 'cg-btn cg-autoplay__toggle',
-      'aria-haspopup': 'true',
       'aria-expanded': 'false',
       'aria-controls': menuId,
     });
@@ -81,10 +82,7 @@ export class AutoPlay {
       if (!this.element.contains(event.target as Node)) this.#close();
     });
     this.#disposer.listen(this.element, 'keydown', (event) => {
-      if (event.key === 'Escape' && !this.#menu.hidden) {
-        this.#close();
-        this.#toggle.focus();
-      }
+      if (event.key === 'Escape' && !this.#menu.hidden) this.#close();
     });
     this.#disposer.add(
       controller.subscribe((state, previous) => {
@@ -118,13 +116,19 @@ export class AutoPlay {
   }
 
   #close(): void {
+    const focused = this.#menu.contains(document.activeElement);
     this.#menu.hidden = true;
     this.#toggle.setAttribute('aria-expanded', 'false');
+    // Hiding the menu would drop the keyboard focus to the page: back to the
+    // toggle, which stops autoplay once it runs.
+    if (focused) this.#toggle.focus();
   }
 
   #render(state: AutoPlayState): void {
     this.element.dataset.running = String(state.running);
-    this.#toggle.disabled = this.#disabled && !state.running;
+    // Unavailable rather than disabled, so it keeps the keyboard focus
+    // between rounds (#open() checks).
+    this.#toggle.setAttribute('aria-disabled', String(this.#disabled && !state.running));
     if (state.running) {
       this.#toggle.replaceChildren(
         icon('stop'),

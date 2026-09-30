@@ -115,7 +115,7 @@ button {
     opacity var(--dur-2) var(--ease-out);
 }
 
-.cg-btn:hover {
+.cg-btn:hover:not(:disabled, [aria-disabled='true']) {
   border-color: var(--gold-400);
 }
 
@@ -140,7 +140,7 @@ button {
     0 6px 18px rgb(0 0 0 / 0.35);
 }
 
-.cg-btn--primary:hover {
+.cg-btn--primary:hover:not(:disabled, [aria-disabled='true']) {
   background: linear-gradient(180deg, var(--gold-200), var(--gold-400) 55%, var(--gold-600));
 }
 

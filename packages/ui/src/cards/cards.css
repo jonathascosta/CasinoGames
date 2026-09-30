@@ -10,35 +10,85 @@
   inset: 0;
 }
 
-/* DOM fallback cards. */
+/* The PixiJS cards being prepared (enhance()): laid out, not shown. */
+.cg-card-table__stage.is-pending {
+  visibility: hidden;
+}
+
+/* DOM cards: what a table shows until PixiJS takes over (see
+   CardDealer.enhance), and the fallback where it cannot start. Sized and laid
+   out like the PixiJS view (pixi/card-view.ts): cards 30% of the table's
+   height and 28% of its width (times its card scale), at most 150px (times
+   the scale) and 80% of the height, at least 64px; the shoe in the top right
+   corner, a card peeking from its mouth. */
 .cg-dom-cards {
-  --card-w: calc(clamp(46px, 14vw, 90px) * var(--card-scale, 1));
+  --card-h: max(
+    64px,
+    min(
+      150px * var(--card-scale, 1),
+      30cqh * var(--card-scale, 1),
+      28cqw * var(--card-scale, 1),
+      80cqh
+    )
+  );
+  --card-w: calc(var(--card-h) / 1.4);
   position: absolute;
   inset: 0;
+  container-type: size;
   perspective: 900px;
+}
+
+.cg-dom-cards__peek {
+  position: absolute;
+  top: calc(var(--card-h) * 0.25);
+  right: calc(var(--card-w) * 0.93);
+  width: calc(var(--card-w) * 0.8);
+  height: calc(var(--card-h) * 0.8);
+  rotate: -17deg;
+}
+
+.cg-dom-cards__cut {
+  position: absolute;
+  top: calc(var(--card-h) * 0.13);
+  right: calc(var(--card-w) * 0.69);
+  width: calc(var(--card-w) * 0.32);
+  height: calc(var(--card-h) * 0.24);
+  border-radius: 2px;
+  background: #c0392b;
 }
 
 .cg-dom-cards__shoe {
   position: absolute;
-  top: 6%;
-  right: 4%;
-  width: calc(var(--card-w) * 1.15);
-  height: calc(var(--card-w) * 1.3);
-  border-radius: 10px;
-  background: #120e0b;
+  top: calc(var(--card-h) * 0.23);
+  right: calc(var(--card-w) * 0.33);
+  width: calc(var(--card-w) * 0.95);
+  height: calc(var(--card-h) * 0.78);
   border: 1.5px solid rgb(217 181 108 / 0.55);
+  border-radius: calc(var(--card-w) * 0.1);
+  background: #120e0b;
+  box-shadow:
+    inset 0 0 0 3.5px #120e0b,
+    inset 0 0 0 4.5px rgb(217 181 108 / 0.18);
 }
 
 .cg-dom-cards__shoe.is-shuffling {
   animation: cg-shoe-shuffle 300ms ease-in-out 3;
 }
 
+/* Reduced motion: the shoe stays still; the counter and the announcement
+   tell of the shuffle. */
+@media (prefers-reduced-motion: reduce) {
+  .cg-dom-cards__shoe.is-shuffling {
+    animation: none;
+  }
+}
+
 .cg-dom-cards__counter {
   position: absolute;
-  top: calc(6% + var(--card-w) * 1.3 + 6px);
-  right: 4%;
-  width: calc(var(--card-w) * 1.15);
-  text-align: center;
+  top: calc(var(--card-h) * 1.01 + 6px);
+  right: calc(var(--card-w) * 0.81);
+  translate: 50% 0;
+  white-space: nowrap;
   font-size: 11px;
   font-weight: 600;
   color: var(--ink-300);
@@ -51,7 +101,7 @@
 .cg-dom-cards__label {
   position: absolute;
   left: var(--x);
-  top: calc(var(--y) + var(--card-w) * 0.7 + 10px);
+  top: calc(var(--y) + var(--card-h) / 2 + 10px);
   translate: -50% 0;
   font-family: var(--font-display);
   font-size: 12px;
@@ -63,8 +113,9 @@
 
 .cg-dom-card {
   position: absolute;
-  left: calc(100% - var(--card-w) * 1.2);
-  top: 10%;
+  /* Dealt from the mouth of the shoe. */
+  left: calc(100% - var(--card-w) * 1.33);
+  top: calc(var(--card-h) * 0.65);
   width: var(--card-w);
   aspect-ratio: 5 / 7;
   translate: -50% -50%;

@@ -52,6 +52,10 @@
   text-shadow: 0 1px 0 rgb(0 0 0 / 0.18);
 }
 
+.cg-chip__label::before {
+  content: attr(data-value);
+}
+
 .cg-chip[data-tone='50'] {
   --chip-face: var(--chip-50-face);
   --chip-edge: var(--chip-50-edge);

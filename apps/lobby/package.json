@@ -2,7 +2,7 @@
   "name": "@casinogames/lobby",
   "version": "0.1.0",
   "private": true,
-  "description": "The demo site: a lobby of four original table games and a component playground.",
+  "description": "The Roll & Deal demo site: a lobby of four original table games and a component playground.",
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {

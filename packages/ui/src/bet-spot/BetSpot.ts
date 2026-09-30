@@ -63,6 +63,8 @@ export class BetSpot {
         'span',
         { class: 'cg-bet-spot__text', 'aria-hidden': 'true' },
         h('span', { class: 'cg-bet-spot__label' }, options.label),
+        // The grid lays the two out; the space keeps their words apart in the text.
+        options.caption === undefined ? null : ' ',
         options.caption === undefined
           ? null
           : h('span', { class: 'cg-bet-spot__caption' }, options.caption),
@@ -114,10 +116,10 @@ export class BetSpot {
   setResult(line: Pick<SettlementLine, 'outcome' | 'net'> | null): void {
     if (line === null) {
       delete this.element.dataset.result;
-      this.#result.textContent = '';
+      this.#result.dataset.value = '';
     } else {
       this.element.dataset.result = line.outcome;
-      this.#result.textContent =
+      this.#result.dataset.value =
         line.outcome === 'win' ? formatCents(line.net, { sign: true }) : '';
     }
     this.#renderLabel();
@@ -230,17 +232,23 @@ export class BetSpot {
       }),
     );
     this.element.dataset.state = this.#amount > 0 ? 'filled' : 'empty';
-    this.#amountText.textContent = this.#amount > 0 ? formatCents(this.#amount) : '';
+    this.#amountText.dataset.value = this.#amount > 0 ? formatCents(this.#amount) : '';
     this.#renderLabel();
   }
 
+  /**
+   * The spot's name: the words on it (its label and caption), as they read,
+   * then what its chips and figures show, which the stylesheet draws.
+   */
   #renderLabel(): void {
-    const { label, max } = this.#options;
+    const { label, caption, max } = this.#options;
     const stake = this.#amount > 0 ? formatCents(this.#amount) : 'no bet';
     const result = this.element.dataset.result;
+    const net = this.#result.dataset.value ?? '';
+    const outcome = result === undefined ? '' : `, ${result}${net === '' ? '' : ` ${net}`}`;
     this.element.setAttribute(
       'aria-label',
-      `${label}: ${stake}${result === undefined ? '' : `, ${result}`}. ` +
+      `${label}${caption === undefined ? '' : `, ${caption}`}: ${stake}${outcome}. ` +
         `Maximum ${formatCents(max)}. Tap to add the selected chip; long press or Delete to clear.`,
     );
   }

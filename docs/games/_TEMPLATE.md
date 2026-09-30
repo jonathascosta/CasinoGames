@@ -1,6 +1,6 @@
 # Game name
 
-_“English gloss”_ · original table game · **status: …**
+_The game in one line_ · original table game · **status: …**
 
 Copy this file to `docs/games/<slug>.md` for a new game. The sections below are
 the ones every game sheet has; the in-game Rules dialog renders this file.

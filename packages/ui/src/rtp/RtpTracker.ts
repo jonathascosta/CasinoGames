@@ -49,6 +49,21 @@ export interface RtpTrackerOptions {
 }
 
 const EMPTY: RtpStats = { rounds: 0, staked: 0, returned: 0, fees: 0, bets: {} };
+
+/** Where a game's RTP stats are kept, beside the bankroll, settings and meters. */
+export function rtpKey(gameId: string): string {
+  return `rtp:${gameId}`;
+}
+
+/** A game's stored RTP stats, empty when nothing (or nothing valid) is stored. */
+export function readRtpStats(storage: SafeStorage, gameId: string): RtpStats {
+  return storage.read(rtpKey(gameId), parseStats, EMPTY);
+}
+
+/** Forgets a game's stored RTP stats; its monitor starts again from zero. */
+export function clearRtpStats(storage: SafeStorage, gameId: string): void {
+  storage.remove(rtpKey(gameId));
+}
 const MAX_SAMPLES = 160;
 const SAVE_DELAY_MS = 400;
 
@@ -65,9 +80,9 @@ export class RtpTracker {
   #saveTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor({ gameId, storage }: RtpTrackerOptions) {
-    this.#key = `rtp:${gameId}`;
+    this.#key = rtpKey(gameId);
     this.#storage = storage;
-    this.#store = createStore(storage?.read(this.#key, parseStats, EMPTY) ?? EMPTY);
+    this.#store = createStore(storage === undefined ? EMPTY : readRtpStats(storage, gameId));
   }
 
   get stats(): RtpStats {
@@ -158,9 +173,9 @@ function isCount(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
-/** Fees arrived with Trancar: stats stored before then have none, which reads as zero. */
+/** A fees total: every stored tally has one, zero when nothing was charged. */
 function parseFees(fees: unknown): number | undefined {
-  return fees === undefined ? 0 : isCount(fees) ? fees : undefined;
+  return isCount(fees) ? fees : undefined;
 }
 
 function parseTally(value: unknown): BetTally | undefined {

@@ -8,7 +8,7 @@ import './progressive-meter.css';
 export interface ProgressiveMeterOptions {
   /** The amount shown, in cents; the meter follows it. */
   readonly store: Store<Cents>;
-  /** e.g. "6-6 vs 6-6 progressive". */
+  /** e.g. "Double Sixes progressive". */
   readonly label: string;
   /** A line under the amount, e.g. how the meter is fed. */
   readonly caption?: string;

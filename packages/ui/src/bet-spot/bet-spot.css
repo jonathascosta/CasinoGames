@@ -97,6 +97,12 @@
   border: 1.5px dashed rgb(221 189 119 / 0.22);
 }
 
+/* The stake and a win are drawn from data-value: the spot's name says them. */
+.cg-bet-spot__amount::before,
+.cg-bet-spot__result::before {
+  content: attr(data-value);
+}
+
 .cg-bet-spot__amount {
   min-height: 18px;
   font-size: 13px;
@@ -162,7 +168,7 @@
     0 0 28px 2px var(--spot-glow);
 }
 
-.cg-bet-spot[data-result='win'] .cg-bet-spot__result:not(:empty) {
+.cg-bet-spot[data-result='win'] .cg-bet-spot__result:not([data-value='']) {
   animation: cg-result-pop var(--dur-3) var(--ease-spring) forwards;
 }
 
@@ -180,6 +186,21 @@
 
 .cg-bet-spot.is-rejected {
   animation: cg-shake 320ms var(--ease-out);
+}
+
+/* Reduced motion: the refusal flashes instead of shaking (and still ends,
+   for the animationend that clears it). */
+@media (prefers-reduced-motion: reduce) {
+  .cg-bet-spot.is-rejected {
+    animation-name: cg-refuse;
+  }
+}
+
+@keyframes cg-refuse {
+  30% {
+    border-color: var(--lose);
+    box-shadow: 0 0 0 2px var(--lose);
+  }
 }
 
 @keyframes cg-chip-drop {

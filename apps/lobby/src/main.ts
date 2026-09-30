@@ -15,10 +15,14 @@ const services = createServices();
 const router = createRouter({
   outlet,
   base: import.meta.env.BASE_URL,
-  titleSuffix: ' · Original Table Games',
+  titleSuffix: ' · Roll & Deal',
   notFound: ({ router: r }) => notFoundPage(services, r),
   routes: [
     { path: '/', load: ({ router: r }) => lobbyPage(services, r) },
+    {
+      path: '/stats',
+      load: async ({ router: r }) => (await import('./pages/stats.ts')).statsPage(services, r),
+    },
     {
       path: '/:slug',
       // Tables load on demand: the lobby never downloads table code or PixiJS.

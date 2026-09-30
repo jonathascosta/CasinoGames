@@ -43,8 +43,13 @@ export interface TableOptions {
   /** Draws every outcome. Defaults to the platform CSPRNG. */
   readonly rng?: Rng;
   readonly motion?: Motion;
-  /** 'dom' skips PixiJS (tests, very old devices). */
-  readonly renderer?: 'auto' | 'dom';
+  /**
+   * How the dice and cards are drawn. By default ('deferred') the table
+   * opens with CSS dice and DOM cards, loads PixiJS on the player's first
+   * pointer or key press, and moves to it at the next round; 'auto' uses
+   * PixiJS from the start; 'dom' never loads it (tests, very old devices).
+   */
+  readonly renderer?: 'auto' | 'deferred' | 'dom';
   /** Extra buttons for the wallet row (rules, paytable). */
   readonly tools?: readonly HTMLElement[];
 }
@@ -95,7 +100,7 @@ export interface TableGame<
   TChoice extends string = never,
   TData = undefined,
 > {
-  /** Accessible name of the table, e.g. "Entre Dados table". */
+  /** Accessible name of the table, e.g. "Dice Spread table". */
   readonly label: string;
   /** Extra class on the table element, for the game's layout. */
   readonly className: string;
@@ -121,7 +126,7 @@ export interface TableGame<
    * Plays the round on the view, from the first step the engine returned;
    * in a game with decisions, it asks for them and makes them through
    * round.decide(). Resolves once the round is settled with what it showed,
-   * for the result line ("Card 3 · Entre wins"), or ''.
+   * for the result line ("Card 3 · Between wins"), or ''.
    */
   playRound(
     state: RoundState<TChoice, TData, TEvent>,
@@ -208,11 +213,13 @@ export class DiceTable<
   } | null = null;
   /** The last round's summary, shown until the bets change. */
   #result: string | null = null;
-  /** What the round just played showed ("Card 3 · Entre wins"). */
+  /** What the round just played showed ("Card 3 · Between wins"). */
   #reveal = '';
   #notice: string | null = null;
   /** True while the table itself places chips (the opening bet): no chip sound. */
   #placing = false;
+  /** The player has interacted: PixiJS may load (see TableOptions.renderer). */
+  #enhance = false;
 
   constructor(options: TableOptions, table: TableGame<TBetId, TEvent, TChoice, TData>) {
     this.#table = table;
@@ -288,6 +295,7 @@ export class DiceTable<
 
     this.#roll.addEventListener('click', () => this.#roller?.requestThrow());
     this.#clear.addEventListener('click', () => {
+      if (this.#clear.getAttribute('aria-disabled') === 'true') return;
       for (const spot of this.#spots()) spot.clear();
     });
     const settleNow = () => {
@@ -312,7 +320,23 @@ export class DiceTable<
       this.#placing = false;
     }
     this.#refresh();
-    this.ready = this.#init(options.renderer ?? 'auto');
+    // PixiJS loads on the first touch, click or key press anywhere on the
+    // page, not with it: the table opens without it, and the dice and cards
+    // move to it at the next round.
+    const interact = () => {
+      stopWaiting();
+      this.#enhance = true;
+      void this.#roller?.enhance();
+      void this.#dealer?.enhance();
+    };
+    const stopWaiting = () => {
+      document.removeEventListener('pointerdown', interact, true);
+      document.removeEventListener('keydown', interact, true);
+    };
+    document.addEventListener('pointerdown', interact, { capture: true, passive: true });
+    document.addEventListener('keydown', interact, true);
+    this.#unsubscribe.push(stopWaiting);
+    this.ready = this.#init(options.renderer ?? 'deferred');
   }
 
   get phase(): TablePhase {
@@ -426,7 +450,7 @@ export class DiceTable<
     this.element.remove();
   }
 
-  async #init(renderer: 'auto' | 'dom'): Promise<void> {
+  async #init(renderer: 'auto' | 'deferred' | 'dom'): Promise<void> {
     const { sound } = this.#services;
     const table = this.#table;
     const [roller, dealer] = await Promise.all([
@@ -436,7 +460,6 @@ export class DiceTable<
         sound,
         renderer,
         initial: table.initialDice,
-        label: 'Roll the dice',
         onThrow: (power) => void this.play(power),
       }),
       CardDealer.create({
@@ -455,6 +478,10 @@ export class DiceTable<
     }
     this.#roller = roller;
     this.#dealer = dealer;
+    if (this.#enhance) {
+      void roller.enhance();
+      void dealer.enhance();
+    }
     dealer.setShoe(table.shoe.remaining(), table.shoe.size(), table.shoe.isCutCardOut());
     this.#phase = 'betting';
     this.#refresh();
@@ -592,10 +619,13 @@ export class DiceTable<
     const betting = this.#phase === 'betting';
     const problem = this.#problem();
     const ready = betting && problem === null && !running;
-    this.#roll.disabled = !ready;
+    // Unavailable rather than disabled: a disabled button drops the keyboard
+    // focus to the page as a round starts or the bets clear. (Roll throws
+    // only when the dice are armed.)
+    this.#roll.setAttribute('aria-disabled', String(!ready));
     if (ready) this.#roller?.arm();
     else this.#roller?.disarm();
-    this.#clear.disabled = !betting || running || this.#total() === 0;
+    this.#clear.setAttribute('aria-disabled', String(!betting || running || this.#total() === 0));
     this.#betTotal.textContent = formatCents(this.#total());
     // Autoplay starts between rounds only; a running autoplay can always be stopped.
     this.#autoplay.setDisabled(!betting || problem !== null);

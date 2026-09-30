@@ -359,7 +359,7 @@ export interface DecisionSummary {
 export interface StrategyCard {
   /** What a row is, e.g. "Roll". */
   readonly situation: string;
-  /** The choices compared, e.g. ["Ficar", "Trancar"]. */
+  /** The choices compared, e.g. ["Stand", "Lock"]. */
   readonly choices: readonly string[];
   /** What the values measure, e.g. "net result per unit of the main bet, fees included". */
   readonly measure: string;
@@ -391,7 +391,7 @@ export interface StrategyFigures {
   readonly hitFrequency: number;
   /** Standard deviation of the net result per unit of the main bet, fees included. */
   readonly standardDeviation: number;
-  /** How often the strategy makes each choice other than standing, e.g. "Trancar". */
+  /** How often the strategy makes each choice other than standing, e.g. "Lock". */
   readonly choiceFrequencies: readonly { readonly choice: string; readonly frequency: number }[];
   /** Chance per round of paying a fee. */
   readonly feeFrequency: number;

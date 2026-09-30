@@ -1,4 +1,4 @@
-import { createSeededRng, type DicePair } from '@casinogames/engine';
+import { createSeededRng, type DicePair, type Rng } from '@casinogames/engine';
 import type { SoundEngine } from '../audio/SoundEngine.ts';
 import { Disposer, h } from '../dom/h.ts';
 import { icon } from '../dom/icons.ts';
@@ -20,10 +20,21 @@ export interface DiceRollerOptions {
    * Rng and hands it to roll().
    */
   readonly onThrow?: (power: number) => void;
-  /** 'dom' forces the fallback renderer (tests, very old devices). */
-  readonly renderer?: 'auto' | 'dom';
+  /**
+   * 'auto' (the default) draws PixiJS 3D dice from the start. 'deferred'
+   * starts with the CSS dice and moves to PixiJS at the first throw after
+   * enhance(), so a page can load without PixiJS. 'dom' keeps the CSS dice
+   * (tests, very old devices).
+   */
+  readonly renderer?: DiceRenderer;
+  /**
+   * The tray's accessible name. Keep the words of its hint, "Tap or hold to
+   * roll", in it: speech control users say what they see.
+   */
   readonly label?: string;
 }
+
+export type DiceRenderer = 'auto' | 'deferred' | 'dom';
 
 /** A die of the pair, by position. */
 export type DieIndex = 0 | 1;
@@ -42,6 +53,23 @@ export interface RollOptions {
   readonly keep?: readonly [boolean, boolean];
 }
 
+/** PixiJS 3D dice drawn in `stage`, or null where they cannot start. */
+async function loadPixiDice(
+  stage: HTMLElement,
+  dice: DicePair,
+  rng: Rng,
+): Promise<DiceView | null> {
+  try {
+    const { createPixiDiceView } = await import('../pixi/dice-view.ts');
+    return await createPixiDiceView(stage, dice, rng);
+  } catch (error) {
+    console.warn('3D dice unavailable, using the CSS fallback.', error);
+    return null;
+  }
+}
+
+/** What the tray shows while the player can throw. */
+const HINT = 'Tap or hold to roll';
 /** The smallest tap target over a die, in CSS pixels. */
 const MIN_PICK = 48;
 const FULL_HOLD_MS = 1_200;
@@ -54,14 +82,23 @@ const THROW_MS = 1_250;
  * result the engine drew. Rendering is delegated to a DiceView — PixiJS 3D
  * dice when available, loaded on demand, else flat CSS dice.
  *
- * For a choice made by pointing at a die (Trancar's lock), offerDice() lays
+ * For a choice made by pointing at a die (Lock & Roll's lock), offerDice() lays
  * a button over each die, in the host (which must be positioned), beside
  * the tray: the tray itself is a button.
  */
 export class DiceRoller {
   readonly element: HTMLDivElement;
   readonly #options: DiceRollerOptions;
-  readonly #view: DiceView;
+  #view: DiceView;
+  /** The element the view draws in. */
+  #stage: HTMLElement;
+  /** The dice showing: where a view that takes over starts from. */
+  #dice: DicePair;
+  readonly #cosmetic: Rng;
+  /** enhance(): loading the PixiJS dice, then ready to take over at the next throw. */
+  #enhancing: Promise<void> | null = null;
+  #upgrade: { readonly view: DiceView; readonly stage: HTMLElement } | null = null;
+  #destroyed = false;
   readonly #motion: Motion;
   /** Outside the tray: a role="button" hides its descendants from assistive tech. */
   readonly #announcer: HTMLSpanElement;
@@ -77,14 +114,22 @@ export class DiceRoller {
 
   private constructor(
     options: DiceRollerOptions,
-    element: HTMLDivElement,
-    view: DiceView,
-    announcer: HTMLSpanElement,
+    parts: {
+      readonly element: HTMLDivElement;
+      readonly stage: HTMLElement;
+      readonly view: DiceView;
+      readonly dice: DicePair;
+      readonly cosmetic: Rng;
+      readonly announcer: HTMLSpanElement;
+    },
   ) {
     this.#options = options;
-    this.element = element;
-    this.#view = view;
-    this.#announcer = announcer;
+    this.element = parts.element;
+    this.#stage = parts.stage;
+    this.#view = parts.view;
+    this.#dice = parts.dice;
+    this.#cosmetic = parts.cosmetic;
+    this.#announcer = parts.announcer;
     this.#motion = options.motion ?? defaultMotion;
     this.#bindEvents();
     this.disarm();
@@ -93,32 +138,50 @@ export class DiceRoller {
   static async create(options: DiceRollerOptions): Promise<DiceRoller> {
     const initial = options.initial ?? [5, 2];
     const cosmetic = createSeededRng('dice-cosmetics');
-    const hint = h(
-      'span',
-      { class: 'cg-dice-tray__hint', 'aria-hidden': 'true' },
-      'Tap or hold to roll',
-    );
+    const hint = h('span', { class: 'cg-dice-tray__hint', 'aria-hidden': 'true' }, HINT);
     const stage = h('div', { class: 'cg-dice-tray__stage' });
     const element = h(
       'div',
-      { class: 'cg-dice-tray', role: 'button', 'aria-label': options.label ?? 'Roll the dice' },
+      {
+        class: 'cg-dice-tray',
+        role: 'button',
+        'aria-label': options.label ?? `${HINT} the dice`,
+      },
       stage,
       hint,
     );
     const announcer = h('span', { class: 'cg-sr-only', 'aria-live': 'polite' });
     options.host.append(element, announcer);
 
-    let view: DiceView | null = null;
-    if (options.renderer !== 'dom') {
-      try {
-        const { createPixiDiceView } = await import('../pixi/dice-view.ts');
-        view = await createPixiDiceView(stage, initial, cosmetic);
-      } catch (error) {
-        console.warn('3D dice unavailable, using the CSS fallback.', error);
+    const view =
+      ((options.renderer ?? 'auto') === 'auto'
+        ? await loadPixiDice(stage, initial, cosmetic)
+        : null) ?? createDomDiceView(stage, initial, cosmetic);
+    return new DiceRoller(options, { element, stage, view, dice: initial, cosmetic, announcer });
+  }
+
+  /**
+   * With the 'deferred' renderer, loads the PixiJS dice in the background;
+   * they take over from the CSS dice at the next throw (not while a die is
+   * kept). Call it on the player's first interaction. Resolves once they are
+   * ready, or unavailable; does nothing more when called again, or with
+   * another renderer.
+   */
+  enhance(): Promise<void> {
+    if (this.#options.renderer !== 'deferred' || this.#destroyed) return Promise.resolve();
+    this.#enhancing ??= (async () => {
+      // Drawn out of sight, beside the CSS dice, until it takes over.
+      const stage = h('div', { class: 'cg-dice-tray__stage is-pending' });
+      this.#stage.after(stage);
+      const view = await loadPixiDice(stage, this.#dice, this.#cosmetic);
+      if (view === null || this.#destroyed) {
+        view?.destroy();
+        stage.remove();
+        return;
       }
-    }
-    view ??= createDomDiceView(stage, initial, cosmetic);
-    return new DiceRoller(options, element, view, announcer);
+      this.#upgrade = { view, stage };
+    })();
+    return this.#enhancing;
   }
 
   get armed(): boolean {
@@ -153,8 +216,10 @@ export class DiceRoller {
    * `keep` stay where they lie: a locked die while the other is re-rolled.
    */
   async roll(dice: DicePair, { power = 0.55, keep }: RollOptions = {}): Promise<void> {
+    if (keep?.[0] !== true && keep?.[1] !== true) this.#adoptUpgrade();
     const level = this.#motion.level;
     const sound = this.#options.sound;
+    this.#dice = dice;
     await this.#view.throw(dice, {
       power,
       duration: this.#motion.duration(THROW_MS * (0.85 + 0.3 * power)),
@@ -233,16 +298,36 @@ export class DiceRoller {
 
   /** Shows the dice at rest without animation. */
   show(dice: DicePair): void {
+    this.#dice = dice;
     this.#view.show(dice);
   }
 
   destroy(): void {
+    this.#destroyed = true;
     this.#cancelHold();
     this.withdrawDice();
     this.#disposer.dispose();
+    this.#upgrade?.view.destroy();
+    this.#upgrade = null;
     this.#view.destroy();
     this.element.remove();
     this.#announcer.remove();
+  }
+
+  /**
+   * The PixiJS dice loaded by enhance() take over, showing the same faces:
+   * at a throw of both dice, so the change passes with the throw.
+   */
+  #adoptUpgrade(): void {
+    const upgrade = this.#upgrade;
+    if (upgrade === null || this.#hold !== null || this.#picks !== null) return;
+    this.#upgrade = null;
+    upgrade.view.show(this.#dice);
+    this.#view.destroy();
+    this.#stage.remove();
+    upgrade.stage.classList.remove('is-pending');
+    this.#view = upgrade.view;
+    this.#stage = upgrade.stage;
   }
 
   #bindEvents(): void {
@@ -257,7 +342,8 @@ export class DiceRoller {
         const hold = this.#hold;
         if (hold === null) return;
         const intensity = Math.min(1, (now - hold.start) / FULL_HOLD_MS);
-        this.#view.hold(Math.max(0.05, intensity));
+        // With reduced motion the held dice stay put; the shake is heard.
+        if (this.#motion.level !== 'reduced') this.#view.hold(Math.max(0.05, intensity));
         if (now - hold.lastShake > 170 - intensity * 60) {
           hold.lastShake = now;
           this.#options.sound?.play('dice-shake');
