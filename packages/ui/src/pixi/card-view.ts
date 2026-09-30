@@ -1,9 +1,9 @@
 import { isRed, rankLabel, type Card, type Suit } from '@casinogames/engine';
 import { formatCount } from '../format/format.ts';
 import { Container, Graphics, Text } from 'pixi.js';
-import type { CardView, HandLayout, ShoeDisplay } from '../cards/card-view.ts';
 import { readCssColor, shade } from '../dom/css.ts';
 import { easeInOutCubic, easeOutCubic } from '../motion/motion.ts';
+import { handStep, type CardView, type HandLayout, type ShoeDisplay } from '../cards/card-view.ts';
 import { createPixiHost } from './host.ts';
 
 interface Palette {
@@ -83,10 +83,12 @@ export async function createPixiCardView(
     if (hand === undefined || cards === undefined) throw new RangeError(`Unknown hand "${id}"`);
     return { hand, cards };
   };
+  /** Cards overlap more as a hand grows, so it stays clear of the table's edge and the shoe. */
   const slot = (hand: HandLayout, index: number, count: number): Pose => {
     const { w } = cardSize();
+    const centre = hand.x * host.width;
     return {
-      x: hand.x * host.width + (index - (count - 1) / 2) * w * 0.66,
+      x: centre + (index - (count - 1) / 2) * handStep(centre, host.width, w, count),
       y: hand.y * host.height,
       rotation: ((((index * 37) % 7) - 3) * Math.PI) / 360,
       scale: 1,

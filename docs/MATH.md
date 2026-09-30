@@ -57,6 +57,7 @@ exercise decisions and added stakes, not to be a good game.
 | `hitFrequency`        | Chance that the bet wins, given that it is made                                                                                                                                                                                                             |
 | `pushFrequency`       | Chance that the stake is simply returned, given that the bet is made                                                                                                                                                                                        |
 | `maxExposure`         | Largest net win per unit staked, from the fixed-odds entries: the house's worst case per unit                                                                                                                                                               |
+| `breakdown`           | For a bet whose lines name the condition they are paid under (Alvo Móvel's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                |
 | `standardDeviation` σ | Standard deviation of (payout − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
 
 The exact enumerator and the simulator use the same definitions, so their figures are directly
@@ -90,6 +91,13 @@ comparable.
   penetration. The [Entre Dados sheet](games/entre-dados.md#card-counting) is the worked example:
   its counting exposure is computed exactly, as a hypergeometric sum over the rounds of a shoe,
   and asserted by a test.
+- **When the finite shoe changes the long run.** One card per round, with a fixed number of rounds
+  per shoe (Entre Dados), leaves the long-run RTP equal to the infinite shoe's. Several cards per
+  round do not: within a round the cards are drawn without replacement, and the number of rounds a
+  shoe deals depends on its cards. The [Alvo Móvel sheet](games/alvo-movel.md#the-six-deck-shoe)
+  is the worked example. It computes the first round after a shuffle exactly (a recursion over the
+  values drawn from a full shoe), simulates the long run, and publishes both per bet and per
+  target.
 
 ## Exact method
 
@@ -137,6 +145,11 @@ Entre Dados deals from its real six-deck shoe: one card per round and a fixed nu
 shoe keep its long-run RTP equal to the infinite-shoe figure, and the run checks the shoe's
 reshuffles and cut card along the way.
 
+Where the real shoe returns different figures, as in Alvo Móvel, the check against the declared
+RTP runs on an infinite shoe, the source the figures assume, through the production game. A second
+seeded run on the real shoe then measures each bet's shift, sized to the precision wanted rather
+than to the ±0.15 pp tolerance, bounds it, and prints the table the game sheet publishes.
+
 ### Sizing the run
 
 A fixed round count does not give a fixed confidence. The standard error of a simulated RTP is
@@ -155,19 +168,23 @@ two-sided confidence (`roundsForTolerance`):
 
 σ is taken from the exact report, so the suite sizes itself.
 
-| Bet                              |     σ | Rounds needed |
-| :------------------------------- | ----: | ------------: |
-| Any even-money bet               | 1.000 |     4,810,712 |
-| Dice fixture, Over 7             | 0.986 |     4,677,081 |
-| Dice fixture, Doubles (9 to 2)   | 2.050 |    20,211,669 |
-| War fixture, Ante                | 0.938 |     4,235,501 |
-| War fixture, Play (made in 6/13) | 0.796 |     6,599,310 |
-| Entre Dados, Triplo (30 to 1)    | 5.094 |   124,852,059 |
+| Bet                                    |     σ | Rounds needed |
+| :------------------------------------- | ----: | ------------: |
+| Any even-money bet                     | 1.000 |     4,810,712 |
+| Dice fixture, Over 7                   | 0.986 |     4,677,081 |
+| Dice fixture, Doubles (9 to 2)         | 2.050 |    20,211,669 |
+| War fixture, Ante                      | 0.938 |     4,235,501 |
+| War fixture, Play (made in 6/13)       | 0.796 |     6,599,310 |
+| Entre Dados, Triplo (30 to 1)          | 5.094 |   124,852,059 |
+| Alvo Móvel, Primeira Carta (9 to 1)    | 2.886 |    40,055,852 |
+| Alvo Móvel, six-deck shift to ±0.07 pp | 2.886 |   183,929,931 |
 
 A run covers all bets of a game at once, sized by its most demanding bet. The dice suite plays
 20,211,669 rounds. The war suite plays 9,176,919: the ante's requirement divided by the play bet's
-frequency. The Entre Dados suite plays 124,852,059 rounds, sized by Triplo. On a CI runner the
-whole `pnpm test:math` takes about three minutes.
+frequency. The Entre Dados suite plays 124,852,059 rounds, sized by Triplo. The Alvo Móvel suite
+on an infinite shoe plays 40,055,852 rounds, sized by Primeira Carta; its six-deck run plays
+183,929,931, enough to measure each shift to ±0.07 pp at 3.29 standard errors. The suites run in
+parallel; on a CI runner the whole `pnpm test:math` takes about four minutes.
 
 ### What it catches
 
@@ -235,8 +252,10 @@ keeps that accounting exact.
 2. Exact test: `exactReturns` equals the declared fraction for every bet and for the game, under
    the reference strategy.
 3. Monte Carlo test: seeded, rounds sized as above, every bet within ±0.15 pp and every hit and
-   push frequency within 3.29 binomial standard errors.
+   push frequency within 3.29 binomial standard errors, on the card source the declared figures
+   assume.
 4. Finite shoe: simulate the real `Shoe` with its cut card and report the difference if it is
-   material; when a bet depends on the composition, measure its card counting exposure.
+   material (Alvo Móvel publishes it per bet and per target); when a bet depends on the
+   composition, measure its card counting exposure.
 5. Register the game in `packages/engine/src/games`, run `pnpm docs:sheets`, and commit the
    regenerated sheet. CI's `pnpm docs:check` keeps it in sync from then on.

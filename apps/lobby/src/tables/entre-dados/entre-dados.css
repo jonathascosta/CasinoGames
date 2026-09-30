@@ -1,42 +1,6 @@
-/* Entre Dados table. Mobile first: one column; two columns from 760 px wide
-   and on phones held sideways. */
-
-.ed-main {
-  display: grid;
-  gap: 12px;
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 12px max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
-}
-
-/* The table surface. */
-.ed-table {
-  display: grid;
-  grid-template-areas:
-    'view'
-    'felt'
-    'controls';
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: 28px;
-  background:
-    radial-gradient(120% 70% at 50% 0%, rgb(255 255 255 / 0.06), transparent 60%),
-    radial-gradient(90% 60% at 50% 100%, rgb(0 0 0 / 0.28), transparent 70%), var(--felt-700);
-  box-shadow:
-    inset 0 0 0 6px rgb(3 14 9 / 0.35),
-    inset 0 0 0 7px rgb(221 189 119 / 0.12),
-    var(--shadow-2);
-}
-
-/* What the player watches: the dice, the dealer's card and the strip. */
-.ed-view {
-  grid-area: view;
-  display: grid;
-  align-content: start;
-  gap: 10px;
-}
+/* Entre Dados: the stage (dice and the dealer's card side by side), the
+   1–6 strip and the felt's layout. The shared table styles are in
+   ../table.css. */
 
 /* Dice and dealer's card side by side. */
 .ed-stage {
@@ -44,31 +8,6 @@
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: 8px;
   height: clamp(140px, 19svh, 250px);
-  /* Room for the sticky top bar when a round scrolls the stage into view. */
-  scroll-margin-top: 76px;
-}
-
-.ed-stage__dice,
-.ed-stage__card {
-  position: relative;
-  height: 100%;
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: radial-gradient(90% 80% at 50% 40%, rgb(255 255 255 / 0.04), rgb(0 0 0 / 0.22));
-  overflow: hidden;
-}
-
-.ed-stage .cg-dice-tray,
-.ed-stage .cg-card-table {
-  min-height: 0;
-}
-
-.ed-stage .cg-dice-tray__hint {
-  bottom: 8px;
-  padding: 4px 10px;
-  font-size: 10px;
-  letter-spacing: 0.08em;
 }
 
 /* The 1–6 strip. */
@@ -254,17 +193,8 @@
 }
 
 /* The felt: Entre in the centre, the side bets around it. Narrow felts put
-   two side bets above Entre and two below, with the chips beside the text;
-   wide ones put them in the four corners. */
-.ed-felt {
-  grid-area: felt;
-  container-type: inline-size;
-  padding: 10px;
-  border: 1.5px solid rgb(221 189 119 / 0.3);
-  border-radius: 24px;
-  background: radial-gradient(90% 70% at 50% 40%, rgb(255 255 255 / 0.05), transparent 70%);
-}
-
+   two side bets above Entre and two below; wide ones put them in the four
+   corners. */
 .ed-felt__layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -301,78 +231,6 @@
   grid-area: triplo;
 }
 
-.ed-felt .cg-bet-spot {
-  width: 100%;
-  min-width: 0;
-  height: 100%;
-  /* Text on the left, chips on the right. */
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto;
-  grid-template-areas:
-    'text stack'
-    'amount stack';
-  justify-items: start;
-  column-gap: 8px;
-  min-height: 0;
-  padding: 10px 12px;
-}
-
-.ed-felt .cg-bet-spot__text {
-  grid-area: text;
-  justify-items: start;
-  text-align: left;
-}
-
-.ed-felt .cg-bet-spot__stack {
-  grid-area: stack;
-}
-
-.ed-felt .cg-bet-spot__amount {
-  grid-area: amount;
-  min-height: 16px;
-}
-
-.ed-felt .cg-bet-spot[data-variant='side'] {
-  grid-template-areas: 'text stack';
-  min-height: 62px;
-  padding: 8px 10px;
-}
-
-/* The chips show the stake; the spot's accessible name still says it. */
-.ed-felt .cg-bet-spot[data-variant='side'] .cg-bet-spot__amount {
-  display: none;
-}
-
-.ed-felt .cg-bet-spot[data-variant='main'] {
-  min-height: 78px;
-  padding: 8px 12px;
-}
-
-.ed-felt .cg-bet-spot[data-variant='side'] .cg-bet-spot__label {
-  font-size: 12.5px;
-  letter-spacing: 0.04em;
-  line-height: 1.15;
-}
-
-.ed-felt .cg-bet-spot[data-variant='side'] .cg-bet-spot__caption {
-  font-size: 10.5px;
-  line-height: 1.25;
-}
-
-.ed-felt .cg-bet-spot[data-variant='side'] .cg-bet-spot__stack {
-  width: 36px;
-  height: 42px;
-}
-
-.ed-felt .cg-bet-spot[data-variant='side'] .cg-chip {
-  --chip-size: 32px;
-}
-
-.ed-felt .cg-bet-spot[data-variant='main'] .cg-bet-spot__label {
-  font-size: 19px;
-  letter-spacing: 0.16em;
-}
-
 @container (min-width: 520px) {
   .ed-felt__layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
@@ -381,231 +239,16 @@
       'dobros entre triplo'
       'pay pay pay';
   }
-
-  /* Stacked, as the kit lays spots out by default. */
-  .ed-felt .cg-bet-spot {
-    grid-template-columns: none;
-    grid-template-rows: auto 1fr auto;
-    grid-template-areas:
-      'text'
-      'stack'
-      'amount';
-    justify-items: center;
-  }
-
-  .ed-felt .cg-bet-spot__text {
-    justify-items: center;
-    text-align: center;
-  }
-
-  .ed-felt .cg-bet-spot[data-variant='side'] {
-    grid-template-areas:
-      'text'
-      'stack'
-      'amount';
-    min-height: 120px;
-  }
-
-  .ed-felt .cg-bet-spot[data-variant='side'] .cg-bet-spot__amount {
-    display: block;
-  }
 }
 
-/* What the roll means before the card turns. */
-.ed-felt .cg-bet-spot[data-outlook='live'] {
-  --spot-line: var(--gold-300);
-  --spot-glow: rgb(221 189 119 / 0.3);
-  box-shadow:
-    inset 0 0 0 5px rgb(3 14 9 / 0.35),
-    inset 0 0 0 6px rgb(221 189 119 / 0.2),
-    0 0 22px 1px var(--spot-glow);
-}
-
-.ed-felt .cg-bet-spot[data-outlook='won'] {
-  --spot-line: var(--win);
-}
-
-.ed-felt .cg-bet-spot[data-outlook='push'] {
-  --spot-line: var(--push);
-}
-
-.ed-felt .cg-bet-spot[data-outlook='out'] {
-  opacity: 0.5;
-}
-
-/* Entre's paytable, printed on the felt. */
-.ed-paytable {
-  grid-area: pay;
-  width: 100%;
-  border-collapse: collapse;
-  color: var(--gold-300);
-  font-family: var(--font-display);
-  font-size: clamp(11px, 3vw, 13px);
-  letter-spacing: 0.08em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.ed-paytable th {
-  padding: 3px 6px 3px 2px;
-  color: var(--gold-500);
-  font-size: 0.85em;
-  font-weight: 600;
-  text-align: left;
-}
-
-.ed-paytable td {
-  padding: 3px 2px;
-  border-left: 1px solid rgb(221 189 119 / 0.18);
-  white-space: nowrap;
-  transition:
-    background-color var(--dur-2) var(--ease-out),
-    color var(--dur-2) var(--ease-out);
-}
-
-.ed-paytable tr:last-child td {
-  color: var(--gold-200);
-  font-weight: 700;
-}
-
-.ed-felt[data-spread='2'] .ed-paytable td[data-spread='2'],
-.ed-felt[data-spread='3'] .ed-paytable td[data-spread='3'],
-.ed-felt[data-spread='4'] .ed-paytable td[data-spread='4'],
-.ed-felt[data-spread='5'] .ed-paytable td[data-spread='5'],
-.ed-felt[data-spread='push'] .ed-paytable td[data-spread='push'] {
-  background: rgb(221 189 119 / 0.2);
-  color: var(--gold-200);
-}
-
-/* Chips and actions. On one-column layouts they stay pinned to the bottom of
-   the screen while the table scrolls under them. */
-.ed-controls {
-  grid-area: controls;
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  margin: 0 -4px -4px;
-  padding: 2px 8px max(8px, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
-  border-radius: 20px 20px 22px 22px;
-  background: linear-gradient(to bottom, rgb(9 33 22 / 0.92), var(--felt-800));
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.ed-wallet {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  max-width: 460px;
-  padding-top: 8px;
-}
-
-.ed-wallet__tools {
-  display: flex;
-  gap: 4px;
-}
-
-.ed-wallet .cg-bankroll {
-  padding: 4px 10px 5px;
-}
-
-.ed-wallet .cg-bankroll__amount {
-  font-size: 16px;
-}
-
-.ed-bet {
-  display: grid;
-  justify-items: end;
-  padding: 4px 10px 5px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface-1);
-}
-
-.ed-bet__label {
-  color: var(--ink-400);
-  font-size: 10.5px;
-  font-weight: 650;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.ed-bet__amount {
-  color: var(--gold-200);
-  font-size: 16px;
-}
-
-.ed-controls .cg-chip-rail {
-  padding: 10px 4px 6px;
-}
-
-.ed-actions {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 460px;
-}
-
-.ed-actions__roll {
-  font-size: 16px;
-  letter-spacing: 0.04em;
-}
-
-/* Two columns: the view on the left, sticky so the roll and the reveal stay
-   on screen; the felt and the controls on the right. */
+/* Two columns (see ../table.css): a taller stage. */
 @media (min-width: 760px), (orientation: landscape) and (max-height: 520px) {
-  .ed-table {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-    grid-template-areas:
-      'view felt'
-      'view controls';
-    align-items: start;
-  }
-
-  .ed-view {
-    position: sticky;
-    top: 76px;
-  }
-
   .ed-stage {
     height: clamp(170px, 34svh, 300px);
-  }
-
-  .ed-controls {
-    position: static;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
 
 @media (orientation: landscape) and (max-height: 520px) {
-  .ed-main {
-    gap: 8px;
-    padding-top: 8px;
-  }
-
-  .ed-table {
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .ed-view {
-    top: 68px;
-    gap: 6px;
-  }
-
   .ed-stage {
     height: clamp(120px, 40svh, 190px);
   }

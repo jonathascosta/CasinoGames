@@ -27,10 +27,11 @@ export function formatChip(cents: Cents): string {
   return String(units);
 }
 
-/** 0.972222 → "97.22%". */
+/** 0.972222 → "97.22%"; negatives take a true minus, and a value that rounds to zero none. */
 export function formatPercent(ratio: number, digits = 2): string {
   if (!Number.isFinite(ratio)) return '—';
-  return `${(ratio * 100).toFixed(digits)}%`;
+  const text = (Math.abs(ratio) * 100).toFixed(digits);
+  return `${ratio < 0 && Number(text) !== 0 ? MINUS : ''}${text}%`;
 }
 
 /** Difference in percentage points: 0.0038 → "+0.38 pp". */

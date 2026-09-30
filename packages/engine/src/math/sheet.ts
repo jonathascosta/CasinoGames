@@ -1,5 +1,5 @@
 import { oddsLabel } from '../game/money.ts';
-import type { BetMath, MathSummary, PaytableEntry } from '../game/types.ts';
+import type { BetBreakdown, BetMath, MathSummary, PaytableEntry } from '../game/types.ts';
 
 export const MATH_START = '<!-- math:start -->';
 export const MATH_END = '<!-- math:end -->';
@@ -82,6 +82,14 @@ function renderLegend(bets: readonly BetMath[]): string {
 }
 
 function renderBet(bet: BetMath): string {
+  return [
+    `### ${bet.label} (${bet.kind === 'main' ? 'main bet' : 'side bet'})`,
+    ...(bet.description === undefined ? [] : [bet.description]),
+    ...(bet.breakdown === undefined ? [renderPaytable(bet)] : renderBreakdown(bet.breakdown)),
+  ].join('\n\n');
+}
+
+function renderPaytable(bet: BetMath): string {
   const withProbability = bet.paytable.some((entry) => entry.probability !== undefined);
   const header = withProbability
     ? '| Outcome | Pays | Probability |\n| :-- | --: | --: |'
@@ -93,11 +101,29 @@ function renderBet(bet: BetMath): string {
     }
     return row(cells);
   });
+  return [header, ...rows].join('\n');
+}
+
+/** A paytable split by its condition: one row per value, with the figures given it. */
+function renderBreakdown({ by, rows }: BetBreakdown): string[] {
+  const noun = by.toLowerCase();
   return [
-    `### ${bet.label} (${bet.kind === 'main' ? 'main bet' : 'side bet'})`,
-    ...(bet.description === undefined ? [] : [bet.description]),
-    [header, ...rows].join('\n'),
-  ].join('\n\n');
+    [
+      row([by, 'Chance', 'Pays', 'Hit frequency', 'House edge']),
+      row([':--', '--:', '--:', '--:', '--:']),
+      ...rows.map((value) =>
+        row([
+          value.value,
+          percent(value.probability, 2),
+          value.paytable.map(pays).join(', '),
+          percent(value.hitFrequency, 2),
+          percent(value.houseEdge, 2),
+        ]),
+      ),
+    ].join('\n'),
+    `Chance is the share of rounds with each ${noun}; the hit frequency and house edge are ` +
+      `for the rounds with that ${noun}.`,
+  ];
 }
 
 function pays(entry: PaytableEntry): string {
@@ -115,8 +141,10 @@ function optional(value: number | undefined, format: (value: number) => string):
   return value === undefined ? '—' : format(value);
 }
 
+/** 0.0385 → "3.85%"; negatives take a true minus, and a value that rounds to zero none. */
 function percent(ratio: number, digits: number): string {
-  return `${(ratio * 100).toFixed(digits)}%`;
+  const text = (Math.abs(ratio) * 100).toFixed(digits);
+  return `${ratio < 0 && Number(text) !== 0 ? '−' : ''}${text}%`;
 }
 
 /** 4 → "4", 0.5 → "0.5", 1/3 → "0.33". */

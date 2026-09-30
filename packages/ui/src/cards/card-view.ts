@@ -38,3 +38,16 @@ export interface CardView {
   setShoe(shoe: ShoeDisplay): void;
   destroy(): void;
 }
+
+/**
+ * The distance between neighbouring cards of a hand centred at `centre`, for
+ * a table `width` wide and cards `cardWidth` wide: two thirds of a card, less
+ * once a long hand would reach the table's left edge or the shoe in its
+ * top-right corner, and never under a fifth of a card.
+ */
+export function handStep(centre: number, width: number, cardWidth: number, count: number): number {
+  const natural = cardWidth * 0.66;
+  if (count < 2 || width <= 0 || cardWidth <= 0) return natural;
+  const room = Math.min(centre - cardWidth * 0.2, width - cardWidth * 1.8 - centre) - cardWidth / 2;
+  return Math.max(cardWidth * 0.2, Math.min(natural, (2 * room) / (count - 1)));
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DICE_FIXTURE_BETS } from '../fixtures/dice-fixture.ts';
 import { EngineError, type EngineErrorCode } from './errors.ts';
 import { odds } from './money.ts';
-import type { BetDefinition, Bets } from './types.ts';
+import type { BetDefinition, Bets, PaytableCondition, PaytableEntry } from './types.ts';
 import { defineBets, validateBets } from './validation.ts';
 
 function errorCode(fn: () => unknown): EngineErrorCode | undefined {
@@ -93,6 +93,50 @@ describe('defineBets', () => {
     ],
   ])('rejects %s', (_, override) => {
     expect(() => defineBets([{ ...valid, ...override }])).toThrow(TypeError);
+  });
+
+  describe('lines paid under a condition', () => {
+    const target = (value: string, probability: number) => ({ name: 'Target', value, probability });
+    const line = (id: string, probability: number, given?: PaytableCondition): PaytableEntry => ({
+      id,
+      label: id,
+      odds: odds(4),
+      probability,
+      ...(given === undefined ? {} : { given }),
+    });
+
+    it('accepts one condition, with lines sharing a value and fitting inside its chance', () => {
+      const paytable = [
+        line('a', 0.05, target('7', 0.5)),
+        { id: 'b', label: 'b', push: true, probability: 0.1, given: target('7', 0.5) } as const,
+        line('c', 0.1, target('8', 0.25)),
+      ];
+      expect(() => defineBets([{ ...valid, paytable }])).not.toThrow();
+    });
+
+    it.each<[string, PaytableEntry[]]>([
+      ['a line without its condition', [line('a', 0.1, target('7', 0.5)), line('b', 0.1)]],
+      [
+        'two condition names',
+        [line('a', 0.1, target('7', 0.5)), line('b', 0.1, { ...target('8', 0.2), name: 'Spread' })],
+      ],
+      ['an empty condition name', [line('a', 0.1, { ...target('7', 0.5), name: '' })]],
+      ['a zero chance', [line('a', 0.1, target('7', 0))]],
+      [
+        'lines disagreeing on a value’s chance',
+        [line('a', 0.1, target('7', 0.5)), line('b', 0.1, target('7', 0.4))],
+      ],
+      [
+        'lines more likely than their value',
+        [line('a', 0.2, target('7', 0.3)), line('b', 0.2, target('7', 0.3))],
+      ],
+      [
+        'values adding up to more than 1',
+        [line('a', 0.1, target('7', 0.6)), line('b', 0.1, target('8', 0.6))],
+      ],
+    ])('rejects %s', (_, paytable) => {
+      expect(() => defineBets([{ ...valid, paytable }])).toThrow(TypeError);
+    });
   });
 
   it('rejects duplicate bet ids', () => {

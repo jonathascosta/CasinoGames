@@ -77,7 +77,7 @@
 }
 
 .cg-dom-card.is-dealt {
-  left: calc(var(--x) + var(--slot) * var(--card-w) * 0.66);
+  left: calc(var(--x) + var(--slot) * var(--step, var(--card-w) * 0.66));
   top: var(--y);
 }
 

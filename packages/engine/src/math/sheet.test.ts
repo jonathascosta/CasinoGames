@@ -80,6 +80,49 @@ describe('renderMathSection', () => {
   });
 });
 
+describe('renderMathSection with a breakdown', () => {
+  it('tabulates a bet paid under a condition by its values', () => {
+    const target = (value: string, probability: number) => ({ name: 'Target', value, probability });
+    const summary = summarizeMath({
+      id: 'targets',
+      name: 'Targets',
+      bets: defineBets([
+        {
+          id: 'hit',
+          label: 'Hit',
+          kind: 'main',
+          min: 50,
+          max: 5_000,
+          rtp: 0.925,
+          paytable: [
+            {
+              id: 't2',
+              label: 'Hit 2',
+              odds: odds(15, 2),
+              probability: 0.05,
+              given: target('2', 0.25),
+            },
+            { id: 't3', label: 'Hit 3', odds: odds(1), probability: 0.3, given: target('3', 0.75) },
+          ],
+        },
+      ]),
+    });
+    expect(renderMathSection(summary)).toContain(
+      [
+        '### Hit (main bet)',
+        [
+          '| Target | Chance | Pays | Hit frequency | House edge |',
+          '| :-- | --: | --: | --: | --: |',
+          '| 2 | 25.00% | 15 to 2 | 20.00% | −70.00% |',
+          '| 3 | 75.00% | 1 to 1 | 40.00% | 20.00% |',
+        ].join('\n'),
+        'Chance is the share of rounds with each target; the hit frequency and house edge are ' +
+          'for the rounds with that target.',
+      ].join('\n\n'),
+    );
+  });
+});
+
 describe('replaceMathSection', () => {
   const sheet = `# Game\n\n## Bets\n\n${MATH_START}\n\nold text\n\n${MATH_END}\n\n## Math\n`;
 

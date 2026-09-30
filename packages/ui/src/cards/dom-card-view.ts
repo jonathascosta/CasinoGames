@@ -2,7 +2,7 @@ import { cardLabel, isRed, rankLabel, suitSymbol, type Card } from '@casinogames
 import { formatCount } from '../format/format.ts';
 import { h } from '../dom/h.ts';
 import { wait } from '../motion/motion.ts';
-import type { CardView, HandLayout } from './card-view.ts';
+import { handStep, type CardView, type HandLayout } from './card-view.ts';
 
 /**
  * Cards as DOM elements (the fallback renderer): CSS transitions slide them
@@ -60,10 +60,15 @@ export function createDomCardView(
 
   const layout = (hand: HandLayout) => {
     const cards = cardsOf(hand.id);
+    const width = table.clientWidth;
+    const cardWidth = cards[0]?.offsetWidth ?? 0;
+    const step = handStep(hand.x * width, width, cardWidth, cards.length);
     cards.forEach((element, i) => {
       element.style.setProperty('--x', `${hand.x * 100}%`);
       element.style.setProperty('--y', `${hand.y * 100}%`);
       element.style.setProperty('--slot', String(i - (cards.length - 1) / 2));
+      // Unmeasured (not laid out yet): the stylesheet's two thirds of a card.
+      if (width > 0 && cardWidth > 0) element.style.setProperty('--step', `${step}px`);
     });
   };
 

@@ -71,11 +71,13 @@ export {
   type SettlementTotals,
 } from './game/settlement.ts';
 export type {
+  BetBreakdown,
   BetDefinition,
   BetId,
   BetKind,
   BetMath,
   Bets,
+  BreakdownRow,
   CustomEvent,
   DecisionOption,
   Game,
@@ -83,6 +85,7 @@ export type {
   GameEventType,
   JackpotPayout,
   MathSummary,
+  PaytableCondition,
   PaytableEntry,
   RoundPhase,
   RoundState,
@@ -98,6 +101,34 @@ export { exactReturns, type ExactReport, type ExactReturn } from './math/exact.t
 export { Fraction } from './math/fraction.ts';
 export { MATH_END, MATH_START, renderMathSection, replaceMathSection } from './math/sheet.ts';
 export { GAMES } from './games/index.ts';
+export {
+  ACERTA_ODDS,
+  ALVO_MOVEL_BETS,
+  ALVO_MOVEL_BET_IDS,
+  ALVO_MOVEL_DEALER,
+  ALVO_MOVEL_ID,
+  ALVO_MOVEL_NAME,
+  MAX_CARD_VALUE,
+  PRIMEIRA_CARTA_ODDS,
+  TARGETS,
+  TRES_OU_MAIS_CARDS,
+  TRES_OU_MAIS_ODDS,
+  alvoMovelMathSummary,
+  alvoMovelOutlook,
+  cardValue,
+  createAlvoMovel,
+  createAlvoMovelShoe,
+  readAlvoMovelDeal,
+  resolveAlvoMovelBet,
+  targetOf,
+  type AlvoMovelBetId,
+  type AlvoMovelDeal,
+  type AlvoMovelGame,
+  type AlvoMovelOptions,
+  type AlvoMovelOutlook,
+  type AlvoMovelResolution,
+  type Target,
+} from './games/alvo-movel/index.ts';
 export {
   DOBROS_ODDS,
   ENTRE_DADOS_BETS,

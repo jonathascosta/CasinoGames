@@ -108,6 +108,47 @@ describe('paytable', () => {
     expect(grand.querySelectorAll('th')).toHaveLength(2);
   });
 
+  it('breaks a bet paid under a condition down by its values', () => {
+    const target = (value: string, probability: number) => ({ name: 'Target', value, probability });
+    const summary = summarizeMath({
+      id: 'targets',
+      name: 'Targets',
+      bets: defineBets([
+        {
+          id: 'hit',
+          label: 'Hit',
+          kind: 'main',
+          min: 50,
+          max: 5_000,
+          rtp: 0.925,
+          paytable: [
+            {
+              id: 't2',
+              label: 'Hit 2',
+              odds: odds(15, 2),
+              probability: 0.05,
+              given: target('2', 0.25),
+            },
+            { id: 't3', label: 'Hit 3', odds: odds(1), probability: 0.3, given: target('3', 0.75) },
+          ],
+        },
+      ]),
+    });
+    const table = createPaytable(summary).querySelector('.cg-paytable__breakdown')!;
+    expect([...table.querySelectorAll('thead th')].map((th) => th.textContent)).toEqual([
+      'Target',
+      'Chance',
+      'Pays',
+      'Hit chance',
+      'House edge',
+    ]);
+    expect([...table.querySelectorAll('tbody tr')].map((tr) => tr.textContent)).toEqual([
+      '225.00%15 to 220.00%−70.00%',
+      '375.00%1 to 140.00%20.00%',
+    ]);
+    expect(table.querySelector('caption')!.textContent).toContain('each target');
+  });
+
   it('opens in a modal titled after the game', () => {
     const modal = createPaytableModal(SUMMARY);
     modal.open();

@@ -60,7 +60,7 @@ because a server would consume it as plain JavaScript. `publishConfig` points th
 | `game/`        | `Game`, `RoundState`, `GameEvent`, `BetDefinition`; `RoundBuilder`; money; settlement; validation; `playRound` |
 | `progressive/` | `ProgressiveJackpot`                                                                                           |
 | `math/`        | `Fraction`, `enumerateOutcomes`, `exactReturns`, `simulate`, `roundsForTolerance`, sheet rendering             |
-| `games/`       | The games (`entre-dados/`: pure rules, bet definitions, the game) and `GAMES`, their registry                  |
+| `games/`       | The games (`entre-dados/`, `alvo-movel/`: pure rules, bet definitions, the game) and `GAMES`, their registry   |
 | `testing/`     | Scripted RNGs and card sources, chi-square tests (`@casinogames/engine/testing`)                               |
 | `fixtures/`    | Two toy games that exercise the engine and its math tooling in tests                                           |
 
@@ -144,9 +144,15 @@ A `BetDefinition` carries everything the UI, docs and simulations need: `id`, `l
 with an optional exact `probability`), the declared `rtp` and an optional `standardDeviation`. From
 the paytable, `summarizeMath` derives each bet's hit frequency, push frequency and max exposure.
 
+When a payout depends on something the round settles before the result, such as Alvo Móvel's
+target, each line names that condition in `given`: its name, its value and the chance of that
+value. The summary then adds a `breakdown` with one row per value: its chance, and the hit
+frequency, RTP and house edge given it. The game sheets and the paytable dialog show that table in
+place of the flat paytable.
+
 - `defineBets([...])` validates definitions **at module load** (unique ids, sane limits, plausible
-  RTP, non-empty paytables), so a misconfigured paytable fails on import, in the first test run or
-  at startup, rather than mid-round.
+  RTP, non-empty paytables, consistent conditions), so a misconfigured paytable fails on import, in
+  the first test run or at startup, rather than mid-round.
 - `validateBets(definitions, bets)` runs at the start of every round. Every id must be known, stakes
   must be integer cents within limits, at least one bet must be placed, and side bets require a main
   bet. Zero stakes are dropped. Each failure is an `EngineError` with a stable code.
@@ -248,12 +254,14 @@ awards + pool, and a test checks it. The long-run RTP of a progressive bet is de
 
 `exactReturns` (exhaustive enumeration with BigInt fractions) and `simulate` (Monte Carlo with
 standard errors) both run the real game through `playRound`, so they test the implementation, not
-a model of it. [MATH.md](MATH.md) describes both.
+a model of it. `simulate` can hand every settled round to an observer, for statistics the report
+does not keep, such as Alvo Móvel's figures per target. [MATH.md](MATH.md) describes both.
 
 Every game's `mathSummary()` is derived from its bet definitions by `summarizeMath`. The paytable
 modal renders it in the browser, and `pnpm docs:sheets` writes it into `docs/games/<id>.md` between
 `<!-- math:start -->` and `<!-- math:end -->`: an overview table (RTP, house edge, hit frequency,
-push, max exposure, volatility index, limits) and each bet's paytable. The section is fenced off
+push, max exposure, volatility index, limits) and each bet's paytable, or its breakdown by
+condition. The section is fenced off
 from Prettier, which would otherwise re-align its tables. The published figures therefore come from
 the code the tests verify, and `pnpm docs:check` fails CI when a sheet is stale.
 
@@ -268,6 +276,23 @@ the code the tests verify, and `pnpm docs:check` fails CI when a sheet is stale.
 - `game.ts` owns the table's six-deck shoe and plays a round: roll, deal face down, reveal, settle.
 - The tests enumerate all 36 rolls × 6 card values exactly, simulate 124,852,059 rounds against
   the real shoe, and compute the card counting exposure exactly.
+
+### A game: Alvo Móvel
+
+`games/alvo-movel` follows the same shape, with a variable number of cards per round:
+
+- `rules.ts` settles a bet on a target and the card values dealt, and reads each bet's outlook
+  while the cards land (`alvoMovelOutlook`: live, won or lost), which the table uses to mark the
+  side bets as soon as the cards decide them.
+- `bets.ts` declares the math for an infinite shoe. Acerta's lines name their target (`given`), so
+  its summary breaks down by target; its figures are exact fractions from the closed form of the
+  chance to land on a total.
+- `game.ts` rolls the target, then deals face up from its six-deck shoe of aces to tens until the
+  total reaches the target (at most 12 cards), and settles.
+- The tests reproduce the published table with a memoised recursion, check it against the declared
+  figures and against the game run over all 71,469 roll and card sequences, and measure how the
+  six-deck shoe shifts every edge: exactly for the first round after a shuffle, and over the long
+  run by simulation.
 
 ## UI kit
 
@@ -354,6 +379,12 @@ their colours from the same tokens at runtime, so the canvas matches the chrome.
   the not-found page). Games with rules load their table from the `tables/` registry; the others
   show a placeholder page. Each table opens its rules sheet from `docs/games/<slug>.md`, loaded
   through `import.meta.glob` so the docs are the single source.
+- **Tables.** What every table shares lives in `tables/`: `DiceTable` runs the chips, balance,
+  actions, autoplay, bet spots and a round's life (stakes debited on the roll, the engine's events
+  replayed, payouts credited at settlement, even when the page closes mid-round); `table-page.ts`
+  builds the page around it (rules, paytable, RTP monitor); `table.css` styles the table surface,
+  the felt and the controls. A game brings its view, its felt layout and the replay of its own
+  events: Entre Dados its 1–6 strip, Alvo Móvel its target board.
 - **Static hosting.** At build time a small Vite plugin copies `index.html` into each game's folder
   and to `404.html`, so deep links load directly on GitHub Pages.
 - **Services.** `createServices()` builds the page-wide state once (storage, settings, bankroll,
@@ -364,8 +395,8 @@ their colours from the same tokens at runtime, so the canvas matches the chrome.
 
 ## How a table plays a round
 
-The Entre Dados table (`apps/lobby/src/tables/entre-dados`) follows this flow, and so will the
-other tables.
+Both tables follow this flow through the shared `DiceTable` (`apps/lobby/src/tables`), and so
+will the other tables.
 
 ```mermaid
 sequenceDiagram
@@ -397,16 +428,16 @@ resources) is listed in the [README](../README.md#moving-the-engine-server-side)
 
 ## Testing strategy
 
-| Layer        | What is tested                                                                                                                                                                           | How                                                   |
-| :----------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------- |
-| RNG          | Reference vectors (xoshiro128\*\* and SplitMix64), reproducibility, seed handling, uniformity of `randomInt`, shuffles and dice                                                          | Vitest; seeded chi-square tests, so they cannot flake |
-| Shoe         | Composition, penetration and cut card, reshuffle rules, mid-round exhaustion, infinite mode                                                                                              | Vitest with seeded and scripted RNGs                  |
-| Rounds       | Builder invariants, validation, error codes, settlement arithmetic, decisions and added stakes                                                                                           | Vitest with scripted dice and cards                   |
-| Math tooling | Enumeration (including non-determinism detection), fractions, simulator statistics, sheet rendering                                                                                      | Vitest                                                |
-| Game math    | Exact RTP, probabilities and variance equal the declared fractions; Monte Carlo within ±0.15 pp; card counting exposure                                                                  | `pnpm test` (exact), `pnpm test:math` (Monte Carlo)   |
-| UI kit       | Components' DOM, keyboard and pointer behaviour, persistence, motion, audio gating, autoplay stops, RTP statistics                                                                       | Vitest in jsdom, with the DOM renderers               |
-| Lobby        | Router: base paths, link interception, not-found handling, focus and titles; the Entre Dados table plays rounds that match the engine's settlement, including one interrupted by leaving | Vitest in jsdom                                       |
-| Visuals      | Layout at 360 px, 390 px, landscape phones and desktop; the Pixi renderers                                                                                                               | Manual review in headless Chromium with screenshots   |
+| Layer        | What is tested                                                                                                                                                                                    | How                                                   |
+| :----------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------- |
+| RNG          | Reference vectors (xoshiro128\*\* and SplitMix64), reproducibility, seed handling, uniformity of `randomInt`, shuffles and dice                                                                   | Vitest; seeded chi-square tests, so they cannot flake |
+| Shoe         | Composition, penetration and cut card, reshuffle rules, mid-round exhaustion, infinite mode                                                                                                       | Vitest with seeded and scripted RNGs                  |
+| Rounds       | Builder invariants, validation, error codes, settlement arithmetic, decisions and added stakes                                                                                                    | Vitest with scripted dice and cards                   |
+| Math tooling | Enumeration (including non-determinism detection), fractions, simulator statistics, sheet rendering                                                                                               | Vitest                                                |
+| Game math    | Exact RTP, probabilities and variance equal the declared fractions (for Alvo Móvel, via a memoised recursion too); Monte Carlo within ±0.15 pp; the six-deck shoe's shift; card counting exposure | `pnpm test` (exact), `pnpm test:math` (Monte Carlo)   |
+| UI kit       | Components' DOM, keyboard and pointer behaviour, persistence, motion, audio gating, autoplay stops, RTP statistics                                                                                | Vitest in jsdom, with the DOM renderers               |
+| Lobby        | Router: base paths, link interception, not-found handling, focus and titles; both tables play rounds that match the engine's settlement, including one interrupted by leaving; the target board   | Vitest in jsdom                                       |
+| Visuals      | Layout at 360 px, 390 px, landscape phones and desktop; the Pixi renderers                                                                                                                        | Manual review in headless Chromium with screenshots   |
 
 ## Decisions
 

@@ -1,4 +1,5 @@
 import type { Game } from '../game/types.ts';
+import { ALVO_MOVEL_ID, ALVO_MOVEL_NAME, alvoMovelMathSummary } from './alvo-movel/game.ts';
 import { ENTRE_DADOS_ID, ENTRE_DADOS_NAME, entreDadosMathSummary } from './entre-dados/game.ts';
 
 /**
@@ -8,4 +9,5 @@ import { ENTRE_DADOS_ID, ENTRE_DADOS_NAME, entreDadosMathSummary } from './entre
  */
 export const GAMES: readonly Pick<Game, 'id' | 'name' | 'mathSummary'>[] = [
   { id: ENTRE_DADOS_ID, name: ENTRE_DADOS_NAME, mathSummary: entreDadosMathSummary },
+  { id: ALVO_MOVEL_ID, name: ALVO_MOVEL_NAME, mathSummary: alvoMovelMathSummary },
 ];

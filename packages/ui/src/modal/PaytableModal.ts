@@ -1,4 +1,10 @@
-import { oddsLabel, type BetMath, type MathSummary, type PaytableEntry } from '@casinogames/engine';
+import {
+  oddsLabel,
+  type BetBreakdown,
+  type BetMath,
+  type MathSummary,
+  type PaytableEntry,
+} from '@casinogames/engine';
 import { h } from '../dom/h.ts';
 import { formatCents, formatPercent } from '../format/format.ts';
 import { Modal } from './Modal.ts';
@@ -31,7 +37,6 @@ export function createPaytableModal(summary: MathSummary): Modal {
 }
 
 function renderBet(bet: BetMath): HTMLElement {
-  const withProbability = bet.paytable.some((entry) => entry.probability !== undefined);
   return h(
     'section',
     { class: 'cg-paytable__bet' },
@@ -48,39 +53,11 @@ function renderBet(bet: BetMath): HTMLElement {
     bet.description === undefined
       ? null
       : h('p', { class: 'cg-paytable__description' }, bet.description),
+    // Wide tables scroll inside the card rather than widening the dialog.
     h(
-      'table',
-      { class: 'cg-table' },
-      h(
-        'thead',
-        null,
-        h(
-          'tr',
-          null,
-          h('th', { scope: 'col' }, 'Outcome'),
-          h('th', { scope: 'col' }, 'Pays'),
-          withProbability ? h('th', { scope: 'col' }, 'Probability') : null,
-        ),
-      ),
-      h(
-        'tbody',
-        null,
-        ...bet.paytable.map((entry) =>
-          h(
-            'tr',
-            null,
-            h('td', null, entry.label),
-            h('td', { class: 'cg-num' }, pays(entry)),
-            withProbability
-              ? h(
-                  'td',
-                  { class: 'cg-num' },
-                  entry.probability === undefined ? '—' : formatPercent(entry.probability, 3),
-                )
-              : null,
-          ),
-        ),
-      ),
+      'div',
+      { class: 'cg-paytable__lines' },
+      bet.breakdown === undefined ? renderLines(bet) : renderBreakdown(bet.breakdown),
     ),
     h(
       'dl',
@@ -98,6 +75,87 @@ function renderBet(bet: BetMath): HTMLElement {
         ? null
         : stat('Volatility index', bet.standardDeviation.toFixed(2)),
       stat('Limits', `${formatCents(bet.min)} – ${formatCents(bet.max)}`),
+    ),
+  );
+}
+
+/** The bet's paytable lines: outcome, payout and, when declared, probability. */
+function renderLines(bet: BetMath): HTMLElement {
+  const withProbability = bet.paytable.some((entry) => entry.probability !== undefined);
+  return h(
+    'table',
+    { class: 'cg-table' },
+    h(
+      'thead',
+      null,
+      h(
+        'tr',
+        null,
+        h('th', { scope: 'col' }, 'Outcome'),
+        h('th', { scope: 'col' }, 'Pays'),
+        withProbability ? h('th', { scope: 'col' }, 'Probability') : null,
+      ),
+    ),
+    h(
+      'tbody',
+      null,
+      ...bet.paytable.map((entry) =>
+        h(
+          'tr',
+          null,
+          h('td', null, entry.label),
+          h('td', { class: 'cg-num' }, pays(entry)),
+          withProbability
+            ? h(
+                'td',
+                { class: 'cg-num' },
+                entry.probability === undefined ? '—' : formatPercent(entry.probability, 3),
+              )
+            : null,
+        ),
+      ),
+    ),
+  );
+}
+
+/** A bet paid under a condition (Alvo Móvel's target): one row per value, with the figures given it. */
+function renderBreakdown({ by, rows }: BetBreakdown): HTMLElement {
+  return h(
+    'table',
+    { class: 'cg-table cg-paytable__breakdown' },
+    h(
+      'caption',
+      { class: 'cg-paytable__caption' },
+      `Chance is how often a round has each ${by.toLowerCase()}; the hit chance and house edge ` +
+        `are for the rounds with that ${by.toLowerCase()}.`,
+    ),
+    h(
+      'thead',
+      null,
+      h(
+        'tr',
+        null,
+        h('th', { scope: 'col' }, by),
+        h('th', { scope: 'col' }, 'Chance'),
+        h('th', { scope: 'col' }, 'Pays'),
+        h('th', { scope: 'col' }, 'Hit chance'),
+        h('th', { scope: 'col' }, 'House edge'),
+      ),
+    ),
+    h(
+      'tbody',
+      null,
+      ...rows.map((row) =>
+        h(
+          'tr',
+          null,
+          h('th', { scope: 'row', class: 'cg-num' }, row.value),
+          h('td', { class: 'cg-num' }, formatPercent(row.probability)),
+          h('td', { class: 'cg-num' }, row.paytable.map(pays).join(', ')),
+          h('td', { class: 'cg-num' }, formatPercent(row.hitFrequency)),
+          h('td', { class: 'cg-num' }, formatPercent(row.houseEdge)),
+        ),
+      ),
     ),
   );
 }

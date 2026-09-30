@@ -111,6 +111,46 @@ export function defineBets<const T extends readonly BetDefinition[]>(definitions
     if (total > 1 + 1e-9) {
       throw new TypeError(`${where}: entry probabilities add up to more than 1`);
     }
+    checkConditions(where, bet);
   }
   return definitions;
+}
+
+/**
+ * Lines paid under a condition (PaytableEntry.given): all of a bet's lines or
+ * none name one, with a single name, a plausible chance that is the same for
+ * lines sharing a value, and line probabilities that fit inside it.
+ */
+function checkConditions(where: string, bet: BetDefinition): void {
+  const given = bet.paytable.filter((entry) => entry.given !== undefined);
+  if (given.length === 0) return;
+  if (given.length !== bet.paytable.length) {
+    throw new TypeError(`${where}: either every paytable line names its condition or none does`);
+  }
+  const name = bet.paytable[0]?.given?.name ?? '';
+  const values = new Map<string, { probability: number; lines: number }>();
+  for (const entry of bet.paytable) {
+    const condition = entry.given!;
+    const line = `${where}: entry "${entry.id}"`;
+    if (condition.name === '' || condition.name !== name) {
+      throw new TypeError(`${line}: every line of a bet names the same condition`);
+    }
+    if (!(condition.probability > 0 && condition.probability <= 1)) {
+      throw new TypeError(`${line}: the condition's probability must be in (0, 1]`);
+    }
+    const value = values.get(condition.value) ?? { probability: condition.probability, lines: 0 };
+    if (value.probability !== condition.probability) {
+      throw new TypeError(`${line}: lines under ${name} ${condition.value} disagree on its chance`);
+    }
+    value.lines += entry.probability ?? 0;
+    if (value.lines > condition.probability + 1e-12) {
+      throw new TypeError(`${line}: more likely than ${name} ${condition.value} itself`);
+    }
+    values.set(condition.value, value);
+  }
+  let total = 0;
+  for (const { probability } of values.values()) total += probability;
+  if (total > 1 + 1e-9) {
+    throw new TypeError(`${where}: the chances of the ${name} values add up to more than 1`);
+  }
 }
