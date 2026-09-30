@@ -12,22 +12,22 @@ component playground: [`/dev.html`](https://jonathascosta.github.io/CasinoGames/
 
 ## Status
 
-The foundation is in place and two games, **Entre Dados** and **Alvo Móvel**, are playable, with
-their math proven exactly and by simulation. The other two games are in design.
+The foundation is in place and three games, **Entre Dados**, **Alvo Móvel** and **Espelho**, are
+playable, with their math proven exactly and by simulation. The fourth game is in design.
 
-| Area                                              | State                                                                                                                                                                     |
-| :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                  |
-| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                 |
-| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the Entre Dados and Alvo Móvel tables on a shared table controller, placeholder tables for the others                               |
-| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                             |
-| The games                                         | [Entre Dados](docs/games/entre-dados.md) and [Alvo Móvel](docs/games/alvo-movel.md): playable, with game sheets, exact and Monte Carlo tests. The others: rules in design |
+| Area                                              | State                                                                                                                                                                                                    |
+| :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                                 |
+| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                |
+| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the Entre Dados, Alvo Móvel and Espelho tables on a shared table controller, a placeholder table for the fourth                                                    |
+| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                                                            |
+| The games                                         | [Entre Dados](docs/games/entre-dados.md), [Alvo Móvel](docs/games/alvo-movel.md) and [Espelho](docs/games/espelho.md): playable, with game sheets, exact and Monte Carlo tests. Trancar: rules in design |
 
 | Game                                     | Gloss            | Route          | State           |
 | :--------------------------------------- | :--------------- | :------------- | :-------------- |
 | [Entre Dados](docs/games/entre-dados.md) | Between the dice | `/entre-dados` | Playable        |
 | [Alvo Móvel](docs/games/alvo-movel.md)   | Moving target    | `/alvo-movel`  | Playable        |
-| Espelho                                  | Mirror           | `/espelho`     | Rules in design |
+| [Espelho](docs/games/espelho.md)         | Mirror           | `/espelho`     | Playable        |
 | Trancar                                  | Lock it in       | `/trancar`     | Rules in design |
 
 ## Quick start
@@ -47,7 +47,7 @@ pnpm dev   # lobby at http://localhost:5173, playground at http://localhost:5173
 | `pnpm build`                                   | Builds everything: the engine into `packages/engine/dist`, the site into `apps/lobby/dist`           |
 | `pnpm preview`                                 | Serves the built site                                                                                |
 | `pnpm test`                                    | Runs unit and exact-math tests for the engine, the UI kit (in jsdom) and the lobby (about 10 s)      |
-| `pnpm test:math`                               | Runs the Monte Carlo suites: about 380 million seeded rounds (about 4 minutes)                       |
+| `pnpm test:math`                               | Runs the Monte Carlo suites: about 535 million seeded rounds (about 6 minutes)                       |
 | `pnpm lint` · `pnpm format` · `pnpm typecheck` | Run type-aware ESLint, Prettier, and `tsc` for every project                                         |
 | `pnpm docs:sheets`                             | Regenerates the paytables in `docs/games/*.md` from each game's `mathSummary()` (needs Node ≥ 22.18) |
 | `pnpm docs:check`                              | Fails when a game sheet no longer matches the code (CI runs it)                                      |
@@ -66,7 +66,7 @@ packages/
     src/game/          Game and RoundState types, RoundBuilder, money, settlement, bet validation
     src/progressive/   In-memory progressive jackpot pool
     src/math/          Exact enumeration, BigInt fractions, Monte Carlo simulator, sheet renderer
-    src/games/         The games (Entre Dados, Alvo Móvel) and the GAMES registry
+    src/games/         The games (Entre Dados, Alvo Móvel, Espelho) and the GAMES registry
     src/testing/       Scripted RNG and cards, chi-square test (@casinogames/engine/testing)
     src/fixtures/      Two toy games that exercise the engine and its math tooling
   ui/                Table kit: DOM + CSS components with a PixiJS animation layer
@@ -214,7 +214,8 @@ move is a deployment change rather than a port: the same package runs behind an 
    `reveal()` paints the face once it arrives, so a hidden card never reaches the page.
 5. **Table resources.** Games take cards through the `CardSource` interface, so a server can
    serve a persisted shoe and a live table can serve a card reader. `ProgressiveJackpot` is the
-   reference for the pool arithmetic, and `snapshot()` is the state to keep.
+   reference for the pool arithmetic: `state()` is its exact state to keep, and
+   `new ProgressiveJackpot(options, state)` carries on from it, as the demo does between visits.
 6. **Math checks.** `exactReturns` and `simulate` run in the server's CI against the same code
    it deploys.
 
@@ -249,6 +250,16 @@ rounds on the real six-deck shoe, measures how far each house edge moves: +0.03 
 [game sheet](docs/games/alvo-movel.md) with Acerta's per target. [docs/MATH.md](docs/MATH.md) covers
 the RTP conventions, the RNG, finite and infinite shoes, round-count sizing and progressive
 jackpots.
+
+Espelho has a progressive meter. Its published table is reproduced from 36 rolls × 24 × 24 cards
+(one figure corrected: Somas Iguais' edge is 8/81 = 9.88%, not 9.85%), and the game run over all
+20,736 draws equals every declared fraction. Two cards a round and 54 rounds a shoe make every
+round of the six-deck shoe a uniform draw from the full shoe, so its figures are exact too: the
+pair bets lose about three points there. 6-6 vs 6-6 pays 1000 to 1 plus stake ÷ 25.00 of a meter
+fed by 10% of its stakes; its declared 87.24% excludes the seed, and the sheet sets out the
+meter's economics, including the seed's cost. Seeded runs of 125 million rounds on an infinite
+shoe and 31 million on the real one confirm every figure, and measure the card counting exposure
+per bet in the [game sheet](docs/games/espelho.md).
 
 ## Quality gates
 

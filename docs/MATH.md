@@ -58,6 +58,8 @@ exercise decisions and added stakes, not to be a good game.
 | `pushFrequency`       | Chance that the stake is simply returned, given that the bet is made                                                                                                                                                                                        |
 | `maxExposure`         | Largest net win per unit staked, from the fixed-odds entries: the house's worst case per unit                                                                                                                                                               |
 | `breakdown`           | For a bet whose lines name the condition they are paid under (Alvo Móvel's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                |
+| `progressive`         | For a bet with a progressive meter (Espelho's 6-6 vs 6-6): its terms, and the RTP excluding the seed, the RTP at the seed, the break-even meter, the cycle, the seed's cost and the exposure at the seed                                                    |
+| `finiteShoe`          | Exact figures on the table's own shoe, when every round deals the same cards (Espelho): RTP and hit frequency                                                                                                                                               |
 | `standardDeviation` σ | Standard deviation of (payout − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
 
 The exact enumerator and the simulator use the same definitions, so their figures are directly
@@ -98,6 +100,13 @@ comparable.
   is the worked example. It computes the first round after a shuffle exactly (a recursion over the
   values drawn from a full shoe), simulates the long run, and publishes both per bet and per
   target.
+- **When the finite shoe's figures are exact.** Several cards per round, but always the same number
+  and a fixed number of rounds per shoe (Espelho: two cards, 54 rounds), put every round's cards at
+  fixed positions of a uniformly shuffled shoe: a uniform draw from the full shoe, however deep it
+  has been dealt. The first round's exact figures are then the long-run figures. The
+  [Espelho sheet](games/espelho.md#card-source) proves them by running the game over every pair of
+  cards a full shoe can deal, declares them in the bets (`finiteShoe`), and confirms them by
+  simulating the real shoe.
 
 ## Exact method
 
@@ -148,7 +157,13 @@ reshuffles and cut card along the way.
 Where the real shoe returns different figures, as in Alvo Móvel, the check against the declared
 RTP runs on an infinite shoe, the source the figures assume, through the production game. A second
 seeded run on the real shoe then measures each bet's shift, sized to the precision wanted rather
-than to the ±0.15 pp tolerance, bounds it, and prints the table the game sheet publishes.
+than to the ±0.15 pp tolerance, bounds it, and prints the table the game sheet publishes. Where the
+real shoe's figures are exact (Espelho), the second run checks it against them.
+
+Some bets are too volatile for ±0.15 pp at any practical size: Espelho Perfeito (200 to 1, σ 13.6)
+would need about 0.9 billion rounds and 6-6 vs 6-6 (σ 33 with its meter at the seed) about 5.4
+billion. A suite is sized by the bets it can hold to ±0.15 pp within 200 million rounds; the others
+are held to 3.29 of their own standard errors, and their exact tests are the proof.
 
 ### Sizing the run
 
@@ -178,13 +193,16 @@ two-sided confidence (`roundsForTolerance`):
 | Entre Dados, Triplo (30 to 1)          | 5.094 |   124,852,059 |
 | Alvo Móvel, Primeira Carta (9 to 1)    | 2.886 |    40,055,852 |
 | Alvo Móvel, six-deck shift to ±0.07 pp | 2.886 |   183,929,931 |
+| Espelho, Par vs Par (30 to 1)          | 5.094 |   124,852,059 |
+| Espelho, six-deck run to ±0.3 pp       | 5.094 |    31,213,015 |
 
 A run covers all bets of a game at once, sized by its most demanding bet. The dice suite plays
 20,211,669 rounds. The war suite plays 9,176,919: the ante's requirement divided by the play bet's
 frequency. The Entre Dados suite plays 124,852,059 rounds, sized by Triplo. The Alvo Móvel suite
 on an infinite shoe plays 40,055,852 rounds, sized by Primeira Carta; its six-deck run plays
-183,929,931, enough to measure each shift to ±0.07 pp at 3.29 standard errors. The suites run in
-parallel; on a CI runner the whole `pnpm test:math` takes about four minutes.
+183,929,931, enough to measure each shift to ±0.07 pp at 3.29 standard errors. The Espelho suite on
+an infinite shoe plays 124,852,059 rounds, sized by Par vs Par; its six-deck run plays 31,213,015.
+The suites run in parallel; on a CI runner the whole `pnpm test:math` takes about six minutes.
 
 ### What it catches
 
@@ -245,6 +263,25 @@ The formula stops holding with partial awards or when the pool reaches its cap:
 In those cases the declared RTP comes from simulating the pool itself. The conservation identity
 keeps that accounting exact.
 
+**A meter fed by its own bet and paid in proportion to the stake.** Espelho's 6-6 vs 6-6 pays fixed
+odds plus stake ÷ _F_ of the meter, _F_ being the stake that wins it all; 10% of every stake on the
+bet feeds the meter, and a hit leaves the rest of it there (topped up to the seed if it fell
+below). Let _p_ be the chance of the hit and RTP₀ the fixed pays' RTP.
+
+- **Return excluding the seed.** Every contribution leaves the meter as part of some share, so over
+  the long run the players get back RTP₀ + _c_: 77.24% + 10% = 87.24%. This is the declared RTP;
+  the seed and the top-ups are the house's money.
+- **Return at a meter _M_.** A hit pays _M_ ÷ _F_ per unit staked whatever the stake, so one round
+  returns RTP₀ + _p_·_M_ ÷ _F_, and the bet breaks even at _M_\* = (1 − RTP₀)·_F_ ÷ _p_: 7,375.00.
+- **The meter at a hit.** If every cycle starts at the seed, it averages _J₀_ + _c_·_s̄_ ÷ _p_ for a
+  mean stake _s̄_. That is exact at a constant _F_, where each hit takes the whole meter. Smaller
+  stakes leave part of the meter behind, so it settles higher; the Monte Carlo suites measure it.
+- **The seed's cost.** At a constant _F_ the house re-seeds _J₀_ after every hit: _p_·_J₀_ per
+  round, 15.43% of the stake for Espelho, more than the 12.76% the bet holds excluding the seed.
+
+The exact test checks the fixed pays with the meter at zero and one round's return with the meter
+frozen at a value; the conservation identity checks the rest, to the millionth of a cent.
+
 ## Checklist for every game
 
 1. Declare `rtp` (as an exact fraction such as `120 / 169`), `standardDeviation` and per-entry
@@ -255,7 +292,7 @@ keeps that accounting exact.
    push frequency within 3.29 binomial standard errors, on the card source the declared figures
    assume.
 4. Finite shoe: simulate the real `Shoe` with its cut card and report the difference if it is
-   material (Alvo Móvel publishes it per bet and per target); when a bet depends on the
-   composition, measure its card counting exposure.
+   material (Alvo Móvel publishes it per bet and per target; Espelho declares its exact six-deck
+   figures); when a bet depends on the composition, measure its card counting exposure.
 5. Register the game in `packages/engine/src/games`, run `pnpm docs:sheets`, and commit the
    regenerated sheet. CI's `pnpm docs:check` keeps it in sync from then on.
