@@ -36,10 +36,17 @@ export function tableTitle(game: GameEntry, router: Router): HTMLElement {
   );
 }
 
-/** The Rules dialog: the game sheet, without its title (the dialog names the game). */
-export function createRulesModal(game: GameEntry, sheet: string): Modal {
+/**
+ * The game sheet in a dialog, without its title (the dialog names the game):
+ * the Rules at a table, the Game sheet in the lobby.
+ */
+export function createRulesModal(
+  game: GameEntry,
+  sheet: string,
+  heading: 'Rules' | 'Game sheet' = 'Rules',
+): Modal {
   return createInfoModal({
-    title: `${game.name} · Rules`,
+    title: `${game.name} · ${heading}`,
     markdown: sheet.replace(/^# .*\n+/, ''),
   });
 }

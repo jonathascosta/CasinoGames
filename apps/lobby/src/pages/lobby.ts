@@ -1,5 +1,13 @@
 import { MIRROR_CONFIG, type Cents } from '@casinogames/engine';
-import { formatCents, h, storedMeterAmount } from '@casinogames/ui';
+import {
+  formatCents,
+  formatPercent,
+  h,
+  icon,
+  jackpotKey,
+  storedMeterAmount,
+  type Modal,
+} from '@casinogames/ui';
 import { gameArt } from '../art/art.ts';
 import { GAMES, type GameEntry } from '../catalog.ts';
 import type { Page } from '../router/router.ts';
@@ -41,7 +49,12 @@ export function lobbyPage(services: Services, router: Router): Page {
   return {
     title: 'Demo lobby',
     mount(outlet) {
-      const topbar = createTopBar(services, brand(router.href('/')));
+      const topbar = createTopBar(services, brand(router.href('/')), {
+        settings: false,
+        house: { statsHref: router.href('/stats') },
+      });
+      const sheets = new SheetDialogs();
+      const cards = GAMES.map((game) => gameCard(game, router, services, sheets));
       outlet.append(
         h(
           'div',
@@ -51,7 +64,7 @@ export function lobbyPage(services: Services, router: Router): Page {
             'section',
             { class: 'hero' },
             h('span', { class: 'cg-eyebrow' }, 'Demo lobby · Virtual chips'),
-            h('h1', { class: 'hero__title' }, 'Four original table games'),
+            h('h1', { class: 'hero__title' }, 'Roll ', h('em', null, '& Deal')),
             h(
               'p',
               { class: 'hero__lede' },
@@ -60,20 +73,16 @@ export function lobbyPage(services: Services, router: Router): Page {
             h(
               'p',
               { class: 'hero__text' },
-              'A portfolio build for aggregators and live-dealer studios. All four tables are ' +
-                'open (Dice Spread, Moving Target, Mirror and Lock & Roll, where the player decides), ' +
-                'with their math proven exactly and by simulation on one engine and table kit.',
+              'Four original table games for aggregators and live-dealer studios. Every ' +
+                'declared RTP is proven exactly and by simulation, on one engine and one ' +
+                'table kit, and the RTP stats show how your own rounds compare.',
             ),
           ),
           h(
             'section',
             { class: 'games', 'aria-labelledby': 'games-title' },
             h('h2', { class: 'cg-sr-only', id: 'games-title' }, 'Tables'),
-            h(
-              'ul',
-              { class: 'games__grid' },
-              ...GAMES.map((game) => h('li', null, gameCard(game, router, services))),
-            ),
+            h('ul', { class: 'games__grid' }, ...cards.map((card) => h('li', null, card.element))),
           ),
           h(
             'section',
@@ -97,48 +106,122 @@ export function lobbyPage(services: Services, router: Router): Page {
       );
       return () => {
         topbar.destroy();
+        for (const card of cards) card.destroy();
+        sheets.destroy();
       };
     },
   };
 }
 
-function gameCard(game: GameEntry, router: Router, services: Services): HTMLAnchorElement {
+/**
+ * A table's card: its art, the main bet's declared RTP, the name and
+ * tagline, a live meter where the table has one, and two actions. Play is a
+ * link stretched over the whole card; Game sheet opens the rules and math in
+ * a dialog, loaded on first use.
+ */
+function gameCard(
+  game: GameEntry,
+  router: Router,
+  services: Services,
+  sheets: SheetDialogs,
+): { element: HTMLElement; destroy: () => void } {
   const playable = isPlayable(game);
+  const nameId = `game-${game.slug}`;
   const meter = METERS[game.slug];
-  return h(
-    'a',
+  let meterElement: HTMLElement | null = null;
+  let stopWatching = (): void => undefined;
+  if (meter !== undefined) {
+    const read = () => formatCents(storedMeterAmount(services.storage, meter.id, meter.seed));
+    const value = h('strong', { class: 'game-card__meter-value cg-num' }, read());
+    meterElement = h(
+      'p',
+      { class: 'game-card__meter' },
+      h('span', { class: 'game-card__meter-label' }, 'Progressive'),
+      value,
+    );
+    // Live: a round played at the table in another tab moves the meter here too.
+    stopWatching = services.storage.watch(jackpotKey(meter.id), () => {
+      value.textContent = read();
+    });
+  }
+  const sheet = h(
+    'button',
+    { type: 'button', class: 'cg-btn game-card__sheet', 'aria-label': `Game sheet: ${game.name}` },
+    icon('paytable'),
+    'Game sheet',
+  );
+  sheet.addEventListener('click', () => {
+    void sheets.open(game);
+  });
+  const rtp = formatPercent(game.rtp);
+  const element = h(
+    'article',
     {
       class: 'game-card',
-      href: router.href(`/${game.slug}`),
       style: `--accent: ${game.accent}`,
-      dataset: { playable: String(playable) },
+      dataset: { slug: game.slug, playable: String(playable) },
+      'aria-labelledby': nameId,
     },
     h('div', { class: 'game-card__art' }, gameArt(game)),
     h(
       'div',
       { class: 'game-card__body' },
-      h('span', { class: 'game-card__status' }, playable ? 'Open · play now' : 'In development'),
-      h('h3', { class: 'game-card__name' }, game.name),
-      h('p', { class: 'game-card__tagline' }, game.tagline),
-      meter === undefined
-        ? null
-        : h(
-            'p',
-            { class: 'game-card__meter' },
-            h('span', { class: 'game-card__meter-label' }, 'Progressive'),
-            h(
-              'strong',
-              { class: 'game-card__meter-value cg-num' },
-              formatCents(storedMeterAmount(services.storage, meter.id, meter.seed)),
-            ),
-          ),
       h(
-        'span',
-        { class: 'game-card__cta', 'aria-hidden': 'true' },
-        playable ? 'Take a seat' : 'Preview the table',
+        'p',
+        {
+          class: 'game-card__rtp',
+          title: `Declared RTP of the main bet, ${game.mainBet}`,
+        },
+        h('span', { class: 'game-card__rtp-label' }, 'RTP'),
+        ' ',
+        h('strong', { class: 'cg-num' }, rtp),
+        h('span', { class: 'cg-sr-only' }, `, declared for the main bet, ${game.mainBet}`),
+      ),
+      h('h3', { class: 'game-card__name', id: nameId }, game.name),
+      h('p', { class: 'game-card__tagline' }, game.tagline),
+      meterElement,
+      h(
+        'div',
+        { class: 'game-card__actions' },
+        h(
+          'a',
+          {
+            class: 'cg-btn cg-btn--primary game-card__play',
+            href: router.href(`/${game.slug}`),
+            'aria-label': `${playable ? 'Play' : 'Preview'} ${game.name}`,
+          },
+          icon('play'),
+          playable ? 'Play' : 'Preview',
+        ),
+        sheet,
       ),
     ),
   );
+  return { element, destroy: stopWatching };
+}
+
+/** The lobby's Game sheet dialogs, built on first use and kept for the visit. */
+class SheetDialogs {
+  readonly #modals = new Map<string, Modal>();
+  #destroyed = false;
+
+  async open(game: GameEntry): Promise<void> {
+    let modal = this.#modals.get(game.slug);
+    if (modal === undefined) {
+      const { loadSheet, createRulesModal } = await import('../tables/shell.ts');
+      const sheet = await loadSheet(game.slug);
+      if (this.#destroyed) return;
+      modal = this.#modals.get(game.slug) ?? createRulesModal(game, sheet, 'Game sheet');
+      this.#modals.set(game.slug, modal);
+    }
+    modal.open();
+  }
+
+  destroy(): void {
+    this.#destroyed = true;
+    for (const modal of this.#modals.values()) modal.destroy();
+    this.#modals.clear();
+  }
 }
 
 export function siteFooter(): HTMLElement {
