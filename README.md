@@ -12,21 +12,21 @@ component playground: [`/dev.html`](https://jonathascosta.github.io/CasinoGames/
 
 ## Status
 
-The foundation is in place and the first game, **Entre Dados**, is playable, with its math proven
-exactly and by simulation. The other three games are in design.
+The foundation is in place and two games, **Entre Dados** and **Alvo Móvel**, are playable, with
+their math proven exactly and by simulation. The other two games are in design.
 
-| Area                                              | State                                                                                                                                    |
-| :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests |
-| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                |
-| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the Entre Dados table, placeholder tables for the others                                           |
-| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                            |
-| The games                                         | Entre Dados: playable, with its [game sheet](docs/games/entre-dados.md), exact and Monte Carlo tests. The others: rules in design        |
+| Area                                              | State                                                                                                                                                                     |
+| :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                  |
+| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                 |
+| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the Entre Dados and Alvo Móvel tables on a shared table controller, placeholder tables for the others                               |
+| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                             |
+| The games                                         | [Entre Dados](docs/games/entre-dados.md) and [Alvo Móvel](docs/games/alvo-movel.md): playable, with game sheets, exact and Monte Carlo tests. The others: rules in design |
 
 | Game                                     | Gloss            | Route          | State           |
 | :--------------------------------------- | :--------------- | :------------- | :-------------- |
 | [Entre Dados](docs/games/entre-dados.md) | Between the dice | `/entre-dados` | Playable        |
-| Alvo Móvel                               | Moving target    | `/alvo-movel`  | Rules in design |
+| [Alvo Móvel](docs/games/alvo-movel.md)   | Moving target    | `/alvo-movel`  | Playable        |
 | Espelho                                  | Mirror           | `/espelho`     | Rules in design |
 | Trancar                                  | Lock it in       | `/trancar`     | Rules in design |
 
@@ -47,7 +47,7 @@ pnpm dev   # lobby at http://localhost:5173, playground at http://localhost:5173
 | `pnpm build`                                   | Builds everything: the engine into `packages/engine/dist`, the site into `apps/lobby/dist`           |
 | `pnpm preview`                                 | Serves the built site                                                                                |
 | `pnpm test`                                    | Runs unit and exact-math tests for the engine, the UI kit (in jsdom) and the lobby (about 10 s)      |
-| `pnpm test:math`                               | Runs the Monte Carlo suites: about 155 million seeded rounds (about 3 minutes)                       |
+| `pnpm test:math`                               | Runs the Monte Carlo suites: about 380 million seeded rounds (about 4 minutes)                       |
 | `pnpm lint` · `pnpm format` · `pnpm typecheck` | Run type-aware ESLint, Prettier, and `tsc` for every project                                         |
 | `pnpm docs:sheets`                             | Regenerates the paytables in `docs/games/*.md` from each game's `mathSummary()` (needs Node ≥ 22.18) |
 | `pnpm docs:check`                              | Fails when a game sheet no longer matches the code (CI runs it)                                      |
@@ -66,14 +66,14 @@ packages/
     src/game/          Game and RoundState types, RoundBuilder, money, settlement, bet validation
     src/progressive/   In-memory progressive jackpot pool
     src/math/          Exact enumeration, BigInt fractions, Monte Carlo simulator, sheet renderer
-    src/games/         The games (Entre Dados so far) and the GAMES registry
+    src/games/         The games (Entre Dados, Alvo Móvel) and the GAMES registry
     src/testing/       Scripted RNG and cards, chi-square test (@casinogames/engine/testing)
     src/fixtures/      Two toy games that exercise the engine and its math tooling
   ui/                Table kit: DOM + CSS components with a PixiJS animation layer
     src/pixi/          The only place PixiJS is imported, loaded on demand
     src/theme/         Design tokens and base styles
 apps/
-  lobby/             The site: lobby, the tables (src/tables), component playground (dev.html)
+  lobby/             The site: lobby, the tables on a shared controller (src/tables), playground
 docs/
   ARCHITECTURE.md    How the pieces fit together, and why
   MATH.md            RTP conventions and how every declared figure is verified
@@ -229,15 +229,26 @@ Every declared RTP is proven twice, against the real game code:
 - **Exact.** `exactReturns` runs the game over every possible sequence of draws (dice and an
   infinite shoe) with exact BigInt fractions. The declared RTP must equal the enumerated fraction.
 - **Monte Carlo.** A seeded simulation must land within ±0.15 percentage points of the declared
-  RTP. Each run has at least 2,000,000 rounds. Volatile bets get more, sized from the bet's
-  standard deviation so the tolerance is 3.29 standard errors (99.9%).
+  RTP, dealt from the card source the declared figures assume. Each run has at least 2,000,000
+  rounds. Volatile bets get more, sized from the bet's standard deviation so the tolerance is 3.29
+  standard errors (99.9%). Where the real shoe returns slightly different figures, a second run
+  measures the shift and the game sheet publishes it.
 
 Entre Dados shows the standard on a real game. All 36 rolls × 6 card values give exactly the
 declared fractions: 26/27 for Entre, 11/12, 23/27, 5/6 and 31/36 for the side bets. A seeded run of
 124,852,059 rounds against the real six-deck shoe lands every bet within 0.062 pp. The
 [game sheet](docs/games/entre-dados.md) also measures card counting exactly, and flags that Entre
-is countable at the default shoe penetration. [docs/MATH.md](docs/MATH.md) covers the RTP
-conventions, the RNG, finite and infinite shoes, round-count sizing and progressive jackpots.
+is countable at the default shoe penetration.
+
+Alvo Móvel deals several cards a round, which a finite shoe changes. A memoised recursion over the
+dealer's running total reproduces its published table, equals the declared figures and equals the
+real game run over all 71,469 roll and card sequences, fraction for fraction. A seeded run of 40
+million rounds on an infinite shoe lands every bet within 0.03 pp. A second run, of 184 million
+rounds on the real six-deck shoe, measures how far each house edge moves: +0.03 pp for Acerta,
++0.09 pp for Primeira Carta and −0.09 pp for Três ou Mais, all published in the
+[game sheet](docs/games/alvo-movel.md) with Acerta's per target. [docs/MATH.md](docs/MATH.md) covers
+the RTP conventions, the RNG, finite and infinite shoes, round-count sizing and progressive
+jackpots.
 
 ## Quality gates
 
