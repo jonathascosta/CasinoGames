@@ -11,12 +11,15 @@ import {
   createEspelho,
   createEspelhoJackpot,
   createSeededRng,
+  createTrancar,
   defineBets,
   exactReturns,
   odds,
+  playRound,
   simulate,
   startRound,
   summarizeMath,
+  trancarStrategy,
 } from '../dist/index.js';
 import { createUniformRankSource } from '../dist/testing/index.js';
 
@@ -122,10 +125,33 @@ for (let round = 0; round < 1_000; round++) {
 const stored = JSON.parse(JSON.stringify(espelhoTable.jackpot.state()));
 assert.deepEqual(createEspelhoJackpot(stored).state(), espelhoTable.jackpot.state());
 
+// A game with a decision and a fee: Trancar, exactly with its strategy, and on its six-deck shoe.
+const trancar = exactReturns(
+  () => createTrancar({ source: createUniformRankSource(RANK_SETS.aceToSix) }),
+  { trancar: 100 },
+  trancarStrategy(),
+);
+assert.equal(trancar.outcomes, (19 + 17 * 6) * 36);
+assert.equal(trancar.bets.trancar.rtp.toString(), '18649/19440');
+assert.equal(trancar.bets.trancar.expectedFee.toString(), '160/9');
+const trancarTable = createTrancar();
+const bot = trancarStrategy();
+let fees = 0;
+for (let round = 0; round < 1_000; round++) {
+  const pending = trancarTable.start({ trancar: 100 }, rng);
+  assert.equal(pending.phase, 'awaiting-decision');
+  const state = trancarTable.decide(pending, bot(pending));
+  assert.equal(state.phase, 'settled');
+  fees += state.settlement.trancar.fee ?? 0;
+}
+assert.ok(fees > 0);
+assert.equal(playRound(trancarTable, { trancar: 50 }, rng, bot).phase, 'settled');
+
 console.log(
   `engine dist OK on Node ${process.versions.node}: exact RTP ${exact.bets.seven.rtp}, ` +
     `simulated ${report.bets.seven.rtp.toFixed(4)} over ${report.rounds} rounds; ` +
     `Entre Dados exact RTP ${entre.bets.entre.rtp} over ${entre.outcomes} outcomes; ` +
     `Alvo Móvel over ${alvo.outcomes} outcomes; Espelho over ${espelho.outcomes}, meter ` +
-    `${(espelhoTable.jackpot.amount / 100).toFixed(2)}`,
+    `${(espelhoTable.jackpot.amount / 100).toFixed(2)}; Trancar ${trancar.bets.trancar.rtp} ` +
+    `over ${trancar.outcomes}`,
 );

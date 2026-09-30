@@ -3,6 +3,7 @@
  * can force exact outcomes and check distributions. Not used by game code.
  */
 export * from './chi-square.ts';
+export * from './full-shoe-pairs.ts';
 export * from './scripted-cards.ts';
 export * from './scripted-rng.ts';
 export * from './uniform-ranks.ts';
