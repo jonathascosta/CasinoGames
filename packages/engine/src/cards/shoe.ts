@@ -102,6 +102,15 @@ export class Shoe implements CardSource {
     return this.#shuffles;
   }
 
+  /**
+   * Cards dealt from a fresh shuffle before the cut card comes out: the cut
+   * card sits in front of the rest. Infinity for an infinite shoe.
+   */
+  cutCardPosition(): number {
+    if (this.infinite) return Infinity;
+    return this.#cards.length - Math.round(this.#cards.length * (1 - this.penetration));
+  }
+
   /** True once the cut card has come out; the next round will reshuffle. */
   isCutCardOut(): boolean {
     return !this.infinite && this.#shuffled && this.#position >= this.#cutIndex;
@@ -117,7 +126,7 @@ export class Shoe implements CardSource {
     shuffleInPlace(rng, this.#cards);
     this.#position = 0;
     this.#roundStart = 0;
-    this.#cutIndex = this.#cards.length - Math.round(this.#cards.length * (1 - this.penetration));
+    this.#cutIndex = this.cutCardPosition();
     this.#shuffled = true;
     this.#shuffles++;
   }

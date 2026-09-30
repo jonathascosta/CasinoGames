@@ -1,0 +1,68 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/moving-target/counting.math.test.ts",
+    "name": "Moving Target — card counting on the six-deck shoe › measures how often the cards left favour each bet, and the spread a counter needs"
+  },
+  "figures": {
+    "simulation": {
+      "rounds": 5000000,
+      "seed": "moving-target/counting",
+      "source": {
+        "kind": "shoe",
+        "decks": 6,
+        "ranks": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "suits": 4,
+        "cards": 240,
+        "penetration": 0.75,
+        "cutCard": 180,
+        "behindCutCard": 60
+      },
+      "stakes": {
+        "exact-hit": 50,
+        "first-card": 50,
+        "three-plus-cards": 50
+      },
+      "z": 3.29,
+      "rng": "xoshiro128** 1.1 (Blackman & Vigna), its state expanded from the seed by SplitMix64; a string seed is first hashed with FNV-1a (64-bit) over its UTF-8 bytes",
+      "confidence": {
+        "level": 0.95,
+        "z": 1.959963984540054
+      }
+    },
+    "shuffles": 50291,
+    "bets": {
+      "exact-hit": {
+        "favourable": 0.1106922,
+        "edgeWhenFavourable": 0.02760702657388909,
+        "breakEvenSpread": 13.622836578289691,
+        "flatRtp": 0.9614260945126663,
+        "observedRtp": 0.9615419
+      },
+      "first-card": {
+        "favourable": 0.0084984,
+        "edgeWhenFavourable": 0.01710256768360809,
+        "breakEvenSpread": 580.033736100199,
+        "flatRtp": 0.9158406536085184,
+        "observedRtp": 0.918188
+      },
+      "three-plus-cards": {
+        "favourable": 0.1155038,
+        "edgeWhenFavourable": 0.07418623530144147,
+        "breakEvenSpread": 12.987307541771436,
+        "flatRtp": 0.8972832540154806,
+        "observedRtp": 0.896792
+      }
+    }
+  }
+}

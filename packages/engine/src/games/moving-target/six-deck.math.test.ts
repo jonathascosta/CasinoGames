@@ -11,7 +11,7 @@
  *
  * This seeded run of the production game measures each bet's long-run house
  * edge and Exact Hit's per target, prints the shifts from the declared figures
- * (docs/games/moving-target.md reports them) and bounds them. It is sized so
+ * (the Math Report, docs/math/moving-target.md, reports them) and bounds them. It is sized so
  * that each bet's shift is measured to ±0.07 pp at 3.29 standard errors:
  * about 184 million rounds.
  */
@@ -19,8 +19,14 @@ import { describe, expect, it } from 'vitest';
 import { oddsMultiplier } from '../../game/money.ts';
 import { roundsForTolerance, simulate } from '../../math/simulate.ts';
 import { createSeededRng } from '../../rng/seeded.ts';
+import {
+  describeShoe,
+  recordFigures,
+  simulationRecord,
+  verification,
+} from '../../testing/record.ts';
 import { MOVING_TARGET_BETS } from './bets.ts';
-import { movingTargetMathSummary, createMovingTarget } from './game.ts';
+import { createMovingTarget, createMovingTargetShoe, movingTargetMathSummary } from './game.ts';
 import { EXACT_HIT_ODDS, TARGETS, targetOf } from './rules.ts';
 
 /** Precision of each bet's measured shift, at Z standard errors. */
@@ -37,14 +43,15 @@ const pp = (ratio: number) => {
 };
 
 describe('Moving Target — the six-deck shoe against the declared (infinite-shoe) figures', () => {
-  it('shifts no edge by more than a quarter of a point, and reports each shift', () => {
+  it('shifts no edge by more than a quarter of a point, and reports each shift', async () => {
     const volatility = Math.max(...MOVING_TARGET_BETS.map((bet) => bet.standardDeviation));
     const rounds = roundsForTolerance(volatility, PRECISION, Z);
     const bets = Object.fromEntries(MOVING_TARGET_BETS.map((bet) => [bet.id, bet.min]));
     // Exact Hit per target: rounds with that target, and wins among them.
     const byTarget = { rounds: new Float64Array(13), hits: new Float64Array(13) };
 
-    const report = simulate(createMovingTarget(), {
+    const shoe = createMovingTargetShoe();
+    const report = simulate(createMovingTarget({ source: shoe }), {
       rounds,
       rng: createSeededRng(SEED),
       bets,
@@ -64,6 +71,7 @@ describe('Moving Target — the six-deck shoe against the declared (infinite-sho
       `Moving Target on the six-deck shoe, ${rounds.toLocaleString('en-US')} rounds (seed ${SEED})`,
       'House edge       declared  six-deck  shift     standard error',
     ];
+    const results: Record<string, object> = {};
     for (const bet of summary.bets) {
       const measured = report.bets[bet.betId]!;
       expect(measured.rounds).toBe(rounds);
@@ -75,7 +83,17 @@ describe('Moving Target — the six-deck shoe against the declared (infinite-sho
       expect(Math.abs(shift), `${bet.betId}: house edge shift ${shift}`).toBeLessThanOrEqual(
         MAX_SHIFT,
       );
+      results[bet.betId] = {
+        statistics: measured,
+        houseEdge: verification(
+          bet.houseEdge,
+          measured.houseEdge,
+          measured.standardError,
+          MAX_SHIFT,
+        ),
+      };
     }
+    const targets: object[] = [];
 
     lines.push('Exact Hit by target: hit chance and house edge, declared → six-deck');
     const rows = summary.bets[0]!.breakdown!.rows;
@@ -96,7 +114,32 @@ describe('Moving Target — the six-deck shoe against the declared (infinite-sho
         Math.abs(shift),
         `target ${target}: house edge shift ${shift} (standard error ${standardError})`,
       ).toBeLessThanOrEqual(MAX_SHIFT + Z * standardError);
+      targets.push({
+        target,
+        rounds: n,
+        hits: byTarget.hits[target]!,
+        hitFrequency: { declared: declared.hitFrequency, observed: hit },
+        houseEdge: verification(
+          declared.houseEdge,
+          edge,
+          standardError,
+          MAX_SHIFT + Z * standardError,
+        ),
+      });
     }
     process.stdout.write(`${lines.join('\n')}\n`);
+    await recordFigures('six-deck-shoe', {
+      simulation: simulationRecord({
+        rounds,
+        seed: SEED,
+        source: describeShoe(shoe),
+        stakes: bets,
+        z: Z,
+        tolerance: PRECISION,
+      }),
+      maxShift: MAX_SHIFT,
+      bets: results,
+      byTarget: targets,
+    });
   });
 });

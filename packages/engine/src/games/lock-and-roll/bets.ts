@@ -14,7 +14,7 @@ import {
 
 const { decks, rules } = LOCK_AND_ROLL_CONFIG;
 
-/** The rules without the free 1-1, which the sheet prices for comparison. */
+/** The rules without the free 1-1, which the Math Report prices for comparison. */
 export const WITHOUT_FREE_ONE_ONE: LockAndRollRules = { ...rules, freeOneOne: false };
 
 /**
@@ -105,7 +105,7 @@ function figures(label: string, math: StrategyMath): StrategyFigures {
 }
 
 /**
- * The decision after the roll, for the paytable and the game sheet: the
+ * The decision after the roll, for the paytable and the Math Report: the
  * strategy card (21 rolls) and what the strategy returns with and without
  * the free 1-1, and on the table's shoe.
  */

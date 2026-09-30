@@ -1,0 +1,1540 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/moving-target/moving-target.test.ts",
+    "name": "Moving Target — exact math › the real game over every roll and card sequence › breaks every bet down by target, adding up to its declared figures, and finds the most a round can pay"
+  },
+  "figures": {
+    "sampleSpace": {
+      "rolls": 36,
+      "targets": 11,
+      "cardValues": 10,
+      "outcomes": 71469,
+      "sequences": {
+        "2": 19,
+        "3": 37,
+        "4": 73,
+        "5": 145,
+        "6": 289,
+        "7": 577,
+        "8": 1153,
+        "9": 2305,
+        "10": 4609,
+        "11": 9217,
+        "12": 18424
+      }
+    },
+    "source": {
+      "kind": "uniform ranks",
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ]
+    },
+    "rolls": {
+      "2": 1,
+      "3": 2,
+      "4": 3,
+      "5": 4,
+      "6": 5,
+      "7": 6,
+      "8": 5,
+      "9": 4,
+      "10": 3,
+      "11": 2,
+      "12": 1
+    },
+    "bets": {
+      "exact-hit": {
+        "byTarget": [
+          {
+            "target": 2,
+            "rollChance": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "win": {
+              "fraction": "11/100",
+              "value": 0.11
+            },
+            "odds": {
+              "to": 15,
+              "per": 2,
+              "returns": 8.5
+            },
+            "returnGivenTarget": {
+              "fraction": "187/200",
+              "value": 0.935
+            },
+            "edgeGivenTarget": {
+              "fraction": "13/200",
+              "value": 0.065
+            },
+            "probability": {
+              "fraction": "11/3600",
+              "value": 0.0030555555555555557
+            },
+            "contribution": {
+              "fraction": "187/7200",
+              "value": 0.025972222222222223
+            }
+          },
+          {
+            "target": 3,
+            "rollChance": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "win": {
+              "fraction": "121/1000",
+              "value": 0.121
+            },
+            "odds": {
+              "to": 7,
+              "per": 1,
+              "returns": 8
+            },
+            "returnGivenTarget": {
+              "fraction": "121/125",
+              "value": 0.968
+            },
+            "edgeGivenTarget": {
+              "fraction": "4/125",
+              "value": 0.032
+            },
+            "probability": {
+              "fraction": "121/18000",
+              "value": 0.006722222222222222
+            },
+            "contribution": {
+              "fraction": "121/2250",
+              "value": 0.05377777777777778
+            }
+          },
+          {
+            "target": 4,
+            "rollChance": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            },
+            "win": {
+              "fraction": "1331/10000",
+              "value": 0.1331
+            },
+            "odds": {
+              "to": 6,
+              "per": 1,
+              "returns": 7
+            },
+            "returnGivenTarget": {
+              "fraction": "9317/10000",
+              "value": 0.9317
+            },
+            "edgeGivenTarget": {
+              "fraction": "683/10000",
+              "value": 0.0683
+            },
+            "probability": {
+              "fraction": "1331/120000",
+              "value": 0.011091666666666666
+            },
+            "contribution": {
+              "fraction": "9317/120000",
+              "value": 0.07764166666666666
+            }
+          },
+          {
+            "target": 5,
+            "rollChance": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            },
+            "win": {
+              "fraction": "14641/100000",
+              "value": 0.14641
+            },
+            "odds": {
+              "to": 11,
+              "per": 2,
+              "returns": 6.5
+            },
+            "returnGivenTarget": {
+              "fraction": "190333/200000",
+              "value": 0.951665
+            },
+            "edgeGivenTarget": {
+              "fraction": "9667/200000",
+              "value": 0.048335
+            },
+            "probability": {
+              "fraction": "14641/900000",
+              "value": 0.016267777777777777
+            },
+            "contribution": {
+              "fraction": "190333/1800000",
+              "value": 0.10574055555555556
+            }
+          },
+          {
+            "target": 6,
+            "rollChance": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            },
+            "win": {
+              "fraction": "161051/1000000",
+              "value": 0.161051
+            },
+            "odds": {
+              "to": 5,
+              "per": 1,
+              "returns": 6
+            },
+            "returnGivenTarget": {
+              "fraction": "483153/500000",
+              "value": 0.966306
+            },
+            "edgeGivenTarget": {
+              "fraction": "16847/500000",
+              "value": 0.033694
+            },
+            "probability": {
+              "fraction": "161051/7200000",
+              "value": 0.022368194444444444
+            },
+            "contribution": {
+              "fraction": "161051/1200000",
+              "value": 0.13420916666666666
+            }
+          },
+          {
+            "target": 7,
+            "rollChance": {
+              "fraction": "1/6",
+              "value": 0.16666666666666666
+            },
+            "win": {
+              "fraction": "1771561/10000000",
+              "value": 0.1771561
+            },
+            "odds": {
+              "to": 9,
+              "per": 2,
+              "returns": 5.5
+            },
+            "returnGivenTarget": {
+              "fraction": "19487171/20000000",
+              "value": 0.97435855
+            },
+            "edgeGivenTarget": {
+              "fraction": "512829/20000000",
+              "value": 0.02564145
+            },
+            "probability": {
+              "fraction": "1771561/60000000",
+              "value": 0.029526016666666665
+            },
+            "contribution": {
+              "fraction": "19487171/120000000",
+              "value": 0.16239309166666666
+            }
+          },
+          {
+            "target": 8,
+            "rollChance": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            },
+            "win": {
+              "fraction": "19487171/100000000",
+              "value": 0.19487171
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "19487171/20000000",
+              "value": 0.97435855
+            },
+            "edgeGivenTarget": {
+              "fraction": "512829/20000000",
+              "value": 0.02564145
+            },
+            "probability": {
+              "fraction": "19487171/720000000",
+              "value": 0.02706551527777778
+            },
+            "contribution": {
+              "fraction": "19487171/144000000",
+              "value": 0.1353275763888889
+            }
+          },
+          {
+            "target": 9,
+            "rollChance": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            },
+            "win": {
+              "fraction": "214358881/1000000000",
+              "value": 0.214358881
+            },
+            "odds": {
+              "to": 7,
+              "per": 2,
+              "returns": 4.5
+            },
+            "returnGivenTarget": {
+              "fraction": "1929229929/2000000000",
+              "value": 0.9646149645
+            },
+            "edgeGivenTarget": {
+              "fraction": "70770071/2000000000",
+              "value": 0.0353850355
+            },
+            "probability": {
+              "fraction": "214358881/9000000000",
+              "value": 0.023817653444444444
+            },
+            "contribution": {
+              "fraction": "214358881/2000000000",
+              "value": 0.1071794405
+            }
+          },
+          {
+            "target": 10,
+            "rollChance": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            },
+            "win": {
+              "fraction": "2357947691/10000000000",
+              "value": 0.2357947691
+            },
+            "odds": {
+              "to": 3,
+              "per": 1,
+              "returns": 4
+            },
+            "returnGivenTarget": {
+              "fraction": "2357947691/2500000000",
+              "value": 0.9431790764
+            },
+            "edgeGivenTarget": {
+              "fraction": "142052309/2500000000",
+              "value": 0.0568209236
+            },
+            "probability": {
+              "fraction": "2357947691/120000000000",
+              "value": 0.019649564091666665
+            },
+            "contribution": {
+              "fraction": "2357947691/30000000000",
+              "value": 0.07859825636666666
+            }
+          },
+          {
+            "target": 11,
+            "rollChance": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "win": {
+              "fraction": "15937424601/100000000000",
+              "value": 0.15937424601
+            },
+            "odds": {
+              "to": 5,
+              "per": 1,
+              "returns": 6
+            },
+            "returnGivenTarget": {
+              "fraction": "47812273803/50000000000",
+              "value": 0.95624547606
+            },
+            "edgeGivenTarget": {
+              "fraction": "2187726197/50000000000",
+              "value": 0.04375452394
+            },
+            "probability": {
+              "fraction": "5312474867/600000000000",
+              "value": 0.008854124778333333
+            },
+            "contribution": {
+              "fraction": "5312474867/100000000000",
+              "value": 0.05312474867
+            }
+          },
+          {
+            "target": 12,
+            "rollChance": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "win": {
+              "fraction": "165311670611/1000000000000",
+              "value": 0.165311670611
+            },
+            "odds": {
+              "to": 5,
+              "per": 1,
+              "returns": 6
+            },
+            "returnGivenTarget": {
+              "fraction": "495935011833/500000000000",
+              "value": 0.991870023666
+            },
+            "edgeGivenTarget": {
+              "fraction": "4064988167/500000000000",
+              "value": 0.008129976334
+            },
+            "probability": {
+              "fraction": "165311670611/36000000000000",
+              "value": 0.004591990850305556
+            },
+            "contribution": {
+              "fraction": "165311670611/6000000000000",
+              "value": 0.027551945101833335
+            }
+          }
+        ],
+        "outcomes": [
+          {
+            "entry": "target-2",
+            "label": "Total exactly 2",
+            "odds": {
+              "to": 15,
+              "per": 2,
+              "returns": 8.5
+            },
+            "probability": {
+              "fraction": "11/3600",
+              "value": 0.0030555555555555557
+            },
+            "returns": {
+              "fraction": "17/2",
+              "value": 8.5
+            },
+            "contribution": {
+              "fraction": "187/7200",
+              "value": 0.025972222222222223
+            }
+          },
+          {
+            "entry": "target-3",
+            "label": "Total exactly 3",
+            "odds": {
+              "to": 7,
+              "per": 1,
+              "returns": 8
+            },
+            "probability": {
+              "fraction": "121/18000",
+              "value": 0.006722222222222222
+            },
+            "returns": {
+              "fraction": "8",
+              "value": 8
+            },
+            "contribution": {
+              "fraction": "121/2250",
+              "value": 0.05377777777777778
+            }
+          },
+          {
+            "entry": "target-4",
+            "label": "Total exactly 4",
+            "odds": {
+              "to": 6,
+              "per": 1,
+              "returns": 7
+            },
+            "probability": {
+              "fraction": "1331/120000",
+              "value": 0.011091666666666666
+            },
+            "returns": {
+              "fraction": "7",
+              "value": 7
+            },
+            "contribution": {
+              "fraction": "9317/120000",
+              "value": 0.07764166666666666
+            }
+          },
+          {
+            "entry": "target-5",
+            "label": "Total exactly 5",
+            "odds": {
+              "to": 11,
+              "per": 2,
+              "returns": 6.5
+            },
+            "probability": {
+              "fraction": "14641/900000",
+              "value": 0.016267777777777777
+            },
+            "returns": {
+              "fraction": "13/2",
+              "value": 6.5
+            },
+            "contribution": {
+              "fraction": "190333/1800000",
+              "value": 0.10574055555555556
+            }
+          },
+          {
+            "entry": "target-6",
+            "label": "Total exactly 6",
+            "odds": {
+              "to": 5,
+              "per": 1,
+              "returns": 6
+            },
+            "probability": {
+              "fraction": "161051/7200000",
+              "value": 0.022368194444444444
+            },
+            "returns": {
+              "fraction": "6",
+              "value": 6
+            },
+            "contribution": {
+              "fraction": "161051/1200000",
+              "value": 0.13420916666666666
+            }
+          },
+          {
+            "entry": "target-7",
+            "label": "Total exactly 7",
+            "odds": {
+              "to": 9,
+              "per": 2,
+              "returns": 5.5
+            },
+            "probability": {
+              "fraction": "1771561/60000000",
+              "value": 0.029526016666666665
+            },
+            "returns": {
+              "fraction": "11/2",
+              "value": 5.5
+            },
+            "contribution": {
+              "fraction": "19487171/120000000",
+              "value": 0.16239309166666666
+            }
+          },
+          {
+            "entry": "target-8",
+            "label": "Total exactly 8",
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "probability": {
+              "fraction": "19487171/720000000",
+              "value": 0.02706551527777778
+            },
+            "returns": {
+              "fraction": "5",
+              "value": 5
+            },
+            "contribution": {
+              "fraction": "19487171/144000000",
+              "value": 0.1353275763888889
+            }
+          },
+          {
+            "entry": "target-9",
+            "label": "Total exactly 9",
+            "odds": {
+              "to": 7,
+              "per": 2,
+              "returns": 4.5
+            },
+            "probability": {
+              "fraction": "214358881/9000000000",
+              "value": 0.023817653444444444
+            },
+            "returns": {
+              "fraction": "9/2",
+              "value": 4.5
+            },
+            "contribution": {
+              "fraction": "214358881/2000000000",
+              "value": 0.1071794405
+            }
+          },
+          {
+            "entry": "target-10",
+            "label": "Total exactly 10",
+            "odds": {
+              "to": 3,
+              "per": 1,
+              "returns": 4
+            },
+            "probability": {
+              "fraction": "2357947691/120000000000",
+              "value": 0.019649564091666665
+            },
+            "returns": {
+              "fraction": "4",
+              "value": 4
+            },
+            "contribution": {
+              "fraction": "2357947691/30000000000",
+              "value": 0.07859825636666666
+            }
+          },
+          {
+            "entry": "target-11",
+            "label": "Total exactly 11",
+            "odds": {
+              "to": 5,
+              "per": 1,
+              "returns": 6
+            },
+            "probability": {
+              "fraction": "5312474867/600000000000",
+              "value": 0.008854124778333333
+            },
+            "returns": {
+              "fraction": "6",
+              "value": 6
+            },
+            "contribution": {
+              "fraction": "5312474867/100000000000",
+              "value": 0.05312474867
+            }
+          },
+          {
+            "entry": "target-12",
+            "label": "Total exactly 12",
+            "odds": {
+              "to": 5,
+              "per": 1,
+              "returns": 6
+            },
+            "probability": {
+              "fraction": "165311670611/36000000000000",
+              "value": 0.004591990850305556
+            },
+            "returns": {
+              "fraction": "6",
+              "value": 6
+            },
+            "contribution": {
+              "fraction": "165311670611/6000000000000",
+              "value": 0.027551945101833335
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "29771629856069/36000000000000",
+              "value": 0.8269897182241389
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "17307296056493/18000000000000",
+          "value": 0.9615164475829444
+        },
+        "houseEdge": {
+          "fraction": "692703943507/18000000000000",
+          "value": 0.038483552417055554
+        },
+        "hitFrequency": {
+          "fraction": "6228370143931/36000000000000",
+          "value": 0.1730102817758611
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "1494642153505545850952540951/324000000000000000000000000",
+          "value": 4.613093066375141
+        },
+        "standardDeviation": 2.1478112268947522
+      },
+      "first-card": {
+        "byTarget": [
+          {
+            "target": 2,
+            "rollChance": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/360",
+              "value": 0.002777777777777778
+            },
+            "contribution": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            }
+          },
+          {
+            "target": 3,
+            "rollChance": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/180",
+              "value": 0.005555555555555556
+            },
+            "contribution": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            }
+          },
+          {
+            "target": 4,
+            "rollChance": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/120",
+              "value": 0.008333333333333333
+            },
+            "contribution": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            }
+          },
+          {
+            "target": 5,
+            "rollChance": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/90",
+              "value": 0.011111111111111112
+            },
+            "contribution": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            }
+          },
+          {
+            "target": 6,
+            "rollChance": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/72",
+              "value": 0.013888888888888888
+            },
+            "contribution": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            }
+          },
+          {
+            "target": 7,
+            "rollChance": {
+              "fraction": "1/6",
+              "value": 0.16666666666666666
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/60",
+              "value": 0.016666666666666666
+            },
+            "contribution": {
+              "fraction": "1/6",
+              "value": 0.16666666666666666
+            }
+          },
+          {
+            "target": 8,
+            "rollChance": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/72",
+              "value": 0.013888888888888888
+            },
+            "contribution": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            }
+          },
+          {
+            "target": 9,
+            "rollChance": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/90",
+              "value": 0.011111111111111112
+            },
+            "contribution": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            }
+          },
+          {
+            "target": 10,
+            "rollChance": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "edgeGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "probability": {
+              "fraction": "1/120",
+              "value": 0.008333333333333333
+            },
+            "contribution": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            }
+          },
+          {
+            "target": 11,
+            "rollChance": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "win": {
+              "fraction": "0",
+              "value": 0
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "edgeGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "probability": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          },
+          {
+            "target": 12,
+            "rollChance": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "win": {
+              "fraction": "0",
+              "value": 0
+            },
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "returnGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "edgeGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "probability": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "outcomes": [
+          {
+            "entry": "first-card",
+            "label": "The first card is the target",
+            "odds": {
+              "to": 9,
+              "per": 1,
+              "returns": 10
+            },
+            "probability": {
+              "fraction": "11/120",
+              "value": 0.09166666666666666
+            },
+            "returns": {
+              "fraction": "10",
+              "value": 10
+            },
+            "contribution": {
+              "fraction": "11/12",
+              "value": 0.9166666666666666
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "109/120",
+              "value": 0.9083333333333333
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "11/12",
+          "value": 0.9166666666666666
+        },
+        "houseEdge": {
+          "fraction": "1/12",
+          "value": 0.08333333333333333
+        },
+        "hitFrequency": {
+          "fraction": "11/120",
+          "value": 0.09166666666666666
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "1199/144",
+          "value": 8.32638888888889
+        },
+        "standardDeviation": 2.8855482821967975
+      },
+      "three-plus-cards": {
+        "byTarget": [
+          {
+            "target": 2,
+            "rollChance": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "win": {
+              "fraction": "0",
+              "value": 0
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "0",
+              "value": 0
+            },
+            "edgeGivenTarget": {
+              "fraction": "1",
+              "value": 1
+            },
+            "probability": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          },
+          {
+            "target": 3,
+            "rollChance": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "win": {
+              "fraction": "1/100",
+              "value": 0.01
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "1/20",
+              "value": 0.05
+            },
+            "edgeGivenTarget": {
+              "fraction": "19/20",
+              "value": 0.95
+            },
+            "probability": {
+              "fraction": "1/1800",
+              "value": 0.0005555555555555556
+            },
+            "contribution": {
+              "fraction": "1/360",
+              "value": 0.002777777777777778
+            }
+          },
+          {
+            "target": 4,
+            "rollChance": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            },
+            "win": {
+              "fraction": "3/100",
+              "value": 0.03
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "3/20",
+              "value": 0.15
+            },
+            "edgeGivenTarget": {
+              "fraction": "17/20",
+              "value": 0.85
+            },
+            "probability": {
+              "fraction": "1/400",
+              "value": 0.0025
+            },
+            "contribution": {
+              "fraction": "1/80",
+              "value": 0.0125
+            }
+          },
+          {
+            "target": 5,
+            "rollChance": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            },
+            "win": {
+              "fraction": "3/50",
+              "value": 0.06
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "3/10",
+              "value": 0.3
+            },
+            "edgeGivenTarget": {
+              "fraction": "7/10",
+              "value": 0.7
+            },
+            "probability": {
+              "fraction": "1/150",
+              "value": 0.006666666666666667
+            },
+            "contribution": {
+              "fraction": "1/30",
+              "value": 0.03333333333333333
+            }
+          },
+          {
+            "target": 6,
+            "rollChance": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            },
+            "win": {
+              "fraction": "1/10",
+              "value": 0.1
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "1/2",
+              "value": 0.5
+            },
+            "edgeGivenTarget": {
+              "fraction": "1/2",
+              "value": 0.5
+            },
+            "probability": {
+              "fraction": "1/72",
+              "value": 0.013888888888888888
+            },
+            "contribution": {
+              "fraction": "5/72",
+              "value": 0.06944444444444445
+            }
+          },
+          {
+            "target": 7,
+            "rollChance": {
+              "fraction": "1/6",
+              "value": 0.16666666666666666
+            },
+            "win": {
+              "fraction": "3/20",
+              "value": 0.15
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "3/4",
+              "value": 0.75
+            },
+            "edgeGivenTarget": {
+              "fraction": "1/4",
+              "value": 0.25
+            },
+            "probability": {
+              "fraction": "1/40",
+              "value": 0.025
+            },
+            "contribution": {
+              "fraction": "1/8",
+              "value": 0.125
+            }
+          },
+          {
+            "target": 8,
+            "rollChance": {
+              "fraction": "5/36",
+              "value": 0.1388888888888889
+            },
+            "win": {
+              "fraction": "21/100",
+              "value": 0.21
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "21/20",
+              "value": 1.05
+            },
+            "edgeGivenTarget": {
+              "fraction": "-1/20",
+              "value": -0.05
+            },
+            "probability": {
+              "fraction": "7/240",
+              "value": 0.029166666666666667
+            },
+            "contribution": {
+              "fraction": "7/48",
+              "value": 0.14583333333333334
+            }
+          },
+          {
+            "target": 9,
+            "rollChance": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            },
+            "win": {
+              "fraction": "7/25",
+              "value": 0.28
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "7/5",
+              "value": 1.4
+            },
+            "edgeGivenTarget": {
+              "fraction": "-2/5",
+              "value": -0.4
+            },
+            "probability": {
+              "fraction": "7/225",
+              "value": 0.03111111111111111
+            },
+            "contribution": {
+              "fraction": "7/45",
+              "value": 0.15555555555555556
+            }
+          },
+          {
+            "target": 10,
+            "rollChance": {
+              "fraction": "1/12",
+              "value": 0.08333333333333333
+            },
+            "win": {
+              "fraction": "9/25",
+              "value": 0.36
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "9/5",
+              "value": 1.8
+            },
+            "edgeGivenTarget": {
+              "fraction": "-4/5",
+              "value": -0.8
+            },
+            "probability": {
+              "fraction": "3/100",
+              "value": 0.03
+            },
+            "contribution": {
+              "fraction": "3/20",
+              "value": 0.15
+            }
+          },
+          {
+            "target": 11,
+            "rollChance": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "win": {
+              "fraction": "9/20",
+              "value": 0.45
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "9/4",
+              "value": 2.25
+            },
+            "edgeGivenTarget": {
+              "fraction": "-5/4",
+              "value": -1.25
+            },
+            "probability": {
+              "fraction": "1/40",
+              "value": 0.025
+            },
+            "contribution": {
+              "fraction": "1/8",
+              "value": 0.125
+            }
+          },
+          {
+            "target": 12,
+            "rollChance": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "win": {
+              "fraction": "11/20",
+              "value": 0.55
+            },
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "returnGivenTarget": {
+              "fraction": "11/4",
+              "value": 2.75
+            },
+            "edgeGivenTarget": {
+              "fraction": "-7/4",
+              "value": -1.75
+            },
+            "probability": {
+              "fraction": "11/720",
+              "value": 0.015277777777777777
+            },
+            "contribution": {
+              "fraction": "11/144",
+              "value": 0.0763888888888889
+            }
+          }
+        ],
+        "outcomes": [
+          {
+            "entry": "three-or-more",
+            "label": "Three cards or more",
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "probability": {
+              "fraction": "43/240",
+              "value": 0.17916666666666667
+            },
+            "returns": {
+              "fraction": "5",
+              "value": 5
+            },
+            "contribution": {
+              "fraction": "43/48",
+              "value": 0.8958333333333334
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "197/240",
+              "value": 0.8208333333333333
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "43/48",
+          "value": 0.8958333333333334
+        },
+        "houseEdge": {
+          "fraction": "5/48",
+          "value": 0.10416666666666667
+        },
+        "hitFrequency": {
+          "fraction": "43/240",
+          "value": 0.17916666666666667
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "8471/2304",
+          "value": 3.6766493055555554
+        },
+        "standardDeviation": 1.9174590753274385
+      }
+    },
+    "maxExposure": {
+      "stakes": {
+        "exact-hit": 25000,
+        "first-card": 2500,
+        "three-plus-cards": 2500
+      },
+      "bets": {
+        "exact-hit": {
+          "win": 187500,
+          "loss": 25000
+        },
+        "first-card": {
+          "win": 22500,
+          "loss": 2500
+        },
+        "three-plus-cards": {
+          "win": 10000,
+          "loss": 2500
+        }
+      },
+      "layout": {
+        "win": 207500,
+        "loss": 30000
+      }
+    }
+  }
+}

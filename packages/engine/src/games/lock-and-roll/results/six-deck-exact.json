@@ -1,0 +1,70 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/lock-and-roll/finite-shoe.test.ts",
+    "name": "Lock & Roll — every round of the six-deck shoe, exactly › records the six-deck figures of the reference strategy"
+  },
+  "figures": {
+    "shoe": {
+      "kind": "shoe",
+      "decks": 6,
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "suits": 4,
+      "cards": 144,
+      "penetration": 0.75,
+      "cutCard": 108,
+      "behindCutCard": 36
+    },
+    "sampleSpace": {
+      "rolls": 36,
+      "firstCard": 6,
+      "secondCard": 143,
+      "outcomes": 103818
+    },
+    "bet": {
+      "rtp": {
+        "fraction": "148219/154440",
+        "value": 0.9597189847189848
+      },
+      "houseEdge": {
+        "fraction": "6221/154440",
+        "value": 0.040281015281015284
+      },
+      "hitFrequency": {
+        "fraction": "35135/61776",
+        "value": 0.5687483812483812
+      },
+      "pushFrequency": {
+        "fraction": "0",
+        "value": 0
+      },
+      "variance": {
+        "fraction": "5101826923/4770342720",
+        "value": 1.0694885509190417
+      },
+      "standardDeviation": 1.0341607954854224,
+      "averageFee": {
+        "fraction": "8/45",
+        "value": 0.17777777777777778
+      },
+      "elementOfRisk": {
+        "fraction": "6221/181896",
+        "value": 0.03420086203105071
+      },
+      "rerollFrequency": {
+        "fraction": "17/36",
+        "value": 0.4722222222222222
+      }
+    },
+    "shift": {
+      "fraction": "227/555984",
+      "value": 0.00040828513050735274
+    }
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * Card counting exposure, computed exactly (no simulation) for the table's
- * shoe. The figures are quoted in docs/games/dice-spread.md.
+ * shoe. The Math Report (docs/math/dice-spread.md) quotes the recorded figures.
  *
  * Between's expectation depends on the cards left in the shoe: aces and sixes
  * can never fall between the dice, while threes and fours often do. A player
@@ -12,6 +12,8 @@ import type { Rank } from '../../cards/card.ts';
 import { DIE_FACES } from '../../dice/dice.ts';
 import { winnings } from '../../game/money.ts';
 import { Fraction } from '../../math/fraction.ts';
+import { describeShoe, recordFigures } from '../../testing/record.ts';
+import { DICE_SPREAD_BETS } from './bets.ts';
 import { createDiceSpreadShoe } from './game.ts';
 import { DICE_SPREAD_BET_IDS, resolveDiceSpreadBet, type DiceSpreadBetId } from './rules.ts';
 
@@ -154,5 +156,32 @@ describe('Dice Spread — card counting exposure', () => {
   it('rarely favours Bullseye, which also depends on the composition', () => {
     const result = exposure('bullseye', createDiceSpreadShoe().penetration);
     expect((result.favourable * 100).toFixed(2)).toBe('0.47');
+  });
+
+  it('measures the countable bets at 75%, 50% and 25% penetration, against the spread the limits allow', async () => {
+    const shoe = createDiceSpreadShoe();
+    const countable = DICE_SPREAD_BET_IDS.filter(
+      (bet) => new Set(DIE_FACES.map((value) => cardValue(bet, value).toString())).size > 1,
+    );
+    expect(countable).toEqual(['between', 'bullseye']);
+    const penetrations = [shoe.penetration, 0.5, 0.25].map((penetration) => {
+      const bets = Object.fromEntries(countable.map((bet) => [bet, exposure(bet, penetration)]));
+      return { penetration, rounds: bets.between!.rounds, bets };
+    });
+    expect(penetrations.map(({ rounds }) => rounds)).toEqual([108, 72, 36]);
+    const between = DICE_SPREAD_BETS[0];
+    await recordFigures('counting', {
+      shoe: describeShoe(shoe),
+      /** Each bet's expected net per unit over the 36 rolls, by the card's value (ace to six). */
+      cardValues: Object.fromEntries(
+        DICE_SPREAD_BET_IDS.map((bet) => [
+          bet,
+          DIE_FACES.map((value) => cardValue(bet, value).toString()),
+        ]),
+      ),
+      countable,
+      penetrations,
+      limits: { min: between.min, max: between.max, spread: between.max / between.min },
+    });
   });
 });

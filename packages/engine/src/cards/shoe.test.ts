@@ -109,6 +109,8 @@ describe('Shoe cut card and penetration', () => {
   ])('with %i deck(s) at %d penetration, cuts after %i cards', (decks, penetration, cut) => {
     const rng = createSeededRng('cut-position');
     const shoe = new Shoe({ decks, penetration });
+    // Where it sits is known before the shoe is shuffled.
+    expect(shoe.cutCardPosition()).toBe(cut);
     shoe.beginRound(rng);
     let dealt = 0;
     while (!shoe.isCutCardOut()) {
@@ -185,6 +187,7 @@ describe('infinite shoe', () => {
     for (let i = 0; i < 1_000; i++) shoe.draw(rng);
     expect(shoe.remaining()).toBe(Infinity);
     expect(shoe.isCutCardOut()).toBe(false);
+    expect(shoe.cutCardPosition()).toBe(Infinity);
     expect(shoe.shuffleCount()).toBe(0);
   });
 

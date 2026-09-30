@@ -1,0 +1,367 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/mirror/six-deck.math.test.ts",
+    "name": "Mirror — the six-deck shoe in the long run › returns the exact six-deck figures, and reports the meter and the counting exposure"
+  },
+  "figures": {
+    "simulation": {
+      "rounds": 31213015,
+      "seed": "mirror/six-deck-shoe",
+      "source": {
+        "kind": "shoe",
+        "decks": 6,
+        "ranks": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "suits": 4,
+        "cards": 144,
+        "penetration": 0.75,
+        "cutCard": 108,
+        "behindCutCard": 36
+      },
+      "stakes": [
+        {
+          "mirror": 100,
+          "tie": 50,
+          "equal-sums": 50,
+          "pair-vs-pair": 50,
+          "perfect-mirror": 50,
+          "double-sixes": 50
+        },
+        {
+          "mirror": 100,
+          "tie": 50,
+          "equal-sums": 50,
+          "pair-vs-pair": 50,
+          "perfect-mirror": 50,
+          "double-sixes": 100
+        },
+        {
+          "mirror": 100,
+          "tie": 50,
+          "equal-sums": 50,
+          "pair-vs-pair": 50,
+          "perfect-mirror": 50,
+          "double-sixes": 500
+        },
+        {
+          "mirror": 100,
+          "tie": 50,
+          "equal-sums": 50,
+          "pair-vs-pair": 50,
+          "perfect-mirror": 50,
+          "double-sixes": 2500
+        }
+      ],
+      "z": 3.29,
+      "tolerance": 0.003,
+      "rng": "xoshiro128** 1.1 (Blackman & Vigna), its state expanded from the seed by SplitMix64; a string seed is first hashed with FNV-1a (64-bit) over its UTF-8 bytes",
+      "confidence": {
+        "level": 0.95,
+        "z": 1.959963984540054
+      }
+    },
+    "results": {
+      "mirror/hitFrequency": {
+        "expected": 0.47736985236985235,
+        "observed": 0.47742340815201606,
+        "difference": 0.0000535557821637056,
+        "standardError": 0.00008940398204758056,
+        "ci95": [
+          0.47724817956712834,
+          0.4775986367369038
+        ],
+        "errors": 0.5990312840338964,
+        "allowed": 0.00029413910093654,
+        "pass": true
+      },
+      "mirror/statistics": {
+        "rounds": 31213015,
+        "staked": 3121301500,
+        "returned": 2980364800,
+        "fees": 0,
+        "rtp": 0.9548468163040321,
+        "houseEdge": 0.04515318369596788,
+        "hitFrequency": 0.47742340815201606,
+        "pushFrequency": 0,
+        "standardDeviation": 0.9989800908800522,
+        "standardError": 0.0001788088345522418
+      },
+      "mirror/rtp": {
+        "declared": 0.9490740740740741,
+        "expected": 0.9547397047397047,
+        "observed": 0.9548468163040321,
+        "difference": 0.0001071115643274112,
+        "standardError": 0.0001788088345522418,
+        "ci95": [
+          0.9544963574281922,
+          0.9551972751798721
+        ],
+        "errors": 0.5990283678970957,
+        "allowed": 0.0005882810656768755,
+        "pass": true
+      },
+      "tie/hitFrequency": {
+        "expected": 0.05108780108780109,
+        "observed": 0.05101067615544349,
+        "difference": -0.00007712493235759871,
+        "standardError": 0.000039409757225364865,
+        "ci95": [
+          0.05093343445064231,
+          0.05108791786024467
+        ],
+        "errors": 1.9570009507178503,
+        "allowed": 0.0001296581012714504,
+        "pass": true
+      },
+      "tie/statistics": {
+        "rounds": 31213015,
+        "staked": 1560650750,
+        "returned": 1432977300,
+        "fees": 0,
+        "rtp": 0.9181921707979829,
+        "houseEdge": 0.08180782920201712,
+        "hitFrequency": 0.05101067615544349,
+        "pushFrequency": 0,
+        "standardDeviation": 3.960351337235617,
+        "standardError": 0.0007088687887710269
+      },
+      "tie/rtp": {
+        "declared": 0.9166666666666666,
+        "expected": 0.9195804195804196,
+        "observed": 0.9181921707979829,
+        "difference": -0.0013882487824367074,
+        "standardError": 0.0007088687887710269,
+        "ci95": [
+          0.9168028135022271,
+          0.9195815280937386
+        ],
+        "errors": 1.958400206677922,
+        "allowed": 0.0023321783150566785,
+        "pass": true
+      },
+      "equal-sums/hitFrequency": {
+        "expected": 0.11285936285936286,
+        "observed": 0.11274021429842647,
+        "difference": -0.00011914856093639403,
+        "standardError": 0.000056636599904550336,
+        "ci95": [
+          0.11262920860240674,
+          0.1128512199944462
+        ],
+        "errors": 2.103737885699267,
+        "allowed": 0.00018633441368597062,
+        "pass": true
+      },
+      "equal-sums/statistics": {
+        "rounds": 31213015,
+        "staked": 1560650750,
+        "returned": 1407584800,
+        "fees": 0,
+        "rtp": 0.9019217143874118,
+        "houseEdge": 0.09807828561258825,
+        "hitFrequency": 0.11274021429842647,
+        "pushFrequency": 0,
+        "standardDeviation": 2.530199822409224,
+        "standardError": 0.00045288398193273397
+      },
+      "equal-sums/rtp": {
+        "declared": 0.9012345679012346,
+        "expected": 0.9028749028749029,
+        "observed": 0.9019217143874118,
+        "difference": -0.0009531884874911523,
+        "standardError": 0.00045288398193273397,
+        "ci95": [
+          0.9010340780936485,
+          0.902809350681175
+        ],
+        "errors": 2.1047078843974827,
+        "allowed": 0.0014899883005586947,
+        "pass": true
+      },
+      "pair-vs-pair/hitFrequency": {
+        "expected": 0.026806526806526808,
+        "observed": 0.026763675345044365,
+        "difference": -0.00004285146148244254,
+        "standardError": 0.000028910260660128735,
+        "ci95": [
+          0.026707012275366846,
+          0.026820338414721884
+        ],
+        "errors": 1.48222328349812,
+        "allowed": 0.00009511475757182354,
+        "pass": true
+      },
+      "pair-vs-pair/statistics": {
+        "rounds": 31213015,
+        "staked": 1560650750,
+        "returned": 1294831250,
+        "fees": 0,
+        "rtp": 0.8296739356963754,
+        "houseEdge": 0.17032606430362462,
+        "hitFrequency": 0.026763675345044365,
+        "pushFrequency": 0,
+        "standardDeviation": 5.003152403132644,
+        "standardError": 0.0008955212005309239
+      },
+      "pair-vs-pair/rtp": {
+        "declared": 0.8611111111111112,
+        "expected": 0.831002331002331,
+        "observed": 0.8296739356963754,
+        "difference": -0.001328395305955632,
+        "standardError": 0.0008955212005309239,
+        "ci95": [
+          0.8279187463959427,
+          0.8314291249968081
+        ],
+        "errors": 1.4833767253841357,
+        "allowed": 0.0029462647497467396,
+        "pass": true
+      },
+      "perfect-mirror/hitFrequency": {
+        "expected": 0.004467754467754468,
+        "observed": 0.004442153377365179,
+        "difference": -0.00002560109038928903,
+        "standardError": 0.000011937254529232937,
+        "ci95": [
+          0.004418756788413595,
+          0.004465549966316763
+        ],
+        "errors": 2.1446380594964247,
+        "allowed": 0.000039273567401176365,
+        "pass": true
+      },
+      "perfect-mirror/statistics": {
+        "rounds": 31213015,
+        "staked": 1560650750,
+        "returned": 1393462650,
+        "fees": 0,
+        "rtp": 0.892872828850401,
+        "houseEdge": 0.10712717114959902,
+        "hitFrequency": 0.004442153377365179,
+        "pushFrequency": 0,
+        "standardDeviation": 13.366758112371642,
+        "standardError": 0.0023925346076810613
+      },
+      "perfect-mirror/rtp": {
+        "declared": 0.9305555555555556,
+        "expected": 0.8980186480186481,
+        "observed": 0.892872828850401,
+        "difference": -0.005145819168247079,
+        "standardError": 0.0023925346076810613,
+        "ci95": [
+          0.8881835471875804,
+          0.8975621105132215
+        ],
+        "errors": 2.150781498301757,
+        "allowed": 0.007871438859270692,
+        "pass": true
+      },
+      "double-sixes/hitFrequency": {
+        "expected": 0.0007446257446257446,
+        "observed": 0.0007402681221279008,
+        "difference": -0.0000043576224978438254,
+        "standardError": 0.000004882468044206403,
+        "ci95": [
+          0.0007306986606055885,
+          0.0007498375836502131
+        ],
+        "errors": 0.8925040488518167,
+        "allowed": 0.000016063319865439066,
+        "pass": true
+      },
+      "double-sixes/statistics": {
+        "rounds": 31213015,
+        "staked": 24580247600,
+        "returned": 23736902480,
+        "fees": 0,
+        "rtp": 0.9656901291751023,
+        "houseEdge": 0.03430987082489767,
+        "hitFrequency": 0.0007402681221279008,
+        "pushFrequency": 0,
+        "standardDeviation": 57.56054390301239,
+        "standardError": 0.010302841733736409
+      },
+      "double-sixes/fixedRtp": {
+        "declared": 0.7723765432098766,
+        "expected": 0.7453703703703703,
+        "observed": 0.7430863715140119,
+        "difference": -0.002283998856358438,
+        "standardError": 0.007909264369501278,
+        "ci95": [
+          0.7275844982055835,
+          0.7585882448224404
+        ],
+        "errors": 0.2887751312455442,
+        "allowed": 0.026021479775659204,
+        "pass": true
+      },
+      "double-sixes/rtpExcludingSeed": {
+        "declared": 0.8723765432098766,
+        "expected": 0.8453703703703703,
+        "observed": 0.8430710474210169,
+        "difference": -0.0022993229493534217,
+        "standardError": 0.008783698359240883,
+        "ci95": [
+          0.8258553149858412,
+          0.8602867798561926
+        ],
+        "errors": 0.2617716200300094,
+        "allowed": 0.028898367601902505,
+        "pass": true
+      }
+    },
+    "meter": {
+      "hits": 23106,
+      "roundsPerHit": 1350.8618973426815,
+      "meterAtHit": 749767.8217778932,
+      "topUps": 3014007390,
+      "topUpsPerRound": 96.56252015385249,
+      "topUpsShareOfStakes": 0.1226190817540829,
+      "rtpWithTopUps": 0.9656901291751023,
+      "staked": 24580247600
+    },
+    "counting": {
+      "mirror": {
+        "favourable": 0.10799565501762647,
+        "edgeWhenFavourable": 0.027609578227945353,
+        "breakEvenSpread": 16.18634688220921
+      },
+      "tie": {
+        "favourable": 0,
+        "edgeWhenFavourable": 0,
+        "breakEvenSpread": null
+      },
+      "equal-sums": {
+        "favourable": 0.000022042087251103427,
+        "edgeWhenFavourable": 0.007451821847708737,
+        "breakEvenSpread": 591198.0528846633
+      },
+      "pair-vs-pair": {
+        "favourable": 0.000593630573656534,
+        "edgeWhenFavourable": 0.03366637753605078,
+        "breakEvenSpread": 8457.678380077616
+      },
+      "perfect-mirror": {
+        "favourable": 0.00606234290407383,
+        "edgeWhenFavourable": 0.03472313739468624,
+        "breakEvenSpread": 485.52720094174884
+      },
+      "double-sixes": {
+        "favourable": 0.11766034136721493,
+        "edgeWhenFavourable": 0.2280807283026745,
+        "breakEvenSpread": 10.485997733822186
+      },
+      "double-sixes-with-meter": {
+        "favourable": 0.411069228653496,
+        "edgeWhenFavourable": 0.26313034873333196,
+        "breakEvenSpread": 1.2880579745447591
+      }
+    }
+  }
+}

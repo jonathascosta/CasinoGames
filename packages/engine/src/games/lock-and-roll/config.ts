@@ -2,7 +2,7 @@ import { odds } from '../../game/money.ts';
 
 /**
  * The re-roll's rules. The table plays LOCK_AND_ROLL_CONFIG.rules; the exact tests
- * and the game sheet also price variants (without the free 1-1, say).
+ * and the Math Report also price variants (without the free 1-1, say).
  */
 export interface LockAndRollRules {
   /** FEE: the price of a re-roll as a fraction of the main bet, rounded up to the cent. */
@@ -16,7 +16,8 @@ export interface LockAndRollRules {
  * limits, the payout and the price of a re-roll. Everything declared about
  * the game, the strategy included, is computed from these values
  * (strategy.ts, bets.ts) and the exact tests check it against the game, so a
- * change here stays consistent; the game sheet then needs `pnpm docs:sheets`.
+ * change here stays consistent; the tests' records and the documents then
+ * need `pnpm test -u`, `pnpm test:math -u` and `pnpm docs:generate`.
  */
 export const LOCK_AND_ROLL_CONFIG = {
   /** Decks of aces to sixes in the table's shoe. */

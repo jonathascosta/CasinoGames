@@ -1,0 +1,455 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/dice-spread/dice-spread.test.ts",
+    "name": "Dice Spread — the figures of the Math Report › adds up each bet's outcomes to its declared figures, and finds the most a round can pay"
+  },
+  "figures": {
+    "sampleSpace": {
+      "rolls": 36,
+      "cardValues": 6,
+      "outcomes": 216,
+      "withSuits": 864
+    },
+    "source": {
+      "kind": "uniform ranks",
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    "bets": {
+      "between": {
+        "outcomes": [
+          {
+            "entry": "spread-2",
+            "label": "Spread 2, card between",
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "probability": {
+              "fraction": "1/27",
+              "value": 0.037037037037037035
+            },
+            "returns": {
+              "fraction": "5",
+              "value": 5
+            },
+            "contribution": {
+              "fraction": "5/27",
+              "value": 0.18518518518518517
+            }
+          },
+          {
+            "entry": "spread-3",
+            "label": "Spread 3, card between",
+            "odds": {
+              "to": 2,
+              "per": 1,
+              "returns": 3
+            },
+            "probability": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "returns": {
+              "fraction": "3",
+              "value": 3
+            },
+            "contribution": {
+              "fraction": "1/6",
+              "value": 0.16666666666666666
+            }
+          },
+          {
+            "entry": "spread-4",
+            "label": "Spread 4, card between",
+            "odds": {
+              "to": 1,
+              "per": 1,
+              "returns": 2
+            },
+            "probability": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            },
+            "returns": {
+              "fraction": "2",
+              "value": 2
+            },
+            "contribution": {
+              "fraction": "1/9",
+              "value": 0.1111111111111111
+            }
+          },
+          {
+            "entry": "spread-5",
+            "label": "Spread 5, card between",
+            "odds": {
+              "to": 1,
+              "per": 2,
+              "returns": 1.5
+            },
+            "probability": {
+              "fraction": "1/27",
+              "value": 0.037037037037037035
+            },
+            "returns": {
+              "fraction": "3/2",
+              "value": 1.5
+            },
+            "contribution": {
+              "fraction": "1/18",
+              "value": 0.05555555555555555
+            }
+          },
+          {
+            "entry": "push",
+            "label": "Spread 1, or a pair",
+            "probability": {
+              "fraction": "4/9",
+              "value": 0.4444444444444444
+            },
+            "returns": {
+              "fraction": "1",
+              "value": 1
+            },
+            "contribution": {
+              "fraction": "4/9",
+              "value": 0.4444444444444444
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "10/27",
+              "value": 0.37037037037037035
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "26/27",
+          "value": 0.9629629629629629
+        },
+        "houseEdge": {
+          "fraction": "1/27",
+          "value": 0.037037037037037035
+        },
+        "hitFrequency": {
+          "fraction": "5/27",
+          "value": 0.18518518518518517
+        },
+        "pushFrequency": {
+          "fraction": "4/9",
+          "value": 0.4444444444444444
+        },
+        "variance": {
+          "fraction": "3641/2916",
+          "value": 1.2486282578875172
+        },
+        "standardDeviation": 1.1174203586330067
+      },
+      "match": {
+        "outcomes": [
+          {
+            "entry": "match",
+            "label": "Card matches a die",
+            "odds": {
+              "to": 2,
+              "per": 1,
+              "returns": 3
+            },
+            "probability": {
+              "fraction": "11/36",
+              "value": 0.3055555555555556
+            },
+            "returns": {
+              "fraction": "3",
+              "value": 3
+            },
+            "contribution": {
+              "fraction": "11/12",
+              "value": 0.9166666666666666
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "25/36",
+              "value": 0.6944444444444444
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "11/12",
+          "value": 0.9166666666666666
+        },
+        "houseEdge": {
+          "fraction": "1/12",
+          "value": 0.08333333333333333
+        },
+        "hitFrequency": {
+          "fraction": "11/36",
+          "value": 0.3055555555555556
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "275/144",
+          "value": 1.9097222222222223
+        },
+        "standardDeviation": 1.3819269959814167
+      },
+      "bullseye": {
+        "outcomes": [
+          {
+            "entry": "bullseye",
+            "label": "Spread 2, card is the middle value",
+            "odds": {
+              "to": 22,
+              "per": 1,
+              "returns": 23
+            },
+            "probability": {
+              "fraction": "1/27",
+              "value": 0.037037037037037035
+            },
+            "returns": {
+              "fraction": "23",
+              "value": 23
+            },
+            "contribution": {
+              "fraction": "23/27",
+              "value": 0.8518518518518519
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "26/27",
+              "value": 0.9629629629629629
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "23/27",
+          "value": 0.8518518518518519
+        },
+        "houseEdge": {
+          "fraction": "4/27",
+          "value": 0.14814814814814814
+        },
+        "hitFrequency": {
+          "fraction": "1/27",
+          "value": 0.037037037037037035
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "13754/729",
+          "value": 18.866941015089164
+        },
+        "standardDeviation": 4.343609215282743
+      },
+      "doubles": {
+        "outcomes": [
+          {
+            "entry": "pair",
+            "label": "The dice are a pair",
+            "odds": {
+              "to": 4,
+              "per": 1,
+              "returns": 5
+            },
+            "probability": {
+              "fraction": "1/6",
+              "value": 0.16666666666666666
+            },
+            "returns": {
+              "fraction": "5",
+              "value": 5
+            },
+            "contribution": {
+              "fraction": "5/6",
+              "value": 0.8333333333333334
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "5/6",
+              "value": 0.8333333333333334
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "5/6",
+          "value": 0.8333333333333334
+        },
+        "houseEdge": {
+          "fraction": "1/6",
+          "value": 0.16666666666666666
+        },
+        "hitFrequency": {
+          "fraction": "1/6",
+          "value": 0.16666666666666666
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "125/36",
+          "value": 3.4722222222222223
+        },
+        "standardDeviation": 1.8633899812498247
+      },
+      "triple": {
+        "outcomes": [
+          {
+            "entry": "triple",
+            "label": "A pair, and the card matches it",
+            "odds": {
+              "to": 30,
+              "per": 1,
+              "returns": 31
+            },
+            "probability": {
+              "fraction": "1/36",
+              "value": 0.027777777777777776
+            },
+            "returns": {
+              "fraction": "31",
+              "value": 31
+            },
+            "contribution": {
+              "fraction": "31/36",
+              "value": 0.8611111111111112
+            }
+          },
+          {
+            "entry": "lose",
+            "label": "Any other outcome",
+            "probability": {
+              "fraction": "35/36",
+              "value": 0.9722222222222222
+            },
+            "returns": {
+              "fraction": "0",
+              "value": 0
+            },
+            "contribution": {
+              "fraction": "0",
+              "value": 0
+            }
+          }
+        ],
+        "rtp": {
+          "fraction": "31/36",
+          "value": 0.8611111111111112
+        },
+        "houseEdge": {
+          "fraction": "5/36",
+          "value": 0.1388888888888889
+        },
+        "hitFrequency": {
+          "fraction": "1/36",
+          "value": 0.027777777777777776
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "33635/1296",
+          "value": 25.952932098765434
+        },
+        "standardDeviation": 5.094402035446892
+      }
+    },
+    "allBets": {
+      "fraction": "239/270",
+      "value": 0.8851851851851852
+    },
+    "maxExposure": {
+      "stakes": {
+        "between": 25000,
+        "match": 2500,
+        "bullseye": 2500,
+        "doubles": 2500,
+        "triple": 2500
+      },
+      "bets": {
+        "between": {
+          "win": 100000,
+          "loss": 25000
+        },
+        "match": {
+          "win": 5000,
+          "loss": 2500
+        },
+        "bullseye": {
+          "win": 55000,
+          "loss": 2500
+        },
+        "doubles": {
+          "win": 10000,
+          "loss": 2500
+        },
+        "triple": {
+          "win": 75000,
+          "loss": 2500
+        }
+      },
+      "layout": {
+        "win": 147500,
+        "loss": 35000
+      }
+    }
+  }
+}

@@ -17,9 +17,10 @@
 import { describe, expect, it } from 'vitest';
 import { exactReturns } from '../../math/exact.ts';
 import { createFullShoePairSource } from '../../testing/full-shoe-pairs.ts';
+import { describeShoe, exact, exactFigures, recordFigures } from '../../testing/record.ts';
 import { LOCK_AND_ROLL_BETS, LOCK_AND_ROLL_MATH, LOCK_AND_ROLL_SIX_DECK } from './bets.ts';
 import { LOCK_AND_ROLL_CONFIG } from './config.ts';
-import { createLockAndRoll, lockAndRollStrategy } from './game.ts';
+import { createLockAndRoll, createLockAndRollShoe, lockAndRollStrategy } from './game.ts';
 
 describe('Lock & Roll — every round of the six-deck shoe, exactly', () => {
   const report = exactReturns(
@@ -42,6 +43,21 @@ describe('Lock & Roll — every round of the six-deck shoe, exactly', () => {
     expect(mainBet.hitFrequency.equals(LOCK_AND_ROLL_SIX_DECK.hitFrequency)).toBe(true);
     expect(mainBet.hitFrequency.toNumber()).toBe(declared.hitFrequency);
     expect(mainBet.variance.equals(LOCK_AND_ROLL_SIX_DECK.variance)).toBe(true);
+  });
+
+  it('records the six-deck figures of the reference strategy', async () => {
+    expect(mainBet.rtp.equals(LOCK_AND_ROLL_SIX_DECK.rtp)).toBe(true);
+    await recordFigures('six-deck-exact', {
+      shoe: describeShoe(createLockAndRollShoe()),
+      sampleSpace: { rolls: 36, firstCard: 6, secondCard: 143, outcomes: report.outcomes },
+      bet: {
+        ...exactFigures(mainBet),
+        averageFee: exact(mainBet.expectedFee.div(mainBet.expectedStake)),
+        elementOfRisk: exact(LOCK_AND_ROLL_SIX_DECK.elementOfRisk),
+        rerollFrequency: exact(LOCK_AND_ROLL_SIX_DECK.rerollFrequency),
+      },
+      shift: exact(mainBet.rtp.sub(LOCK_AND_ROLL_MATH.rtp)),
+    });
   });
 
   it('favours the player a little: the dealer pairs less often', () => {

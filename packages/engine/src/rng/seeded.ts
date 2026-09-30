@@ -3,6 +3,11 @@ import type { Rng } from './rng.ts';
 /** A seed: a safe integer, a bigint (taken modulo 2^64) or any string. */
 export type Seed = number | bigint | string;
 
+/** What {@link createSeededRng} is, as reports name the generator of a seeded run. */
+export const SEEDED_RNG =
+  'xoshiro128** 1.1 (Blackman & Vigna), its state expanded from the seed by SplitMix64; ' +
+  'a string seed is first hashed with FNV-1a (64-bit) over its UTF-8 bytes';
+
 const MASK_64 = (1n << 64n) - 1n;
 const TWO_POW_32 = 0x1_0000_0000;
 

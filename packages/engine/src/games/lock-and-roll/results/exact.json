@@ -1,0 +1,357 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/lock-and-roll/lock-and-roll.test.ts",
+    "name": "Lock & Roll — the declared figures, exactly, on the game › breaks the return down by decision and result, and prices the strategies a player might follow"
+  },
+  "figures": {
+    "sampleSpace": {
+      "rolls": 36,
+      "rerolls": 6,
+      "cards": 576,
+      "outcomes": 69696
+    },
+    "source": {
+      "kind": "infinite shoe",
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "suits": 4
+    },
+    "rules": {
+      "fee": {
+        "fraction": "2/5",
+        "value": 0.4
+      },
+      "freeOneOne": true
+    },
+    "outcomes": [
+      {
+        "decision": "stand",
+        "result": "win",
+        "probability": {
+          "fraction": "443/1296",
+          "value": 0.341820987654321
+        },
+        "net": {
+          "fraction": "1",
+          "value": 1
+        },
+        "contribution": {
+          "fraction": "443/1296",
+          "value": 0.341820987654321
+        }
+      },
+      {
+        "decision": "stand",
+        "result": "lose",
+        "probability": {
+          "fraction": "241/1296",
+          "value": 0.18595679012345678
+        },
+        "net": {
+          "fraction": "-1",
+          "value": -1
+        },
+        "contribution": {
+          "fraction": "-241/1296",
+          "value": -0.18595679012345678
+        }
+      },
+      {
+        "decision": "lock",
+        "result": "win",
+        "probability": {
+          "fraction": "2/9",
+          "value": 0.2222222222222222
+        },
+        "net": {
+          "fraction": "3/5",
+          "value": 0.6
+        },
+        "contribution": {
+          "fraction": "2/15",
+          "value": 0.13333333333333333
+        }
+      },
+      {
+        "decision": "lock",
+        "result": "lose",
+        "probability": {
+          "fraction": "2/9",
+          "value": 0.2222222222222222
+        },
+        "net": {
+          "fraction": "-7/5",
+          "value": -1.4
+        },
+        "contribution": {
+          "fraction": "-14/45",
+          "value": -0.3111111111111111
+        }
+      },
+      {
+        "decision": "lock-free",
+        "result": "win",
+        "probability": {
+          "fraction": "35/7776",
+          "value": 0.0045010288065843625
+        },
+        "net": {
+          "fraction": "1",
+          "value": 1
+        },
+        "contribution": {
+          "fraction": "35/7776",
+          "value": 0.0045010288065843625
+        }
+      },
+      {
+        "decision": "lock-free",
+        "result": "lose",
+        "probability": {
+          "fraction": "181/7776",
+          "value": 0.023276748971193417
+        },
+        "net": {
+          "fraction": "-1",
+          "value": -1
+        },
+        "contribution": {
+          "fraction": "-181/7776",
+          "value": -0.023276748971193417
+        }
+      }
+    ],
+    "bet": {
+      "rtp": {
+        "fraction": "18649/19440",
+        "value": 0.9593106995884774
+      },
+      "houseEdge": {
+        "fraction": "791/19440",
+        "value": 0.04068930041152263
+      },
+      "hitFrequency": {
+        "fraction": "4421/7776",
+        "value": 0.5685442386831275
+      },
+      "pushFrequency": {
+        "fraction": "0",
+        "value": 0
+      },
+      "variance": {
+        "fraction": "16166471/15116544",
+        "value": 1.069455491943132
+      },
+      "standardDeviation": 1.0341448118823262,
+      "averageFee": {
+        "fraction": "8/45",
+        "value": 0.17777777777777778
+      },
+      "feeFrequency": {
+        "fraction": "4/9",
+        "value": 0.4444444444444444
+      },
+      "rerollFrequency": {
+        "fraction": "17/36",
+        "value": 0.4722222222222222
+      },
+      "elementOfRisk": {
+        "fraction": "791/22896",
+        "value": 0.03454751921733054
+      }
+    },
+    "withoutFreeOneOne": {
+      "rtp": {
+        "fraction": "3079/3240",
+        "value": 0.9503086419753086
+      },
+      "houseEdge": {
+        "fraction": "161/3240",
+        "value": 0.04969135802469136
+      },
+      "hitFrequency": {
+        "fraction": "731/1296",
+        "value": 0.5640432098765432
+      },
+      "pushFrequency": {
+        "fraction": "0",
+        "value": 0
+      },
+      "variance": {
+        "fraction": "448727/419904",
+        "value": 1.0686418800487731
+      },
+      "standardDeviation": 1.033751362779645,
+      "averageFee": {
+        "fraction": "8/45",
+        "value": 0.17777777777777778
+      },
+      "elementOfRisk": {
+        "fraction": "161/3816",
+        "value": 0.04219077568134172
+      },
+      "rerollFrequency": {
+        "fraction": "4/9",
+        "value": 0.4444444444444444
+      }
+    },
+    "strategies": {
+      "optimal": {
+        "rtp": {
+          "fraction": "18649/19440",
+          "value": 0.9593106995884774
+        },
+        "houseEdge": {
+          "fraction": "791/19440",
+          "value": 0.04068930041152263
+        },
+        "hitFrequency": {
+          "fraction": "4421/7776",
+          "value": 0.5685442386831275
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "16166471/15116544",
+          "value": 1.069455491943132
+        },
+        "standardDeviation": 1.0341448118823262,
+        "averageFee": {
+          "fraction": "8/45",
+          "value": 0.17777777777777778
+        }
+      },
+      "never-lock": {
+        "rtp": {
+          "fraction": "575/648",
+          "value": 0.8873456790123457
+        },
+        "houseEdge": {
+          "fraction": "73/648",
+          "value": 0.11265432098765432
+        },
+        "hitFrequency": {
+          "fraction": "575/1296",
+          "value": 0.44367283950617287
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "414575/419904",
+          "value": 0.9873090039628105
+        },
+        "standardDeviation": 0.9936342405346197,
+        "averageFee": {
+          "fraction": "0",
+          "value": 0
+        }
+      },
+      "always-lock-low": {
+        "rtp": {
+          "fraction": "1049/3888",
+          "value": 0.2698045267489712
+        },
+        "houseEdge": {
+          "fraction": "2839/3888",
+          "value": 0.7301954732510288
+        },
+        "hitFrequency": {
+          "fraction": "2561/7776",
+          "value": 0.32934670781893005
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "13308527/15116544",
+          "value": 0.8803948177572863
+        },
+        "standardDeviation": 0.9382935669380273,
+        "averageFee": {
+          "fraction": "7/18",
+          "value": 0.3888888888888889
+        }
+      },
+      "always-lock-high": {
+        "rtp": {
+          "fraction": "2827/3888",
+          "value": 0.7271090534979424
+        },
+        "houseEdge": {
+          "fraction": "1061/3888",
+          "value": 0.27289094650205764
+        },
+        "hitFrequency": {
+          "fraction": "4339/7776",
+          "value": 0.5579989711934157
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "73562179/75582720",
+          "value": 0.9732671568316145
+        },
+        "standardDeviation": 0.9865430334413267,
+        "averageFee": {
+          "fraction": "7/18",
+          "value": 0.3888888888888889
+        }
+      },
+      "optimal-wrong-die": {
+        "rtp": {
+          "fraction": "13439/19440",
+          "value": 0.6913065843621399
+        },
+        "houseEdge": {
+          "fraction": "6001/19440",
+          "value": 0.30869341563786007
+        },
+        "hitFrequency": {
+          "fraction": "3379/7776",
+          "value": 0.43454218106995884
+        },
+        "pushFrequency": {
+          "fraction": "0",
+          "value": 0
+        },
+        "variance": {
+          "fraction": "17992055/15116544",
+          "value": 1.1902227784340125
+        },
+        "standardDeviation": 1.0909733170128464,
+        "averageFee": {
+          "fraction": "8/45",
+          "value": 0.17777777777777778
+        }
+      }
+    },
+    "maxExposure": {
+      "stakes": {
+        "lock-and-roll": 25000
+      },
+      "bets": {
+        "lock-and-roll": {
+          "win": 25000,
+          "loss": 35000
+        }
+      },
+      "layout": {
+        "win": 25000,
+        "loss": 35000
+      }
+    }
+  }
+}

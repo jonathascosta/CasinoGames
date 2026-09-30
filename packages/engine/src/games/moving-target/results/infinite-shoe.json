@@ -1,0 +1,162 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/moving-target/moving-target.math.test.ts",
+    "name": "Moving Target — Monte Carlo against the declared figures (infinite shoe) › lands every bet within ±0.15 pp of its declared RTP"
+  },
+  "figures": {
+    "simulation": {
+      "rounds": 40055852,
+      "seed": "moving-target/infinite-shoe",
+      "source": {
+        "kind": "infinite shoe",
+        "ranks": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "suits": 4
+      },
+      "stakes": {
+        "exact-hit": 50,
+        "first-card": 50,
+        "three-plus-cards": 50
+      },
+      "z": 3.29,
+      "tolerance": 0.0015,
+      "rng": "xoshiro128** 1.1 (Blackman & Vigna), its state expanded from the seed by SplitMix64; a string seed is first hashed with FNV-1a (64-bit) over its UTF-8 bytes",
+      "confidence": {
+        "level": 0.95,
+        "z": 1.959963984540054
+      }
+    },
+    "bets": {
+      "exact-hit": {
+        "statistics": {
+          "rounds": 40055852,
+          "staked": 2002792600,
+          "returned": 1925743700,
+          "fees": 0,
+          "rtp": 0.9615292666849279,
+          "houseEdge": 0.038470733315072114,
+          "hitFrequency": 0.17300445887407412,
+          "pushFrequency": 0,
+          "standardDeviation": 2.147866963485288,
+          "standardError": 0.0003393707367515325
+        },
+        "rtp": {
+          "expected": 0.9615164475829444,
+          "observed": 0.9615292666849279,
+          "difference": 0.000012819101983474468,
+          "standardError": 0.0003393707367515325,
+          "ci95": [
+            0.9608641122634881,
+            0.9621944211063677
+          ],
+          "errors": 0.037773150702913635,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.1730102817758611,
+          "observed": 0.17300445887407412,
+          "difference": -0.00000582290178699485,
+          "standardError": 0.00005976583959765123,
+          "ci95": [
+            0.1728873199809569,
+            0.17312159776719133
+          ],
+          "errors": 0.09742859510039724,
+          "allowed": 0.00019662961227627255,
+          "pass": true
+        }
+      },
+      "first-card": {
+        "statistics": {
+          "rounds": 40055852,
+          "staked": 2002792600,
+          "returned": 1835916500,
+          "fees": 0,
+          "rtp": 0.9166782921007397,
+          "houseEdge": 0.0833217078992603,
+          "hitFrequency": 0.09166782921007398,
+          "pushFrequency": 0,
+          "standardDeviation": 2.885564769273169,
+          "standardError": 0.00045592965408968117
+        },
+        "rtp": {
+          "expected": 0.9166666666666666,
+          "observed": 0.9166782921007397,
+          "difference": 0.000011625434073070373,
+          "standardError": 0.00045592965408968117,
+          "ci95": [
+            0.9157846863992402,
+            0.9175718978022392
+          ],
+          "errors": 0.025498306523364798,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.09166666666666666,
+          "observed": 0.09166782921007398,
+          "difference": 0.0000011625434073181395,
+          "standardError": 0.00004559270490720753,
+          "ci95": [
+            0.0915784691504981,
+            0.09175718926964986
+          ],
+          "errors": 0.025498452212567864,
+          "allowed": 0.00014999999914471276,
+          "pass": true
+        }
+      },
+      "three-plus-cards": {
+        "statistics": {
+          "rounds": 40055852,
+          "staked": 2002792600,
+          "returned": 1794057500,
+          "fees": 0,
+          "rtp": 0.8957779752132098,
+          "houseEdge": 0.10422202478679021,
+          "hitFrequency": 0.17915559504264195,
+          "pushFrequency": 0,
+          "standardDeviation": 1.917412784710848,
+          "standardError": 0.00030295814427362466
+        },
+        "rtp": {
+          "expected": 0.8958333333333334,
+          "observed": 0.8957779752132098,
+          "difference": -0.0000553581201235831,
+          "standardError": 0.00030295814427362466,
+          "ci95": [
+            0.8951841881616104,
+            0.8963717622648092
+          ],
+          "errors": 0.18272530767017423,
+          "allowed": 0.0015,
+          "pass": true
+        },
+        "hitFrequency": {
+          "expected": 0.17916666666666667,
+          "observed": 0.17915559504264195,
+          "difference": -0.000011071624024722171,
+          "standardError": 0.00006059309167164275,
+          "ci95": [
+            0.1790368347652536,
+            0.1792743553200303
+          ],
+          "errors": 0.18272089638072772,
+          "allowed": 0.00019935127159970465,
+          "pass": true
+        }
+      }
+    }
+  }
+}

@@ -21,10 +21,9 @@
     "test:watch": "vitest --project \"!math\"",
     "test:math": "vitest run --project math",
     "prepare": "husky",
-    "docs:sheets": "node scripts/sync-game-sheets.ts",
-    "docs:pdf": "node tools/game-sheets-pdf.ts",
-    "lighthouse": "node tools/lighthouse.ts",
-    "docs:check": "node scripts/sync-game-sheets.ts --check && node tools/game-sheets-pdf.ts --check"
+    "docs:generate": "node tools/generate-docs.ts",
+    "docs:check": "node tools/generate-docs.ts --check",
+    "lighthouse": "node tools/lighthouse.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

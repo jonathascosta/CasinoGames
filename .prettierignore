@@ -3,3 +3,10 @@ pnpm-lock.yaml
 **/coverage/
 # Prompt history is kept verbatim.
 docs/prompts/
+# Generated: the tests write their records (packages/engine/src/testing/record.ts)
+# and tools/generate-docs.ts writes the documents. pnpm test, pnpm test:math and
+# pnpm docs:check keep them exactly as their generators write them.
+packages/engine/src/games/*/results/
+docs/results.json
+docs/rules/
+docs/math/

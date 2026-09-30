@@ -69,7 +69,7 @@ const EXACT_HIT_PAYTABLE: readonly PaytableEntry[] = EXACT_HIT_LINES.map((line) 
  *    for target T, 43/240 over the rolls.
  * moving-target.test.ts proves every figure exactly; moving-target.math.test.ts
  * plays seeded Monte Carlo runs on an infinite shoe and on the real
- * six-deck shoe, whose long-run returns differ slightly (see the game sheet).
+ * six-deck shoe, whose long-run returns differ slightly (see the Math Report).
  */
 export const MOVING_TARGET_BETS = defineBets([
   {

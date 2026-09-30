@@ -14,6 +14,12 @@ import { RANK_SETS } from '../../cards/card.ts';
 import { Shoe } from '../../cards/shoe.ts';
 import { roundsForTolerance, simulate } from '../../math/simulate.ts';
 import { createSeededRng } from '../../rng/seeded.ts';
+import {
+  describeShoe,
+  recordFigures,
+  simulationRecord,
+  verification,
+} from '../../testing/record.ts';
 import { MOVING_TARGET_BETS } from './bets.ts';
 import { movingTargetMathSummary, createMovingTarget } from './game.ts';
 
@@ -29,7 +35,7 @@ const points = (ratio: number) => {
 };
 
 describe('Moving Target — Monte Carlo against the declared figures (infinite shoe)', () => {
-  it('lands every bet within ±0.15 pp of its declared RTP', () => {
+  it('lands every bet within ±0.15 pp of its declared RTP', async () => {
     const volatility = Math.max(...MOVING_TARGET_BETS.map((bet) => bet.standardDeviation));
     const rounds = Math.max(MIN_ROUNDS, roundsForTolerance(volatility, TOLERANCE, Z));
     const bets = Object.fromEntries(MOVING_TARGET_BETS.map((bet) => [bet.id, bet.min]));
@@ -46,6 +52,7 @@ describe('Moving Target — Monte Carlo against the declared figures (infinite s
       `Moving Target on an infinite shoe, ${rounds.toLocaleString('en-US')} rounds (seed ${SEED})`,
       'RTP              declared   simulated  difference  standard error',
     ];
+    const results: Record<string, object> = {};
     for (const bet of movingTargetMathSummary().bets) {
       const measured = report.bets[bet.betId]!;
       lines.push(
@@ -66,7 +73,24 @@ describe('Moving Target — Monte Carlo against the declared figures (infinite s
         `${bet.betId} hit frequency: simulated ${measured.hitFrequency} vs declared ${p}`,
       ).toBeLessThanOrEqual(Z * Math.sqrt((p * (1 - p)) / rounds));
       expect(measured.pushFrequency).toBe(0);
+      const binomial = Math.sqrt((p * (1 - p)) / rounds);
+      results[bet.betId] = {
+        statistics: measured,
+        rtp: verification(bet.rtp, measured.rtp, measured.standardError, TOLERANCE),
+        hitFrequency: verification(p, measured.hitFrequency, binomial, Z * binomial),
+      };
     }
     process.stdout.write(`${lines.join('\n')}\n`);
+    await recordFigures('infinite-shoe', {
+      simulation: simulationRecord({
+        rounds,
+        seed: SEED,
+        source: describeShoe(infiniteShoe),
+        stakes: bets,
+        z: Z,
+        tolerance: TOLERANCE,
+      }),
+      bets: results,
+    });
   });
 });

@@ -7,13 +7,27 @@
 import { describe, expect, it } from 'vitest';
 import { RANK_SETS } from '../../cards/card.ts';
 import { Shoe } from '../../cards/shoe.ts';
+import { DIE_FACES } from '../../dice/dice.ts';
 import type { PaytableEntry } from '../../game/types.ts';
 import { exactReturns, type ExactReturn } from '../../math/exact.ts';
 import { Fraction } from '../../math/fraction.ts';
+import {
+  exact,
+  exactFigures,
+  exposure,
+  oddsRecord,
+  outcomeTable,
+  recordFigures,
+} from '../../testing/record.ts';
 import { createUniformRankSource } from '../../testing/uniform-ranks.ts';
 import { DICE_SPREAD_BETS } from './bets.ts';
-import { createDiceSpread } from './game.ts';
-import type { DiceSpreadBetId } from './rules.ts';
+import { createDiceSpread, diceSpreadMathSummary } from './game.ts';
+import {
+  DICE_SPREAD_BET_IDS,
+  readDiceSpreadRoll,
+  resolveDiceSpreadBet,
+  type DiceSpreadBetId,
+} from './rules.ts';
 
 const ALL_BETS = { between: 100, match: 100, bullseye: 100, doubles: 100, triple: 100 };
 
@@ -108,5 +122,97 @@ describe('Dice Spread — exact math', () => {
   it('returns 239/270 of everything staked when all five bets are played equally', () => {
     // Informational: the five house edges add up to 31/54 of a unit per 5 staked.
     expect(byValue.total.rtp.toString()).toBe('239/270');
+  });
+});
+
+describe('Dice Spread — the figures of the Math Report', () => {
+  const uniform = () => createDiceSpread({ source: createUniformRankSource(RANK_SETS.aceToSix) });
+
+  it("adds up each bet's outcomes to its declared figures, and finds the most a round can pay", async () => {
+    const bets = Object.fromEntries(
+      diceSpreadMathSummary().bets.map((bet) => {
+        const result = measured(bet.betId as DiceSpreadBetId);
+        expect(result.rtp.toNumber()).toBe(bet.rtp);
+        expect(result.hitFrequency.toNumber()).toBeCloseTo(bet.hitFrequency!, 15);
+        return [
+          bet.betId,
+          { outcomes: outcomeTable(bet.paytable, result), ...exactFigures(result) },
+        ];
+      }),
+    );
+    // Every bet at its maximum, over every roll and card.
+    const atMax = exposure(
+      uniform,
+      Object.fromEntries(DICE_SPREAD_BETS.map((bet) => [bet.id, bet.max])),
+    );
+    for (const bet of diceSpreadMathSummary().bets) {
+      expect(atMax.bets[bet.betId]!.win).toBe(bet.maxExposure! * bet.max);
+    }
+    await recordFigures('exact', {
+      sampleSpace: {
+        rolls: DIE_FACES.length ** 2,
+        cardValues: RANK_SETS.aceToSix.length,
+        outcomes: byValue.outcomes,
+        withSuits: byCard.outcomes,
+      },
+      source: { kind: 'uniform ranks', ranks: RANK_SETS.aceToSix },
+      bets,
+      allBets: exact(byValue.total.rtp),
+      maxExposure: atMax,
+    });
+  });
+
+  it('settles every roll and card as the rules state: the enumeration adds up to every RTP', async () => {
+    // The 21 distinct rolls, lower die first, each with the 6 card values.
+    const rows = DIE_FACES.flatMap((low) =>
+      DIE_FACES.filter((high) => high >= low).flatMap((high) =>
+        RANK_SETS.aceToSix.map((card) => {
+          const ways = low === high ? 1 : 2;
+          const net = Object.fromEntries(
+            DICE_SPREAD_BET_IDS.map((bet) => {
+              const result = resolveDiceSpreadBet(bet, [low, high], card);
+              const value =
+                result.outcome === 'win'
+                  ? Fraction.of(result.odds.to, result.odds.per)
+                  : result.outcome === 'push'
+                    ? Fraction.ZERO
+                    : Fraction.of(-1);
+              return [bet, value];
+            }),
+          ) as Record<DiceSpreadBetId, Fraction>;
+          return { low, high, ways, card, probability: Fraction.of(ways, 216), net };
+        }),
+      ),
+    );
+    expect(rows).toHaveLength(126);
+    const total = rows.reduce((sum, row) => sum.add(row.probability), Fraction.ZERO);
+    expect(total.equals(Fraction.ONE)).toBe(true);
+    // Each bet's return over the table is the enumerated RTP of the game itself.
+    for (const bet of DICE_SPREAD_BET_IDS) {
+      const rtp = rows.reduce(
+        (sum, row) => sum.add(row.probability.mul(Fraction.ONE.add(row.net[bet]))),
+        Fraction.ZERO,
+      );
+      expect(rtp.equals(measured(bet).rtp), bet).toBe(true);
+    }
+    await recordFigures('enumeration', {
+      bets: DICE_SPREAD_BET_IDS,
+      // Per row: the dice (higher first), how many of the 36 rolls show them, the
+      // card, the row's chance, and each bet's net result per unit staked.
+      rows: rows.map(({ low, high, ways, card, probability, net }) => ({
+        dice: [high, low],
+        spread: readDiceSpreadRoll([low, high]).spread,
+        ways,
+        card,
+        probability: probability.toString(),
+        net: Object.fromEntries(DICE_SPREAD_BET_IDS.map((bet) => [bet, net[bet].toString()])),
+      })),
+      odds: Object.fromEntries(
+        DICE_SPREAD_BETS.map((bet) => [
+          bet.id,
+          bet.paytable.flatMap((entry) => ('odds' in entry ? [oddsRecord(entry.odds)] : [])),
+        ]),
+      ),
+    });
   });
 });

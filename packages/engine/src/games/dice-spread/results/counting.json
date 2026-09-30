@@ -1,0 +1,132 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/dice-spread/counting.test.ts",
+    "name": "Dice Spread — card counting exposure › measures the countable bets at 75%, 50% and 25% penetration, against the spread the limits allow"
+  },
+  "figures": {
+    "shoe": {
+      "kind": "shoe",
+      "decks": 6,
+      "ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "suits": 4,
+      "cards": 144,
+      "penetration": 0.75,
+      "cutCard": 108,
+      "behindCutCard": 36
+    },
+    "cardValues": {
+      "between": [
+        "-5/9",
+        "1/12",
+        "13/36",
+        "13/36",
+        "1/12",
+        "-5/9"
+      ],
+      "match": [
+        "-1/12",
+        "-1/12",
+        "-1/12",
+        "-1/12",
+        "-1/12",
+        "-1/12"
+      ],
+      "bullseye": [
+        "-1",
+        "5/18",
+        "5/18",
+        "5/18",
+        "5/18",
+        "-1"
+      ],
+      "doubles": [
+        "-1/6",
+        "-1/6",
+        "-1/6",
+        "-1/6",
+        "-1/6",
+        "-1/6"
+      ],
+      "triple": [
+        "-5/36",
+        "-5/36",
+        "-5/36",
+        "-5/36",
+        "-5/36",
+        "-5/36"
+      ]
+    },
+    "countable": [
+      "between",
+      "bullseye"
+    ],
+    "penetrations": [
+      {
+        "penetration": 0.75,
+        "rounds": 108,
+        "bets": {
+          "between": {
+            "rounds": 108,
+            "favourable": 0.08572601242244027,
+            "edgeWhenFavourable": 0.020489504203516216,
+            "breakEvenSpread": 22.085901010882758
+          },
+          "bullseye": {
+            "rounds": 108,
+            "favourable": 0.004734272004624588,
+            "edgeWhenFavourable": 0.02526144638774272,
+            "breakEvenSpread": 1239.7532517634522
+          }
+        }
+      },
+      {
+        "penetration": 0.5,
+        "rounds": 72,
+        "bets": {
+          "between": {
+            "rounds": 72,
+            "favourable": 0.03656068205731913,
+            "edgeWhenFavourable": 0.011816531570339486,
+            "breakEvenSpread": 86.72982300813757
+          },
+          "bullseye": {
+            "rounds": 72,
+            "favourable": 0.00013197444148345868,
+            "edgeWhenFavourable": 0.012272793923128272,
+            "breakEvenSpread": 91467.68777573023
+          }
+        }
+      },
+      {
+        "penetration": 0.25,
+        "rounds": 36,
+        "bets": {
+          "between": {
+            "rounds": 36,
+            "favourable": 0.004728976888046663,
+            "edgeWhenFavourable": 0.0058975570810046035,
+            "breakEvenSpread": 1328.996380480479
+          },
+          "bullseye": {
+            "rounds": 36,
+            "favourable": 9.339596370231252e-9,
+            "edgeWhenFavourable": 0.006387380866201055,
+            "breakEvenSpread": 2483392165.1326456
+          }
+        }
+      }
+    ],
+    "limits": {
+      "min": 50,
+      "max": 25000,
+      "spread": 500
+    }
+  }
+}

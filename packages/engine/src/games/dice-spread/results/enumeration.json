@@ -1,0 +1,2211 @@
+{
+  "test": {
+    "file": "packages/engine/src/games/dice-spread/dice-spread.test.ts",
+    "name": "Dice Spread — the figures of the Math Report › settles every roll and card as the rules state: the enumeration adds up to every RTP"
+  },
+  "figures": {
+    "bets": [
+      "between",
+      "match",
+      "bullseye",
+      "doubles",
+      "triple"
+    ],
+    "rows": [
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 1,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "30"
+        }
+      },
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 2,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 3,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 4,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 5,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          1,
+          1
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 6,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          1
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "4",
+          "match": "-1",
+          "bullseye": "22",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          1
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          1
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          1
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "spread": 5,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "spread": 5,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "1/2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "spread": 5,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "1/2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "spread": 5,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "1/2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "spread": 5,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "1/2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          1
+        ],
+        "spread": 5,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 1,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 2,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "30"
+        }
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 3,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 4,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 5,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          2,
+          2
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 6,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          2
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "4",
+          "match": "-1",
+          "bullseye": "22",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          2
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          2
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          2
+        ],
+        "spread": 4,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 1,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 2,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 3,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "30"
+        }
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 4,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 5,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          3,
+          3
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 6,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          3
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "4",
+          "match": "-1",
+          "bullseye": "22",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          3
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "2",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          3
+        ],
+        "spread": 3,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 1,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 2,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 3,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 4,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "30"
+        }
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 5,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          4,
+          4
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 6,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          4
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "4",
+          "match": "-1",
+          "bullseye": "22",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          4
+        ],
+        "spread": 2,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "-1",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 1,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 2,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 3,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 4,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 5,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "30"
+        }
+      },
+      {
+        "dice": [
+          5,
+          5
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 6,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 1,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 2,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 3,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 4,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 5,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          5
+        ],
+        "spread": 1,
+        "ways": 2,
+        "card": 6,
+        "probability": "1/108",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "-1",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 1,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 2,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 3,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 4,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 5,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "-1",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "-1"
+        }
+      },
+      {
+        "dice": [
+          6,
+          6
+        ],
+        "spread": 0,
+        "ways": 1,
+        "card": 6,
+        "probability": "1/216",
+        "net": {
+          "between": "0",
+          "match": "2",
+          "bullseye": "-1",
+          "doubles": "4",
+          "triple": "30"
+        }
+      }
+    ],
+    "odds": {
+      "between": [
+        {
+          "to": 4,
+          "per": 1,
+          "returns": 5
+        },
+        {
+          "to": 2,
+          "per": 1,
+          "returns": 3
+        },
+        {
+          "to": 1,
+          "per": 1,
+          "returns": 2
+        },
+        {
+          "to": 1,
+          "per": 2,
+          "returns": 1.5
+        }
+      ],
+      "match": [
+        {
+          "to": 2,
+          "per": 1,
+          "returns": 3
+        }
+      ],
+      "bullseye": [
+        {
+          "to": 22,
+          "per": 1,
+          "returns": 23
+        }
+      ],
+      "doubles": [
+        {
+          "to": 4,
+          "per": 1,
+          "returns": 5
+        }
+      ],
+      "triple": [
+        {
+          "to": 30,
+          "per": 1,
+          "returns": 31
+        }
+      ]
+    }
+  }
+}

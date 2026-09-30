@@ -61,7 +61,7 @@ export function createLockAndRollShoe(): Shoe {
   return new Shoe({ decks: LOCK_AND_ROLL_CONFIG.decks, ranks: RANK_SETS.aceToSix });
 }
 
-/** The declared math, the strategy card included, as shown in the paytable and the game sheet. */
+/** The declared math, the strategy card included, as shown in the paytable and the Math Report. */
 export function lockAndRollMathSummary(): MathSummary {
   return summarizeMath({
     id: LOCK_AND_ROLL_ID,
