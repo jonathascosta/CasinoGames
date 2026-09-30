@@ -15,6 +15,11 @@ export interface CardDealerOptions {
   readonly sound?: SoundEngine;
   /** 'dom' forces the fallback renderer (tests, very old devices). */
   readonly renderer?: 'auto' | 'dom';
+  /**
+   * Card size relative to the default, which leaves room for several hands.
+   * A table that deals a single card can use about 2. Default 1.
+   */
+  readonly cardScale?: number;
 }
 
 const DEAL_MS = 380;
@@ -59,12 +64,12 @@ export class CardDealer {
     if (options.renderer !== 'dom') {
       try {
         const { createPixiCardView } = await import('../pixi/card-view.ts');
-        view = await createPixiCardView(stage, options.hands);
+        view = await createPixiCardView(stage, options.hands, options.cardScale);
       } catch (error) {
         console.warn('Canvas cards unavailable, using the DOM fallback.', error);
       }
     }
-    view ??= createDomCardView(stage, options.hands);
+    view ??= createDomCardView(stage, options.hands, options.cardScale);
     return new CardDealer(options, element, view, announcer);
   }
 

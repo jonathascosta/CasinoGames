@@ -46,6 +46,11 @@
   color: var(--ink-300);
 }
 
+/* Odds and probabilities stay on one line ("4 to 1", not "4 to" / "1"). */
+.cg-paytable td.cg-num {
+  white-space: nowrap;
+}
+
 .cg-paytable__stats {
   display: flex;
   flex-wrap: wrap;
