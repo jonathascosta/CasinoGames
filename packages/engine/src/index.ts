@@ -71,11 +71,13 @@ export {
   type SettlementTotals,
 } from './game/settlement.ts';
 export type {
+  BetBreakdown,
   BetDefinition,
   BetId,
   BetKind,
   BetMath,
   Bets,
+  BreakdownRow,
   CustomEvent,
   DecisionOption,
   Game,
@@ -83,6 +85,7 @@ export type {
   GameEventType,
   JackpotPayout,
   MathSummary,
+  PaytableCondition,
   PaytableEntry,
   RoundPhase,
   RoundState,

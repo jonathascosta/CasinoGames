@@ -18,12 +18,29 @@ export interface JackpotPayout {
   readonly share: number;
 }
 
+/**
+ * Something the round settles before the result and a line is paid under:
+ * the target the dice set, say. Naming it lets the paytable and the game
+ * sheet show, for each of its values, how often it comes up and the house
+ * edge given it.
+ */
+export interface PaytableCondition {
+  /** What varies, e.g. "Target"; the same for every line of a bet. */
+  readonly name: string;
+  /** Its value for this line, e.g. "7". */
+  readonly value: string;
+  /** Chance per round that the condition takes this value. */
+  readonly probability: number;
+}
+
 interface PaytableEntryBase {
   /** Stable id, echoed in SettlementLine.entryId when this entry decides a bet. */
   readonly id: string;
   readonly label: string;
   /** Exact probability per round, when the game is enumerable. */
   readonly probability?: number;
+  /** The condition the line is paid under, for bets whose payout depends on one. */
+  readonly given?: PaytableCondition;
 }
 
 /**
@@ -194,7 +211,35 @@ export interface BetMath {
    * when a progressive jackpot can decide the bet, since the pool sets it.
    */
   readonly maxExposure?: number;
+  /**
+   * The bet's figures for each value of the condition its lines are paid
+   * under, when every line names one (see PaytableCondition) and declares
+   * its probability.
+   */
+  readonly breakdown?: BetBreakdown;
   readonly description?: string;
+  readonly paytable: readonly PaytableEntry[];
+}
+
+/** A bet's figures split by the condition its lines are paid under. */
+export interface BetBreakdown {
+  /** What varies, e.g. "Target". */
+  readonly by: string;
+  /** One row per value, in paytable order. */
+  readonly rows: readonly BreakdownRow[];
+}
+
+export interface BreakdownRow {
+  /** e.g. "7". */
+  readonly value: string;
+  /** Chance per round of this value. */
+  readonly probability: number;
+  /** Chance that the bet wins, given this value. */
+  readonly hitFrequency: number;
+  /** Return per unit staked given this value, pushes included. */
+  readonly rtp: number;
+  readonly houseEdge: number;
+  /** The lines paid under this value. */
   readonly paytable: readonly PaytableEntry[];
 }
 
