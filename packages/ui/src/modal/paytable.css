@@ -78,3 +78,17 @@
   font-size: 12.5px;
   color: var(--ink-400);
 }
+
+/* A bet split by its condition: the value heads each row. */
+.cg-paytable__breakdown tbody th {
+  color: var(--gold-200);
+  font-weight: 700;
+}
+
+.cg-paytable__caption {
+  caption-side: bottom;
+  padding-top: 8px;
+  color: var(--ink-400);
+  font-size: 12px;
+  text-align: left;
+}

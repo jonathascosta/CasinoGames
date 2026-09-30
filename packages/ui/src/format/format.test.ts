@@ -32,6 +32,8 @@ describe('percentages', () => {
   it('formats ratios and differences in points', () => {
     expect(formatPercent(35 / 36)).toBe('97.22%');
     expect(formatPercent(Number.NaN)).toBe('—');
+    expect(formatPercent(-0.0125)).toBe('−1.25%');
+    expect(formatPercent(-0.00001)).toBe('0.00%');
     expect(formatPoints(0.0038)).toBe('+0.38 pp');
     expect(formatPoints(-0.0125)).toBe('−1.25 pp');
     expect(formatPoints(-0.00001)).toBe('0.00 pp');
