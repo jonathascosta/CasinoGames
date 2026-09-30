@@ -5,6 +5,7 @@ import {
   ProgressiveJackpot,
   RANK_SETS,
   Shoe,
+  createAlvoMovel,
   createCryptoRng,
   createEntreDados,
   createSeededRng,
@@ -84,8 +85,23 @@ for (let round = 0; round < 1_000; round++) {
   assert.equal(state.phase, 'settled');
 }
 
+// A game with a variable number of cards: Alvo Móvel, exactly and on its six-deck shoe.
+const alvo = exactReturns(
+  () => createAlvoMovel({ source: createUniformRankSource(RANK_SETS.aceToTen) }),
+  { acerta: 100, 'tres-ou-mais': 100 },
+);
+assert.equal(alvo.outcomes, 71_469);
+assert.equal(alvo.bets.acerta.rtp.toString(), '17307296056493/18000000000000');
+assert.equal(alvo.bets['tres-ou-mais'].rtp.toString(), '43/48');
+const alvoTable = createAlvoMovel();
+for (let round = 0; round < 1_000; round++) {
+  const state = alvoTable.start({ acerta: 100, 'primeira-carta': 50 }, rng);
+  assert.equal(state.phase, 'settled');
+}
+
 console.log(
   `engine dist OK on Node ${process.versions.node}: exact RTP ${exact.bets.seven.rtp}, ` +
     `simulated ${report.bets.seven.rtp.toFixed(4)} over ${report.rounds} rounds; ` +
-    `Entre Dados exact RTP ${entre.bets.entre.rtp} over ${entre.outcomes} outcomes`,
+    `Entre Dados exact RTP ${entre.bets.entre.rtp} over ${entre.outcomes} outcomes; ` +
+    `Alvo Móvel over ${alvo.outcomes} outcomes`,
 );
