@@ -12,9 +12,9 @@ function pointer(target: Element, type: string): void {
   target.dispatchEvent(new PointerEvent(type, { bubbles: true, button: 0, pointerId: 1 }));
 }
 
-async function create(motionLevel: 'full' | 'none' = 'none') {
+async function create(motionLevel: 'full' | 'reduced' | 'none' = 'none') {
   const onThrow = vi.fn();
-  const motion = new Motion({ reducedMotion: false, root: null });
+  const motion = new Motion({ reducedMotion: motionLevel === 'reduced', root: null });
   motion.turbo = motionLevel === 'none';
   const host = document.createElement('div');
   const roller = await DiceRoller.create({
@@ -70,6 +70,18 @@ describe('DiceRoller', () => {
     const power = onThrow.mock.calls[0]![0] as number;
     expect(power).toBeGreaterThan(0.6);
     expect(power).toBeLessThan(0.75);
+  });
+
+  it('keeps held dice still with reduced motion, and still throws harder', async () => {
+    const { roller, onThrow } = await create('reduced');
+    roller.arm();
+    pointer(roller.element, 'pointerdown');
+    await vi.advanceTimersByTimeAsync(600);
+    expect(roller.element.querySelector('.cg-dom-dice')!.classList.contains('is-holding')).toBe(
+      false,
+    );
+    pointer(roller.element, 'pointerup');
+    expect(onThrow.mock.calls[0]![0]).toBeGreaterThan(0.6);
   });
 
   it('throws from the keyboard and from requestThrow()', async () => {

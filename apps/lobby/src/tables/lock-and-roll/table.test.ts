@@ -94,7 +94,7 @@ describe('LockAndRollTable', () => {
     const { table, stand, lock, caption, q } = await setup(SEEDS.sixThree);
     expect(table.phase).toBe('betting');
     expect(q('[data-bet="lock-and-roll"]').getAttribute('aria-label')).toMatch(
-      /^Lock & Roll: 1\.00\./,
+      /^Lock & Roll, your dice beat the cards · 1 to 1: 1\.00\./,
     );
     expect(stand.hidden).toBe(false);
     expect(stand.disabled).toBe(true);
@@ -110,7 +110,7 @@ describe('LockAndRollTable', () => {
   });
 
   it('waits for the decision after the roll, and Stand keeps it', async () => {
-    const { table, services, tracker, dice, stand, caption, roll } = await setup(SEEDS.sixThree);
+    const { table, services, tracker, q, dice, stand, caption, roll } = await setup(SEEDS.sixThree);
     const { playing } = await roll();
     // The roll is read, the dice are offered, and nothing more is dealt or taken.
     expect(table.scoreboard.totals).toEqual(['9', '—']);
@@ -123,7 +123,10 @@ describe('LockAndRollTable', () => {
     expect(services.bankroll.balance).toBe(1_000_00 - 100);
     expect(table.element.querySelectorAll('.cg-dom-card')).toHaveLength(0);
 
+    stand.focus();
     stand.click();
+    // Stand stops responding: the keyboard focus goes back to the dice.
+    expect(document.activeElement).toBe(q('.cg-dice-tray'));
     await playing;
 
     const state = expected(SEEDS.sixThree, 'stand');

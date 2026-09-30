@@ -115,8 +115,10 @@ describe('BetSpot', () => {
     spot.setAmount(1_000);
     spot.setResult({ outcome: 'win', net: 1_500 });
     expect(spot.element.dataset.result).toBe('win');
-    expect(spot.element.querySelector('.cg-bet-spot__result')!.textContent).toBe('+15.00');
-    expect(spot.element.getAttribute('aria-label')).toContain(', win.');
+    expect(spot.element.querySelector<HTMLElement>('.cg-bet-spot__result')!.dataset.value).toBe(
+      '+15.00',
+    );
+    expect(spot.element.getAttribute('aria-label')).toContain(': 10.00, win +15.00.');
     spot.setResult(null);
     expect(spot.element.dataset.result).toBeUndefined();
   });

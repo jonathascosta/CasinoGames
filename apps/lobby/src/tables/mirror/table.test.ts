@@ -75,8 +75,10 @@ describe('MirrorTable', () => {
   it('opens with 1.00 on Mirror, both hands unread and the meter at its seed', async () => {
     const { spot, roll, caption, q, table } = await setup();
     expect(table.phase).toBe('betting');
-    expect(spot('mirror').getAttribute('aria-label')).toMatch(/^Mirror: 1\.00\./);
-    expect(roll.disabled).toBe(false);
+    expect(spot('mirror').getAttribute('aria-label')).toMatch(
+      /^Mirror, your dice outrank the cards · ties lose: 1\.00\./,
+    );
+    expect(roll.getAttribute('aria-disabled')).toBe('false');
     expect(caption()).toBe('Tap the dice or press Roll.');
     expect(q('.mr-mirror').dataset.tilt).toBe('none');
     expect(q('.cg-meter__value').textContent).toBe('5,000.00');
@@ -178,12 +180,12 @@ describe('MirrorTable', () => {
   it('keeps side bets waiting for Mirror, and bets within the balance', async () => {
     const { spot, roll, caption, q } = await setup('rules', 1_50);
     spot('mirror').dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
-    expect(roll.disabled).toBe(true);
+    expect(roll.getAttribute('aria-disabled')).toBe('true');
     expect(caption()).toBe('Place a bet on Mirror, then roll the dice.');
     spot('double-sixes').click();
     expect(caption()).toBe('Side bets ride on Mirror: add a chip to Mirror.');
     spot('mirror').click();
-    expect(roll.disabled).toBe(false);
+    expect(roll.getAttribute('aria-disabled')).toBe('false');
     spot('tie').click(); // 1.50 staked: the whole balance
     expect(q('.tb-bet__amount').textContent).toBe('1.50');
   });

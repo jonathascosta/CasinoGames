@@ -41,6 +41,8 @@ export function createChip(value: Cents): HTMLSpanElement {
   return h(
     'span',
     { class: 'cg-chip', dataset: { tone: chipTone(value) }, 'aria-hidden': 'true' },
-    h('span', { class: 'cg-chip__label' }, formatChip(value)),
+    // Printed by the stylesheet, like the rest of the chip: a chip is a
+    // picture, and the control it sits on says its value in words.
+    h('span', { class: 'cg-chip__label', dataset: { value: formatChip(value) } }),
   );
 }

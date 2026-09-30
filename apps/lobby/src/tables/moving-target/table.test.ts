@@ -68,8 +68,10 @@ describe('MovingTargetTable', () => {
   it('opens with 1.00 on Exact Hit, no target yet and the dice ready to roll', async () => {
     const { spot, roll, caption, q, table } = await setup();
     expect(table.phase).toBe('betting');
-    expect(spot('exact-hit').getAttribute('aria-label')).toMatch(/^Exact Hit: 1\.00\./);
-    expect(roll.disabled).toBe(false);
+    expect(spot('exact-hit').getAttribute('aria-label')).toMatch(
+      /^Exact Hit, total lands on the target: 1\.00\./,
+    );
+    expect(roll.getAttribute('aria-disabled')).toBe('false');
     expect(caption()).toBe('Tap the dice or press Roll.');
     expect(q('.mt-target__value').textContent).toBe('?');
     expect(q('.tb-bet__amount').textContent).toBe('1.00');
@@ -111,12 +113,12 @@ describe('MovingTargetTable', () => {
   it('keeps side bets waiting for Exact Hit, and bets within the balance', async () => {
     const { spot, roll, caption, q } = await setup('rules', 1_50);
     spot('exact-hit').dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
-    expect(roll.disabled).toBe(true);
+    expect(roll.getAttribute('aria-disabled')).toBe('true');
     expect(caption()).toBe('Place a bet on Exact Hit, then roll the dice.');
     spot('three-plus-cards').click();
     expect(caption()).toBe('Side bets ride on Exact Hit: add a chip to Exact Hit.');
     spot('exact-hit').click();
-    expect(roll.disabled).toBe(false);
+    expect(roll.getAttribute('aria-disabled')).toBe('false');
     spot('first-card').click(); // 1.50 staked: the whole balance
     expect(q('.tb-bet__amount').textContent).toBe('1.50');
   });

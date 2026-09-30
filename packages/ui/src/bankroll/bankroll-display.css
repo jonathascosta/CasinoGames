@@ -94,3 +94,22 @@
 :root[data-motion='turbo'] .cg-bankroll__delta.is-visible {
   animation-duration: 900ms;
 }
+
+/* Reduced motion: the change fades in and out where it stands. */
+@media (prefers-reduced-motion: reduce) {
+  .cg-bankroll__delta.is-visible {
+    animation-name: cg-delta-fade;
+  }
+}
+
+@keyframes cg-delta-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  15%,
+  75% {
+    opacity: 1;
+  }
+}

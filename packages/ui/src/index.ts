@@ -57,11 +57,12 @@ export {
 export {
   DiceRoller,
   type DicePickOptions,
+  type DiceRenderer,
   type DiceRollerOptions,
   type RollOptions,
 } from './dice/DiceRoller.ts';
 export type { DiceView, DieSpot, ThrowOptions } from './dice/dice-view.ts';
-export { CardDealer, type CardDealerOptions } from './cards/CardDealer.ts';
+export { CardDealer, type CardDealerOptions, type CardRenderer } from './cards/CardDealer.ts';
 export type { CardView, HandLayout, ShoeDisplay } from './cards/card-view.ts';
 export { renderMarkdown, isSafeHref, type MarkdownOptions } from './markdown/markdown.ts';
 export { createInfoModal, type InfoModalOptions } from './modal/InfoModal.ts';

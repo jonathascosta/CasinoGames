@@ -230,8 +230,15 @@ export class LockAndRollTable {
       signal.addEventListener('abort', onAbort, { once: true });
       const choose = (choice: LockAndRollChoice) => {
         signal.removeEventListener('abort', onAbort);
+        // The buttons that took the choice stop responding: the keyboard
+        // focus goes back to the dice, where the next round starts.
+        const focused = document.activeElement;
+        const keepFocus =
+          focused !== null &&
+          (this.#decision.element.contains(focused) || focused.classList.contains('cg-die-pick'));
         roller.setHeld(held(lockedDie(choice)), { final: true });
         this.#decision.close();
+        if (keepFocus) roller.element.focus();
         resolve(choice);
       };
       roller.offerDice({

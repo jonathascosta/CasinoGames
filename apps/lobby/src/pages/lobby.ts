@@ -40,8 +40,9 @@ const PILLARS = [
   {
     title: 'Built for any screen',
     text:
-      'Mobile-first from 360 px, portrait or landscape, touch or keyboard. 3D dice and dealt ' +
-      'cards in PixiJS, loaded only at the table; turbo mode and reduced motion respected.',
+      'Mobile-first from 360 px, portrait or landscape, touch or keyboard. Tables open ' +
+      'light; the 3D dice and dealt cards in PixiJS load on your first tap. Turbo mode and ' +
+      'reduced motion respected.',
   },
 ] as const;
 
@@ -61,42 +62,50 @@ export function lobbyPage(services: Services, router: Router): Page {
           { class: 'lobby' },
           topbar.element,
           h(
-            'section',
-            { class: 'hero' },
-            h('span', { class: 'cg-eyebrow' }, 'Demo lobby · Virtual chips'),
-            h('h1', { class: 'hero__title' }, 'Roll ', h('em', null, '& Deal')),
+            'main',
+            { class: 'lobby__main' },
             h(
-              'p',
-              { class: 'hero__lede' },
-              'Dice rolled by the player. Cards dealt by the dealer.',
+              'section',
+              { class: 'hero' },
+              h('span', { class: 'cg-eyebrow' }, 'Demo lobby · Virtual chips'),
+              h('h1', { class: 'hero__title' }, 'Roll ', h('em', null, '& Deal')),
+              h(
+                'p',
+                { class: 'hero__lede' },
+                'Dice rolled by the player. Cards dealt by the dealer.',
+              ),
+              h(
+                'p',
+                { class: 'hero__text' },
+                'Four original table games for aggregators and live-dealer studios. Every ' +
+                  'declared RTP is proven exactly and by simulation, on one engine and one ' +
+                  'table kit, and the RTP stats show how your own rounds compare.',
+              ),
             ),
             h(
-              'p',
-              { class: 'hero__text' },
-              'Four original table games for aggregators and live-dealer studios. Every ' +
-                'declared RTP is proven exactly and by simulation, on one engine and one ' +
-                'table kit, and the RTP stats show how your own rounds compare.',
+              'section',
+              { class: 'games', 'aria-labelledby': 'games-title' },
+              h('h2', { class: 'cg-sr-only', id: 'games-title' }, 'Tables'),
+              h(
+                'ul',
+                { class: 'games__grid' },
+                ...cards.map((card) => h('li', null, card.element)),
+              ),
             ),
-          ),
-          h(
-            'section',
-            { class: 'games', 'aria-labelledby': 'games-title' },
-            h('h2', { class: 'cg-sr-only', id: 'games-title' }, 'Tables'),
-            h('ul', { class: 'games__grid' }, ...cards.map((card) => h('li', null, card.element))),
-          ),
-          h(
-            'section',
-            { class: 'pillars', 'aria-labelledby': 'pillars-title' },
-            h('h2', { id: 'pillars-title', class: 'pillars__title' }, 'Under the hood'),
             h(
-              'ul',
-              { class: 'pillars__list' },
-              ...PILLARS.map((pillar) =>
-                h(
-                  'li',
-                  { class: 'pillar' },
-                  h('h3', null, pillar.title),
-                  h('p', null, pillar.text),
+              'section',
+              { class: 'pillars', 'aria-labelledby': 'pillars-title' },
+              h('h2', { id: 'pillars-title', class: 'pillars__title' }, 'Under the hood'),
+              h(
+                'ul',
+                { class: 'pillars__list' },
+                ...PILLARS.map((pillar) =>
+                  h(
+                    'li',
+                    { class: 'pillar' },
+                    h('h3', null, pillar.title),
+                    h('p', null, pillar.text),
+                  ),
                 ),
               ),
             ),
@@ -211,15 +220,16 @@ class SheetDialogs {
   async open(game: GameEntry): Promise<void> {
     let modal = this.#modals.get(game.slug);
     if (modal === undefined) {
-      const { loadSheet, createRulesModal } = await import('../tables/shell.ts');
-      const sheet = await loadSheet(game.slug);
-      if (this.#destroyed) return;
-      // The sheet, then where to find all four in one PDF.
-      const markdown =
-        `${sheet.trimEnd()}\n\n---\n\n` +
-        `All four game sheets are also in one PDF: [download the game sheets](${SHEETS_PDF}).\n`;
-      modal = this.#modals.get(game.slug) ?? createRulesModal(game, markdown, 'Game sheet');
-      this.#modals.set(game.slug, modal);
+      const { createSheetDialog } = await import('./sheet-dialog.ts');
+      const created = await createSheetDialog(game, SHEETS_PDF);
+      if (this.#destroyed) {
+        created.destroy();
+        return;
+      }
+      // Opened twice while loading: keep the first.
+      modal = this.#modals.get(game.slug);
+      if (modal === undefined) this.#modals.set(game.slug, (modal = created));
+      else created.destroy();
     }
     modal.open();
   }

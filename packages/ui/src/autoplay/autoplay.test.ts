@@ -82,9 +82,12 @@ describe('AutoPlay', () => {
       '50',
       '100',
     ]);
+    expect(document.activeElement).toBe(menu.querySelector('button'));
     menu.querySelector<HTMLButtonElement>('button')!.click();
     expect(menu.hidden).toBe(true);
     expect(toggle.textContent).toBe('Stop0/10');
+    // The menu took the keyboard focus with it: back on the toggle, which stops.
+    expect(document.activeElement).toBe(toggle);
     toggle.click(); // stop
     await vi.waitFor(() => {
       expect(auto.state.running).toBe(false);
@@ -109,10 +112,15 @@ describe('AutoPlay', () => {
     toggle.click();
     view.element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(menu.hidden).toBe(true);
+    expect(document.activeElement).toBe(toggle);
     toggle.click();
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     expect(menu.hidden).toBe(true);
+    // Unavailable, yet focusable: it keeps the keyboard focus between rounds.
     view.setDisabled(true);
-    expect(toggle.disabled).toBe(true);
+    expect(toggle.getAttribute('aria-disabled')).toBe('true');
+    expect(toggle.disabled).toBe(false);
+    toggle.click();
+    expect(menu.hidden).toBe(true);
   });
 });

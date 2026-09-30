@@ -53,6 +53,7 @@ export class TargetBoard {
   readonly #total: HTMLSpanElement;
   readonly #fill: HTMLSpanElement;
   readonly #count: HTMLElement;
+  readonly #countText: HTMLSpanElement;
   readonly #pips: HTMLSpanElement[];
   readonly #caption: HTMLParagraphElement;
   #target: Target | null = null;
@@ -71,11 +72,14 @@ export class TargetBoard {
     this.#total = h('span', { class: 'mt-total__value cg-num' }, '0');
     this.#fill = h('span', { class: 'mt-meter__fill' });
     this.#pips = ['1', '2', '3+'].map((label) => h('span', { class: 'mt-pip' }, label));
+    // Read as one sentence (the pips are a picture of it).
+    this.#countText = h('span', { class: 'cg-sr-only' });
     this.#count = h(
       'div',
       { class: 'mt-count' },
-      h('span', { class: 'mt-readout__label' }, 'Cards'),
+      h('span', { class: 'mt-readout__label', 'aria-hidden': 'true' }, 'Cards'),
       h('span', { class: 'mt-count__pips', 'aria-hidden': 'true' }, ...this.#pips),
+      this.#countText,
     );
     this.#caption = h('p', { class: 'mt-caption', 'aria-live': 'polite' });
     this.readout = h(
@@ -220,11 +224,8 @@ export class TargetBoard {
     this.#pips[THREE_PLUS_MIN_CARDS - 1]!.textContent =
       cards > THREE_PLUS_MIN_CARDS ? String(cards) : '3+';
     this.#count.dataset.outlook = this.#target === null ? 'live' : outlook;
-    this.#count.setAttribute(
-      'aria-label',
-      `${cards} ${cards === 1 ? 'card' : 'cards'} dealt; 3+ Cards ${
-        outlook === 'won' ? 'wins' : outlook === 'lost' ? 'loses' : 'needs three'
-      }`,
-    );
+    this.#countText.textContent = `${cards} ${cards === 1 ? 'card' : 'cards'} dealt; 3+ Cards ${
+      outlook === 'won' ? 'wins' : outlook === 'lost' ? 'loses' : 'needs three'
+    }`;
   }
 }

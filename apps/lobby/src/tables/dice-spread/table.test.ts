@@ -6,6 +6,8 @@ import {
 } from '@casinogames/engine';
 import {
   Bankroll,
+  CardDealer,
+  DiceRoller,
   Motion,
   RtpTracker,
   SoundEngine,
@@ -58,11 +60,27 @@ function expectedRound(seed: string, bets: Bets) {
 }
 
 describe('DiceSpreadTable', () => {
+  it("asks for PixiJS on the player's first key or pointer press, once", async () => {
+    const roller = vi.spyOn(DiceRoller.prototype, 'enhance');
+    const dealer = vi.spyOn(CardDealer.prototype, 'enhance');
+    await setup();
+    expect(roller).not.toHaveBeenCalled();
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(roller).toHaveBeenCalledOnce();
+    expect(dealer).toHaveBeenCalledOnce();
+    document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    expect(roller).toHaveBeenCalledOnce();
+    roller.mockRestore();
+    dealer.mockRestore();
+  });
+
   it('opens with 1.00 on Between and the dice ready to roll', async () => {
     const { spot, roll, caption, table } = await setup();
     expect(table.phase).toBe('betting');
-    expect(spot('between').getAttribute('aria-label')).toMatch(/^Between: 1\.00\./);
-    expect(roll.disabled).toBe(false);
+    expect(spot('between').getAttribute('aria-label')).toMatch(
+      /^Between, card between the dice: 1\.00\./,
+    );
+    expect(roll.getAttribute('aria-disabled')).toBe('false');
     expect(caption()).toBe('Tap the dice or press Roll.');
     expect(table.element.querySelector('.tb-bet__amount')!.textContent).toBe('1.00');
   });
@@ -109,16 +127,16 @@ describe('DiceSpreadTable', () => {
     // Only 0.50 is left after the opening 1.00 on Between: the rail steps down.
     expect(selected()).toBe('0.50 chip');
     spot('between').dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
-    expect(roll.disabled).toBe(true);
+    expect(roll.getAttribute('aria-disabled')).toBe('true');
     expect(caption()).toBe('Place a bet on Between, then roll the dice.');
     spot('match').click();
     expect(caption()).toBe('Side bets ride on Between: add a chip to Between.');
     spot('between').click();
-    expect(roll.disabled).toBe(false);
+    expect(roll.getAttribute('aria-disabled')).toBe('false');
     spot('triple').click(); // 1.50 staked: the whole balance
     spot('doubles').click();
     expect(caption()).toBe('Your balance does not cover another chip.');
-    expect(spot('doubles').getAttribute('aria-label')).toMatch(/^Doubles: no bet\./);
+    expect(spot('doubles').getAttribute('aria-label')).toMatch(/^Doubles, 4:1 · a pair: no bet\./);
     expect(table.element.querySelector('.tb-bet__amount')!.textContent).toBe('1.50');
   });
 
