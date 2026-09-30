@@ -14,7 +14,9 @@ component playground: [`/dev.html`](https://jonathascosta.github.io/CasinoGames/
 
 All four games, **Dice Spread**, **Moving Target**, **Mirror** and **Lock & Roll**, are playable,
 with their math proven exactly and by simulation. Lock & Roll is the one with a decision: the
-player may lock a die and re-roll the other for the Lock fee.
+player may lock a die and re-roll the other for the Lock fee. Release
+[`v0.1.0`](https://github.com/jonathascosta/CasinoGames/tree/v0.1.0) is the demo as submitted to
+game aggregators, with [the pitch](docs/PITCH.md) and [the game sheets](docs/GAME-SHEETS.pdf).
 
 | Area                                              | State                                                                                                                                                                                                                                                                                               |
 | :------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

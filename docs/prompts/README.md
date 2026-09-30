@@ -16,3 +16,4 @@ headings and this index use the English names.
 | 003 | [Moving Target](003-moving-target.md) | 2026-09-30 | The second game: rules, exact and Monte Carlo math with the finite shoe's shift, game sheet, the table |
 | 004 | [Mirror](004-mirror.md)            | 2026-09-30 | The third game: rules, a progressive meter, exact math on both shoes, Monte Carlo and card counting, game sheet, the table |
 | 005 | [Lock & Roll](005-lock-and-roll.md) | 2026-09-30 | The fourth game, with a decision: fees on choices, the strategy by expected value, exact math on both shoes, Monte Carlo with a strategy bot, game sheet, the table |
+| 006 | [Release 0.1.0](006-release.md)    | 2026-09-30 | The rename to English (Roll & Deal), the lobby's cards and house controls, the RTP stats page, the game sheets PDF, Lighthouse at 90 or more with keyboard and reduced-motion support, the pitch, the release |
