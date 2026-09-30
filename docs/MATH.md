@@ -1,7 +1,7 @@
 # Math notes
 
-These are the conventions and methods behind every declared figure in this repository. Each game
-sheet in [games/](games/) applies them to one game. The code lives in
+These are the conventions and methods behind every declared figure in this repository. Each
+game's Math Report in [math/](math/) applies them to one game. The code lives in
 [`packages/engine/src/math`](../packages/engine/src/math). The test fixtures,
 [`dice-fixture.ts`](../packages/engine/src/fixtures/dice-fixture.ts),
 [`war-fixture.ts`](../packages/engine/src/fixtures/war-fixture.ts) and
@@ -20,8 +20,8 @@ examples below.
   returned, and nothing pays on it. A fee is not a stake. It counts against the return of the bet
   it is charged to: RTP = Σ (payout − fee) ÷ Σ stake, and the house edge is the loss, fees
   included, per unit staked. The **element of risk** divides the same loss by everything the
-  player pays, the stakes and the fees; the game sheet publishes both.
-- Declared RTPs assume the reference strategy stated on the game sheet, which is the optimal
+  player pays, the stakes and the fees; the Math Report publishes both.
+- Declared RTPs assume the reference strategy stated in the Math Report, which is the optimal
   strategy whenever the game has decisions. Lock & Roll's is computed from exact expected values, not
   written down: on each roll, standing on a total _t_ is worth 2·P(dealer < _t_) − 1 per unit
   of the bet, and a re-roll the average of that over the six faces of the re-rolled die, less the
@@ -39,7 +39,7 @@ ante) only when holding 8 or better:
 | House edge per initial wager (loss ÷ ante) | 7/169 ≈ 4.14%    |
 | Element of risk (loss ÷ everything staked) | 7/247 ≈ 2.83%    |
 
-For games with decisions, a sheet therefore quotes the game RTP and both house-edge conventions
+For games with decisions, a Math Report therefore quotes the game RTP and both house-edge conventions
 usual for table games. All of them derive exactly from the `expectedStake` and `expectedPayout`
 that `exactReturns` reports.
 
@@ -69,7 +69,7 @@ exercise decisions and added stakes, not to be a good game.
 | `breakdown`           | For a bet whose lines name the condition they are paid under (Moving Target's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                   |
 | `progressive`         | For a bet with a progressive meter (Mirror's Double Sixes): its terms, and the RTP excluding the seed, the RTP at the seed, the break-even meter, the cycle, the seed's cost and the exposure at the seed                                                         |
 | `finiteShoe`          | Exact figures on the table's own shoe, when every round deals the same cards (Mirror, Lock & Roll): RTP and hit frequency                                                                                                                                         |
-| `standardDeviation` σ | Standard deviation of (payout − fee − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
+| `standardDeviation` σ | Standard deviation of (payout − fee − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. The Math Reports call it the SD per unit; `exactReturns` also gives σ² exactly |
 
 The exact enumerator and the simulator use the same definitions, so their figures are directly
 comparable. A game with decisions also publishes its **strategy card** (the value of every choice
@@ -98,16 +98,16 @@ variants of them.
   one deck's composition. This makes every game with dice and cards exactly enumerable, and it is
   the usual basis for published table-game figures.
 - **Tables deal from a finite shoe**: N decks, with a cut card at 75% penetration. Removing cards
-  shifts the odds slightly from round to round. Each game sheet reports the finite-shoe RTP,
-  simulated with the real `Shoe`, whenever it differs materially. For bets that depend on specific
-  cards, the sheet also states whether card counting could gain an edge at the configured
-  penetration. The [Dice Spread sheet](games/dice-spread.md#card-counting) is the worked example:
+  shifts the odds slightly from round to round. Each Math Report gives the finite-shoe RTP,
+  exactly where every round deals the same cards and simulated with the real `Shoe` otherwise.
+  Each also measures whether card counting could gain an edge at the configured penetration.
+  The [Dice Spread Math Report](math/dice-spread.md) is the worked example:
   its counting exposure is computed exactly, as a hypergeometric sum over the rounds of a shoe,
   and asserted by a test.
 - **When the finite shoe changes the long run.** One card per round, with a fixed number of rounds
   per shoe (Dice Spread), leaves the long-run RTP equal to the infinite shoe's. Several cards per
   round do not: within a round the cards are drawn without replacement, and the number of rounds a
-  shoe deals depends on its cards. The [Moving Target sheet](games/moving-target.md#the-six-deck-shoe)
+  shoe deals depends on its cards. The [Moving Target Math Report](math/moving-target.md)
   is the worked example. It computes the first round after a shuffle exactly (a recursion over the
   values drawn from a full shoe), simulates the long run, and publishes both per bet and per
   target.
@@ -115,7 +115,7 @@ variants of them.
   and a fixed number of rounds per shoe (Mirror: two cards, 54 rounds), put every round's cards at
   fixed positions of a uniformly shuffled shoe: a uniform draw from the full shoe, however deep it
   has been dealt. The first round's exact figures are then the long-run figures. The
-  [Mirror sheet](games/mirror.md#card-source) proves them by running the game over every pair of
+  [Mirror Math Report](math/mirror.md) proves them by running the game over every pair of
   cards a full shoe can deal, declares them in the bets (`finiteShoe`), and confirms them by
   simulating the real shoe. Lock & Roll deals the same two cards a round after the player's decision,
   which does not look at the cards, so the same holds for it.
@@ -175,7 +175,7 @@ reshuffles and cut card along the way.
 Where the real shoe returns different figures, as in Moving Target, the check against the declared
 RTP runs on an infinite shoe, the source the figures assume, through the production game. A second
 seeded run on the real shoe then measures each bet's shift, sized to the precision wanted rather
-than to the ±0.15 pp tolerance, bounds it, and prints the table the game sheet publishes. Where the
+than to the ±0.15 pp tolerance, bounds it, and records the table the Math Report publishes. Where the
 real shoe's figures are exact (Mirror), the second run checks it against them.
 
 Some bets are too volatile for ±0.15 pp at any practical size: Perfect Mirror (200 to 1, σ 13.6)
@@ -317,5 +317,8 @@ frozen at a value; the conservation identity checks the rest, to the millionth o
 4. Finite shoe: simulate the real `Shoe` with its cut card and report the difference if it is
    material (Moving Target publishes it per bet and per target; Mirror declares its exact six-deck
    figures); when a bet depends on the composition, measure its card counting exposure.
-5. Register the game in `packages/engine/src/games`, run `pnpm docs:sheets`, and commit the
-   regenerated sheet. CI's `pnpm docs:check` keeps it in sync from then on.
+5. Record every figure the documents quote from the tests that compute it (`recordFigures()` in
+   `packages/engine/src/testing/record.ts`), register the game in `packages/engine/src/games`,
+   and give it its Rules of Play and Math Report templates in `tools/docs/`. Commit the engine,
+   then run `pnpm docs:generate` and commit the documents. CI's `pnpm docs:check` keeps them in
+   sync from then on, and `pnpm test:math` holds every simulated figure to its record.

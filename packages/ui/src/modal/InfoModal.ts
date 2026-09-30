@@ -4,7 +4,7 @@ import { Modal } from './Modal.ts';
 
 export interface InfoModalOptions {
   readonly title: string;
-  /** Rules text in Markdown (e.g. a game sheet imported with Vite's ?raw). */
+  /** Rules text in Markdown (e.g. a Rules of Play imported with Vite's ?raw). */
   readonly markdown: string;
 }
 

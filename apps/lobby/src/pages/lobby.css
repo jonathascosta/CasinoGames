@@ -57,7 +57,7 @@
 }
 
 /* A card is an article; its Play link stretches over the whole card, and the
-   Game sheet button sits above that link. */
+   Rules of Play button sits above that link. */
 .game-card {
   --glow: color-mix(in srgb, var(--accent) 45%, transparent);
   position: relative;
@@ -186,7 +186,7 @@
   padding: 0 22px;
 }
 
-/* The whole card plays; the Game sheet button stays reachable above it. */
+/* The whole card plays; the Rules of Play button stays reachable above it. */
 .game-card__play::after {
   content: '';
   position: absolute;

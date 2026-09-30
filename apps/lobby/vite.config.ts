@@ -31,8 +31,8 @@ function staticRoutes(slugs: readonly string[]): Plugin {
 
 /**
  * Publishes a file kept outside the app at the site's root: served by the dev
- * server, copied into the build. The game sheets PDF lives in docs/, where
- * tools/game-sheets-pdf.ts writes it and CI checks it.
+ * server, copied into the build. The submission pack lives in docs/, where
+ * tools/generate-docs.ts writes it and CI checks it.
  */
 function publishFile(source: string, name: string, type: string): Plugin {
   let outDir = 'dist';
@@ -111,8 +111,8 @@ export default defineConfig({
     pixiOnDemandOnly(),
     staticRoutes([...GAMES.map((game) => game.slug), 'stats']),
     publishFile(
-      resolve(import.meta.dirname, '../../docs/GAME-SHEETS.pdf'),
-      'GAME-SHEETS.pdf',
+      resolve(import.meta.dirname, '../../docs/SUBMISSION-PACK.pdf'),
+      'SUBMISSION-PACK.pdf',
       'application/pdf',
     ),
   ],

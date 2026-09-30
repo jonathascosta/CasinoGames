@@ -16,22 +16,25 @@ All four games, **Dice Spread**, **Moving Target**, **Mirror** and **Lock & Roll
 with their math proven exactly and by simulation. Lock & Roll is the one with a decision: the
 player may lock a die and re-roll the other for the Lock fee. Release
 [`v0.1.0`](https://github.com/jonathascosta/CasinoGames/tree/v0.1.0) is the demo as submitted to
-game aggregators, with [the pitch](docs/PITCH.md) and [the game sheets](docs/GAME-SHEETS.pdf).
+game aggregators, with [the pitch](docs/PITCH.md). For table-game distributors and gaming labs,
+each game has a Rules of Play and a Math Report, generated from the code with every figure traced
+to a test, and all eight are in one [submission pack](docs/SUBMISSION-PACK.pdf)
+([how they are made and verified](docs/README.md)).
 
-| Area                                              | State                                                                                                                                                                                                                                                                                               |
-| :------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine with decisions and fees, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                                                                                                    |
-| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                                                                                                           |
-| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: a lobby with a card per table (declared RTP, the live progressive meter, Play and Game sheet), house controls for the bankroll and the RTP stats, an RTP stats page for all four tables, and the tables on a shared table controller that also plays rounds waiting for the player's decision |
-| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, the game sheets PDF, Lighthouse on every page, GitHub Pages deploy                                                                                                                                                        |
-| The games                                         | [Dice Spread](docs/games/dice-spread.md), [Moving Target](docs/games/moving-target.md), [Mirror](docs/games/mirror.md) and [Lock & Roll](docs/games/lock-and-roll.md): playable, with game sheets, exact and Monte Carlo tests                                                                      |
+| Area                                              | State                                                                                                                                                                                                                                                                                                  |
+| :------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine with decisions and fees, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                                                                                                       |
+| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                                                                                                              |
+| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: a lobby with a card per table (declared RTP, the live progressive meter, Play and Rules of Play), house controls for the bankroll and the RTP stats, an RTP stats page for all four tables, and the tables on a shared table controller that also plays rounds waiting for the player's decision |
+| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, the submission documents and their PDF, Lighthouse on every page, GitHub Pages deploy                                                                                                                                        |
+| The games                                         | Dice Spread, Moving Target, Mirror and Lock & Roll: playable, each with its Rules of Play and Math Report, exact and Monte Carlo tests                                                                                                                                                                 |
 
-| Game                                         | In one line                                          | Route            | State    |
-| :------------------------------------------- | :--------------------------------------------------- | :--------------- | :------- |
-| [Dice Spread](docs/games/dice-spread.md)     | Will the card land between your dice?                | `/dice-spread`   | Playable |
-| [Moving Target](docs/games/moving-target.md) | Your dice set the target. Will the cards land on it? | `/moving-target` | Playable |
-| [Mirror](docs/games/mirror.md)               | Your dice against the dealer's cards, hand for hand. | `/mirror`        | Playable |
-| [Lock & Roll](docs/games/lock-and-roll.md)   | Lock a die, roll the other, beat the cards.          | `/lock-and-roll` | Playable |
+| Game          | In one line                                          | Route            | Documents                                                                                | State    |
+| :------------ | :--------------------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------- | :------- |
+| Dice Spread   | Will the card land between your dice?                | `/dice-spread`   | [Rules of Play](docs/rules/dice-spread.md) · [Math Report](docs/math/dice-spread.md)     | Playable |
+| Moving Target | Your dice set the target. Will the cards land on it? | `/moving-target` | [Rules of Play](docs/rules/moving-target.md) · [Math Report](docs/math/moving-target.md) | Playable |
+| Mirror        | Your dice against the dealer's cards, hand for hand. | `/mirror`        | [Rules of Play](docs/rules/mirror.md) · [Math Report](docs/math/mirror.md)               | Playable |
+| Lock & Roll   | Lock a die, roll the other, beat the cards.          | `/lock-and-roll` | [Rules of Play](docs/rules/lock-and-roll.md) · [Math Report](docs/math/lock-and-roll.md) | Playable |
 
 ## Quick start
 
@@ -44,19 +47,19 @@ pnpm install
 pnpm dev   # lobby at http://localhost:5173, playground at http://localhost:5173/dev.html
 ```
 
-| Command                                        | What it does                                                                                                                                    |
-| :--------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                     | Starts the Vite dev server for the lobby and the playground                                                                                     |
-| `pnpm build`                                   | Builds everything: the engine into `packages/engine/dist`, the site into `apps/lobby/dist`                                                      |
-| `pnpm preview`                                 | Serves the built site                                                                                                                           |
-| `pnpm test`                                    | Runs unit and exact-math tests for the engine, the UI kit (in jsdom) and the lobby (about 10 s)                                                 |
-| `pnpm test:math`                               | Runs the Monte Carlo suites: about 545 million seeded rounds (about 6 minutes)                                                                  |
-| `pnpm lint` · `pnpm format` · `pnpm typecheck` | Run type-aware ESLint, Prettier, and `tsc` for every project                                                                                    |
-| `pnpm docs:sheets`                             | Regenerates the paytables in `docs/games/*.md` from each game's `mathSummary()` (needs Node ≥ 22.18)                                            |
-| `pnpm docs:check`                              | Fails when a game sheet or the game sheets PDF no longer matches the code (CI runs it)                                                          |
-| `pnpm docs:pdf`                                | Prints `docs/GAME-SHEETS.pdf` from the four game sheets (needs Chrome or Chromium)                                                              |
-| `pnpm lighthouse`                              | Runs Lighthouse, as a phone, on every page of the built site; fails any page under 90 for performance or accessibility (run after `pnpm build`) |
-| `pnpm --filter @casinogames/engine smoke`      | Imports the built engine from plain Node and plays rounds with it (run after `pnpm build`)                                                      |
+| Command                                        | What it does                                                                                                                                                                                                                       |
+| :--------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                     | Starts the Vite dev server for the lobby and the playground                                                                                                                                                                        |
+| `pnpm build`                                   | Builds everything: the engine into `packages/engine/dist`, the site into `apps/lobby/dist`                                                                                                                                         |
+| `pnpm preview`                                 | Serves the built site                                                                                                                                                                                                              |
+| `pnpm test`                                    | Runs unit and exact-math tests for the engine, the UI kit (in jsdom) and the lobby (about 10 s)                                                                                                                                    |
+| `pnpm test:math`                               | Runs the Monte Carlo suites: about 550 million seeded rounds (about 7 minutes); each run must reproduce the results it recorded                                                                                                    |
+| `pnpm lint` · `pnpm format` · `pnpm typecheck` | Run type-aware ESLint, Prettier, and `tsc` for every project                                                                                                                                                                       |
+| `pnpm test -u` · `pnpm test:math -u`           | Rewrite the figures the tests record, after an intended change to a game or a test                                                                                                                                                 |
+| `pnpm docs:generate`                           | Writes the Rules of Play (`docs/rules`), the Math Reports (`docs/math`), `docs/results.json` and `docs/SUBMISSION-PACK.pdf` from the code and the recorded figures (Node ≥ 22.18; Chrome or Chromium for the PDF, or `--skip-pdf`) |
+| `pnpm docs:check`                              | Fails when any of them no longer matches the code, or a document holds a number that is not in `results.json` (CI runs it)                                                                                                         |
+| `pnpm lighthouse`                              | Runs Lighthouse, as a phone, on every page of the built site; fails any page under 90 for performance or accessibility (run after `pnpm build`)                                                                                    |
+| `pnpm --filter @casinogames/engine smoke`      | Imports the built engine from plain Node and plays rounds with it (run after `pnpm build`)                                                                                                                                         |
 
 A Husky pre-commit hook runs `lint`, `format:check`, `typecheck` and `test`.
 
@@ -84,12 +87,14 @@ apps/
 docs/
   ARCHITECTURE.md    How the pieces fit together, and why
   MATH.md            RTP conventions and how every declared figure is verified
-  games/             One sheet per game, with paytables generated from code
-  GAME-SHEETS.pdf    The four sheets in one PDF, printed from them
+  README.md          The submission documents: what they are, how they are made and verified
+  rules/             The Rules of Play, one per game, generated from the code
+  math/              The Math Reports, one per game, generated from the code
+  results.json       Every figure the documents quote, with the test that reproduces it
+  SUBMISSION-PACK.pdf  All eight documents in one PDF
   PITCH.md           The pitch: the games, dice and cards, live tables, the move server-side
   prompts/           The prompts that produced this repository, verbatim
-scripts/             Repository tooling (the game-sheet generator)
-tools/               Release tooling: the game sheets PDF and the Lighthouse check
+tools/               The document generator (generate-docs.ts, docs/) and the Lighthouse check
 .github/workflows/   CI and GitHub Pages deployment
 ```
 
@@ -117,8 +122,9 @@ flowchart TD
   the player's first tap or key press and moves to it at the next round, so no page downloads it
   to open, and the build fails if one ever could. Every Pixi view has a DOM fallback behind the
   same interface.
-- **Published math comes from code.** Each game's paytable modal and game sheet are generated from
-  its bet definitions. CI fails if a sheet drifts from the code.
+- **Published math comes from code.** Each game's paytable modal, Rules of Play and Math Report
+  are generated from its code and the figures its tests record. CI fails if a document drifts from
+  them, or holds a number the code and the tests did not produce.
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) covers each package, the round lifecycle, the event
 catalogue and the reasoning behind the main decisions.
@@ -246,12 +252,12 @@ Every declared RTP is proven twice, against the real game code:
   RTP, dealt from the card source the declared figures assume. Each run has at least 2,000,000
   rounds. Volatile bets get more, sized from the bet's standard deviation so the tolerance is 3.29
   standard errors (99.9%). Where the real shoe returns slightly different figures, a second run
-  measures the shift and the game sheet publishes it.
+  measures the shift and the Math Report publishes it.
 
 Dice Spread shows the standard on a real game. All 36 rolls × 6 card values give exactly the
 declared fractions: 26/27 for Between, 11/12, 23/27, 5/6 and 31/36 for the side bets. A seeded run
 of 124,852,059 rounds against the real six-deck shoe lands every bet within 0.043 pp. The
-[game sheet](docs/games/dice-spread.md) also measures card counting exactly, and flags that
+[Math Report](docs/math/dice-spread.md) also measures card counting exactly, and flags that
 Between is countable at the default shoe penetration.
 
 Moving Target deals several cards a round, which a finite shoe changes. A memoised recursion over
@@ -260,7 +266,8 @@ the real game run over all 71,469 roll and card sequences, fraction for fraction
 40 million rounds on an infinite shoe lands every bet within 0.01 pp. A second run, of 184 million
 rounds on the real six-deck shoe, measures how far each house edge moves: +0.04 pp for Exact Hit,
 +0.06 pp for First Card and −0.11 pp for 3+ Cards, all published in the
-[game sheet](docs/games/moving-target.md) with Exact Hit's shift per target.
+[Math Report](docs/math/moving-target.md) with Exact Hit's shift per target, which also measures
+card counting on the real shoe.
 [docs/MATH.md](docs/MATH.md) covers the RTP conventions, the RNG, finite and infinite shoes,
 round-count sizing and progressive jackpots.
 
@@ -269,10 +276,10 @@ Mirror has a progressive meter. Its published table is reproduced from 36 rolls 
 20,736 draws equals every declared fraction. Two cards a round and 54 rounds a shoe make every
 round of the six-deck shoe a uniform draw from the full shoe, so its figures are exact too: the
 pair bets lose about three points there. Double Sixes pays 1000 to 1 plus stake ÷ 25.00 of a meter
-fed by 10% of its stakes; its declared 87.24% excludes the seed, and the sheet sets out the
+fed by 10% of its stakes; its declared 87.24% excludes the seed, and the report sets out the
 meter's economics, including the seed's cost. Seeded runs of 125 million rounds on an infinite
 shoe and 31 million on the real one confirm every figure, and measure the card counting exposure
-per bet in the [game sheet](docs/games/mirror.md).
+per bet in the [Math Report](docs/math/mirror.md).
 
 Lock & Roll has a decision. After the roll the player may Stand, or Lock: keep one die and
 re-roll the other for the Lock fee, 40% of the bet (free on 1-1). The fee is never returned and
@@ -282,8 +289,8 @@ edge follows exactly, 791/19440 = 4.07% with the free 1-1 and 161/3240 = 4.97% w
 enumerated with that strategy deciding, returns the declared 18649/19440, and 148219/154440 on
 every pair of cards a six-deck shoe can deal. Seeded runs of 5.1 million rounds on each shoe, with
 the strategy bot deciding as autoplay does, confirm both, and the
-[game sheet](docs/games/lock-and-roll.md) publishes the strategy card and the card counting
-exposure.
+[Math Report](docs/math/lock-and-roll.md) publishes the decision table (stand against locking
+either die), the return of other strategies and the card counting exposure.
 
 ## Performance and accessibility
 
@@ -313,15 +320,15 @@ page under 90 (`pnpm lighthouse`).
 
 ## Quality gates
 
-| Where               | What runs                                                                                                      |
-| :------------------ | :------------------------------------------------------------------------------------------------------------- |
-| Pre-commit (Husky)  | `lint`, `format:check`, `typecheck`, `test`                                                                    |
-| CI: verify          | The same gates, then `docs:check` (the sheets and their PDF), `build`, and the engine smoke test on plain Node |
-| CI: game sheets PDF | Prints `docs/GAME-SHEETS.pdf` afresh with the runner's Chrome, checks it and keeps it as an artifact           |
-| CI: Lighthouse      | `pnpm lighthouse`: every page at 90 or more for performance and accessibility, as a phone                      |
-| CI: math            | `test:math`, the Monte Carlo suites                                                                            |
-| CI: Node matrix     | Unit tests, engine build and smoke test on Node 20 (the supported floor) and Node 24                           |
-| Pages deploy        | Unit tests gate every deployment                                                                               |
+| Where               | What runs                                                                                                                               |
+| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| Pre-commit (Husky)  | `lint`, `format:check`, `typecheck`, `test`                                                                                             |
+| CI: verify          | The same gates, then `docs:check` (the documents, `results.json` and the PDF's build), `build`, and the engine smoke test on plain Node |
+| CI: submission pack | Prints `docs/SUBMISSION-PACK.pdf` afresh with the runner's Chrome, checks it and keeps it as an artifact                                |
+| CI: Lighthouse      | `pnpm lighthouse`: every page at 90 or more for performance and accessibility, as a phone                                               |
+| CI: math            | `test:math`, the Monte Carlo suites, each reproducing the results it recorded                                                           |
+| CI: Node matrix     | Unit tests, engine build and smoke test on Node 20 (the supported floor) and Node 24                                                    |
+| Pages deploy        | Unit tests gate every deployment                                                                                                        |
 
 TypeScript runs in its strictest practical configuration: `strict`, `noUncheckedIndexedAccess`,
 `exactOptionalPropertyTypes` and `verbatimModuleSyntax`. ESLint uses `strictTypeChecked` plus the
@@ -337,7 +344,7 @@ deployment → Source: GitHub Actions**. The base path (`/CasinoGames/`) comes f
 GitHub Pages only serves static files. For that reason the build writes a copy of `index.html` into
 each game's folder and `stats/`, so deep links such as `/CasinoGames/mirror/` load directly. It also
 writes a `404.html` that lets the client-side router handle any other path, and publishes
-`docs/GAME-SHEETS.pdf` at the site's root, where the lobby links it.
+`docs/SUBMISSION-PACK.pdf` at the site's root, where the lobby links it.
 
 ## Toolchain decisions
 
@@ -346,7 +353,7 @@ writes a `404.html` that lets the client-side router handle any other path, and 
   tests both ends.
 - **PixiJS pinned to 8.21.0 exactly.** It is the only runtime dependency. There is no UI framework:
   the chrome is DOM and CSS, built with a small `h()` helper.
-- **No other runtime dependencies.** The Markdown renderer for rules sheets, the router, the sound
+- **No other runtime dependencies.** The Markdown renderer for the rules, the router, the sound
   (Web Audio synthesis, no audio files) and the statistics are written in the repository and
   tested.
 
@@ -355,8 +362,10 @@ writes a `404.html` that lets the client-side router handle any other path, and 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): packages, engine design, UI layering, data flow and
   decisions.
 - [docs/MATH.md](docs/MATH.md): RTP conventions, verification method, progressive jackpots.
-- [docs/games/](docs/games/): one sheet per game, which is also the in-game Rules dialog.
-- [docs/GAME-SHEETS.pdf](docs/GAME-SHEETS.pdf): the four sheets in one PDF, to send.
+- [docs/README.md](docs/README.md): the submission documents, for distributors and gaming labs:
+  a Rules of Play ([docs/rules/](docs/rules/)) and a Math Report ([docs/math/](docs/math/)) per
+  game, generated from the code, with how to verify every figure.
+- [docs/SUBMISSION-PACK.pdf](docs/SUBMISSION-PACK.pdf): all eight documents in one PDF, to send.
 - [docs/PITCH.md](docs/PITCH.md): the pitch for aggregators and studios: one paragraph per game,
   the dice and cards idea, the RNG, live tables, and the plan to move the engine server-side.
 - [docs/prompts/](docs/prompts/): the prompt history of this project.

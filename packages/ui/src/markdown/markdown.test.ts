@@ -20,6 +20,15 @@ describe('renderMarkdown blocks', () => {
     );
   });
 
+  it('lets emphasis, code and links run across wrapped lines', () => {
+    expect(html('_a long\nitalic run_ and **bold\ntext** with `code\nspan`')).toBe(
+      '<p><em>a long italic run</em> and <strong>bold text</strong> with <code>code span</code></p>',
+    );
+    expect(html('- an item whose [link\n  wraps](#here)')).toBe(
+      '<ul><li>an item whose <a href="#here">link wraps</a></li></ul>',
+    );
+  });
+
   it('renders tight and loose lists, nesting and ordered starts', () => {
     expect(html('- a\n- b\n  - b1\n  - b2\n- c')).toBe(
       '<ul><li>a</li><li>b<ul><li>b1</li><li>b2</li></ul></li><li>c</li></ul>',
