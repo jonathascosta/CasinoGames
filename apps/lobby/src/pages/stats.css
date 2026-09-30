@@ -1,0 +1,197 @@
+/* The RTP stats page: the totals of every table, a table by table, and each
+   table's RTP monitor (the kit's RtpPanel) below. */
+
+.stats-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.stats {
+  display: grid;
+  justify-items: stretch;
+  gap: 14px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: clamp(24px, 6vw, 56px) 16px 0;
+}
+
+.stats > .cg-eyebrow {
+  justify-self: start;
+}
+
+.stats__title {
+  font-size: clamp(34px, 8vw, 56px);
+  line-height: 1.04;
+}
+
+.stats__title:focus {
+  outline: none;
+}
+
+.stats__intro {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--ink-300);
+}
+
+.stats__heading {
+  margin-top: 18px;
+  font-size: clamp(22px, 5vw, 28px);
+}
+
+.stats__empty {
+  margin: 4px 0 0;
+  padding: 16px 18px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--ink-200);
+}
+
+.stats__totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
+  gap: 10px;
+  margin: 4px 0 0;
+}
+
+.stats__figure {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.stats__figure dt {
+  color: var(--ink-400);
+  font-size: 10.5px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.stats__figure dd {
+  margin: 0;
+  color: var(--ink-100);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stats__figure dd.stats__figure-note {
+  color: var(--ink-300);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.stats__figure--key {
+  border-color: color-mix(in srgb, var(--win) 55%, transparent);
+}
+
+.stats__figure--key dd {
+  color: var(--win);
+}
+
+.stats__table {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-1);
+}
+
+.stats__table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats__table th,
+.stats__table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.stats__table thead th {
+  color: var(--ink-400);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.stats__table th:first-child {
+  text-align: left;
+}
+
+.stats__table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.stats__games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 16px;
+}
+
+.stats__game {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stats__game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stats__game-header h3 {
+  font-size: 21px;
+}
+
+.stats__play {
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+/* Phones: the totals and each monitor show the wagers; the table keeps to RTP. */
+@media (max-width: 479px) {
+  .stats__wagered {
+    display: none;
+  }
+
+  .stats__table table {
+    font-size: 13px;
+  }
+
+  .stats__table th,
+  .stats__table td {
+    padding: 8px;
+  }
+
+  .stats__table thead th {
+    letter-spacing: 0.04em;
+  }
+
+  .stats__table tbody th {
+    white-space: normal;
+  }
+}
+
+.stats__notes {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--ink-400);
+  font-size: 13px;
+}

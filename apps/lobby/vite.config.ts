@@ -33,7 +33,7 @@ function staticRoutes(slugs: readonly string[]): Plugin {
  */
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
-  plugins: [staticRoutes(GAMES.map((game) => game.slug))],
+  plugins: [staticRoutes([...GAMES.map((game) => game.slug), 'stats'])],
   build: {
     target: 'es2022',
     rolldownOptions: {

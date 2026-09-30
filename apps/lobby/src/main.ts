@@ -20,6 +20,10 @@ const router = createRouter({
   routes: [
     { path: '/', load: ({ router: r }) => lobbyPage(services, r) },
     {
+      path: '/stats',
+      load: async ({ router: r }) => (await import('./pages/stats.ts')).statsPage(services, r),
+    },
+    {
       path: '/:slug',
       // Tables load on demand: the lobby never downloads table code or PixiJS.
       load: async ({ router: r, params }) => {
