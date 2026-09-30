@@ -1,22 +1,12 @@
-import { createInfoModal, h, icon } from '@casinogames/ui';
+import { h, icon } from '@casinogames/ui';
 import { gameArt } from '../art/art.ts';
 import type { GameEntry } from '../catalog.ts';
 import type { Page, Router } from '../router/router.ts';
 import type { Services } from '../services.ts';
 import { createTopBar } from '../shell/topbar.ts';
+import { createRulesModal, loadSheet, modalButton, tableTitle } from '../tables/shell.ts';
 import { siteFooter } from './lobby.ts';
 import './game.css';
-
-/** Game sheets from docs/games (not the _TEMPLATE), loaded on demand as the in-game rules text. */
-const SHEETS = import.meta.glob<string>(
-  ['../../../../docs/games/*.md', '!../../../../docs/games/_*.md'],
-  { query: '?raw', import: 'default' },
-);
-
-async function loadSheet(slug: string): Promise<string> {
-  const load = Object.entries(SHEETS).find(([path]) => path.endsWith(`/${slug}.md`))?.[1];
-  return load === undefined ? '# Rules\nThe game sheet is not available yet.' : load();
-}
 
 /**
  * A table page. Until a game's rules land it shows the table frame (header,
@@ -27,36 +17,9 @@ export async function gamePage(game: GameEntry, services: Services, router: Rout
   return {
     title: game.name,
     mount(outlet) {
-      const back = h(
-        'a',
-        {
-          class: 'cg-btn cg-btn--icon cg-btn--ghost',
-          href: router.href('/'),
-          'aria-label': 'Back to the lobby',
-        },
-        icon('back'),
-      );
-      const title = h(
-        'div',
-        { class: 'table-title' },
-        back,
-        h(
-          'div',
-          null,
-          h('h1', null, game.name),
-          h('span', { class: 'table-title__gloss' }, game.gloss),
-        ),
-      );
-      const topbar = createTopBar(services, title);
-      // The dialog title already names the game: drop the sheet's own title.
-      const rules = createInfoModal({
-        title: `${game.name} · Rules`,
-        markdown: sheet.replace(/^# .*\n+/, ''),
-      });
-      const rulesButton = h('button', { type: 'button', class: 'cg-btn' }, icon('info'), 'Rules');
-      rulesButton.addEventListener('click', () => {
-        rules.open();
-      });
+      const topbar = createTopBar(services, tableTitle(game, router));
+      const rules = createRulesModal(game, sheet);
+      const rulesButton = modalButton('Rules', 'info', rules);
       const paytableButton = h(
         'button',
         {

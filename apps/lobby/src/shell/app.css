@@ -71,6 +71,34 @@
   }
 }
 
+/* Narrow screens: one row from 390 px wide, so the page keeps its height. */
+@media (max-width: 479px) {
+  .topbar {
+    gap: 6px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: 8px;
+    padding-left: max(10px, env(safe-area-inset-left));
+  }
+
+  .topbar__actions {
+    gap: 6px;
+  }
+
+  /* The group keeps "Balance" as its accessible name. */
+  .topbar .cg-bankroll__label {
+    display: none;
+  }
+
+  .topbar .cg-bankroll {
+    padding: 5px 10px;
+  }
+
+  .topbar .cg-bankroll__amount {
+    font-size: 16px;
+  }
+}
+
 .site-footer {
   display: flex;
   flex-wrap: wrap;

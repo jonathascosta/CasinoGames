@@ -112,3 +112,14 @@
     align-items: start;
   }
 }
+
+/* Narrow or short screens: a slimmer title. */
+@media (max-width: 479px), (max-height: 520px) {
+  .table-title h1 {
+    font-size: 19px;
+  }
+
+  .table-title__gloss {
+    display: none;
+  }
+}

@@ -5,6 +5,7 @@ import { lobbyPage } from './pages/lobby.ts';
 import { notFoundPage } from './pages/not-found.ts';
 import { createRouter } from './router/router.ts';
 import { createServices } from './services.ts';
+import { TABLES } from './tables/index.ts';
 
 const outlet = document.getElementById('app');
 if (outlet === null) throw new Error('Missing #app outlet');
@@ -24,6 +25,8 @@ const router = createRouter({
       load: async ({ router: r, params }) => {
         const game = GAMES.find((entry) => entry.slug === params.slug);
         if (game === undefined) return notFoundPage(services, r);
+        const table = TABLES[game.slug];
+        if (table !== undefined) return (await table())(game, services, r);
         const { gamePage } = await import('./pages/game.ts');
         return gamePage(game, services, r);
       },
