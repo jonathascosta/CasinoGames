@@ -84,6 +84,7 @@ docs/
   MATH.md            RTP conventions and how every declared figure is verified
   games/             One sheet per game, with paytables generated from code
   GAME-SHEETS.pdf    The four sheets in one PDF, printed from them
+  PITCH.md           The pitch: the games, dice and cards, live tables, the move server-side
   prompts/           The prompts that produced this repository, verbatim
 scripts/             Repository tooling (the game-sheet generator)
 tools/               Release tooling: the game sheets PDF and the Lighthouse check
@@ -354,6 +355,8 @@ writes a `404.html` that lets the client-side router handle any other path, and 
 - [docs/MATH.md](docs/MATH.md): RTP conventions, verification method, progressive jackpots.
 - [docs/games/](docs/games/): one sheet per game, which is also the in-game Rules dialog.
 - [docs/GAME-SHEETS.pdf](docs/GAME-SHEETS.pdf): the four sheets in one PDF, to send.
+- [docs/PITCH.md](docs/PITCH.md): the pitch for aggregators and studios: one paragraph per game,
+  the dice and cards idea, the RNG, live tables, and the plan to move the engine server-side.
 - [docs/prompts/](docs/prompts/): the prompt history of this project.
 
 ## License
