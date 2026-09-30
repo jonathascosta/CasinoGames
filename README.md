@@ -12,23 +12,24 @@ component playground: [`/dev.html`](https://jonathascosta.github.io/CasinoGames/
 
 ## Status
 
-The foundation is in place and three games, **Entre Dados**, **Alvo Móvel** and **Espelho**, are
-playable, with their math proven exactly and by simulation. The fourth game is in design.
+All four games, **Entre Dados**, **Alvo Móvel**, **Espelho** and **Trancar**, are playable, with
+their math proven exactly and by simulation. Trancar is the one with a decision: the player may
+lock a die and re-roll the other for a fee.
 
-| Area                                              | State                                                                                                                                                                                                    |
-| :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                                 |
-| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                |
-| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the Entre Dados, Alvo Móvel and Espelho tables on a shared table controller, a placeholder table for the fourth                                                    |
-| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                                                            |
-| The games                                         | [Entre Dados](docs/games/entre-dados.md), [Alvo Móvel](docs/games/alvo-movel.md) and [Espelho](docs/games/espelho.md): playable, with game sheets, exact and Monte Carlo tests. Trancar: rules in design |
+| Area                                              | State                                                                                                                                                                                                            |
+| :------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`packages/engine`](packages/engine/src/index.ts) | Done: RNG, dice, shoe, round state machine with decisions and fees, settlement, progressive jackpots, and the exact and Monte Carlo math tooling, all with tests                                                 |
+| [`packages/ui`](packages/ui/src/index.ts)         | Done: every table component, shown on the playground page                                                                                                                                                        |
+| [`apps/lobby`](apps/lobby/src/main.ts)            | Done: lobby grid, one route per game, the four tables on a shared table controller that also plays rounds waiting for the player's decision                                                                      |
+| CI/CD                                             | Done: lint, typecheck, unit tests, Monte Carlo suites, Node 20/24 matrix, GitHub Pages deploy                                                                                                                    |
+| The games                                         | [Entre Dados](docs/games/entre-dados.md), [Alvo Móvel](docs/games/alvo-movel.md), [Espelho](docs/games/espelho.md) and [Trancar](docs/games/trancar.md): playable, with game sheets, exact and Monte Carlo tests |
 
-| Game                                     | Gloss            | Route          | State           |
-| :--------------------------------------- | :--------------- | :------------- | :-------------- |
-| [Entre Dados](docs/games/entre-dados.md) | Between the dice | `/entre-dados` | Playable        |
-| [Alvo Móvel](docs/games/alvo-movel.md)   | Moving target    | `/alvo-movel`  | Playable        |
-| [Espelho](docs/games/espelho.md)         | Mirror           | `/espelho`     | Playable        |
-| Trancar                                  | Lock it in       | `/trancar`     | Rules in design |
+| Game                                     | Gloss            | Route          | State    |
+| :--------------------------------------- | :--------------- | :------------- | :------- |
+| [Entre Dados](docs/games/entre-dados.md) | Between the dice | `/entre-dados` | Playable |
+| [Alvo Móvel](docs/games/alvo-movel.md)   | Moving target    | `/alvo-movel`  | Playable |
+| [Espelho](docs/games/espelho.md)         | Mirror           | `/espelho`     | Playable |
+| [Trancar](docs/games/trancar.md)         | Lock it in       | `/trancar`     | Playable |
 
 ## Quick start
 
@@ -47,7 +48,7 @@ pnpm dev   # lobby at http://localhost:5173, playground at http://localhost:5173
 | `pnpm build`                                   | Builds everything: the engine into `packages/engine/dist`, the site into `apps/lobby/dist`           |
 | `pnpm preview`                                 | Serves the built site                                                                                |
 | `pnpm test`                                    | Runs unit and exact-math tests for the engine, the UI kit (in jsdom) and the lobby (about 10 s)      |
-| `pnpm test:math`                               | Runs the Monte Carlo suites: about 535 million seeded rounds (about 6 minutes)                       |
+| `pnpm test:math`                               | Runs the Monte Carlo suites: about 545 million seeded rounds (about 6 minutes)                       |
 | `pnpm lint` · `pnpm format` · `pnpm typecheck` | Run type-aware ESLint, Prettier, and `tsc` for every project                                         |
 | `pnpm docs:sheets`                             | Regenerates the paytables in `docs/games/*.md` from each game's `mathSummary()` (needs Node ≥ 22.18) |
 | `pnpm docs:check`                              | Fails when a game sheet no longer matches the code (CI runs it)                                      |
@@ -66,7 +67,7 @@ packages/
     src/game/          Game and RoundState types, RoundBuilder, money, settlement, bet validation
     src/progressive/   In-memory progressive jackpot pool
     src/math/          Exact enumeration, BigInt fractions, Monte Carlo simulator, sheet renderer
-    src/games/         The games (Entre Dados, Alvo Móvel, Espelho) and the GAMES registry
+    src/games/         The games (Entre Dados, Alvo Móvel, Espelho, Trancar) and the GAMES registry
     src/testing/       Scripted RNG and cards, chi-square test (@casinogames/engine/testing)
     src/fixtures/      Two toy games that exercise the engine and its math tooling
   ui/                Table kit: DOM + CSS components with a PixiJS animation layer
@@ -205,8 +206,9 @@ move is a deployment change rather than a port: the same package runs behind an 
 
 1. **Persistence.** Store each snapshot without its `rng` and resume a round with
    `game.decide({ ...stored, rng }, choice)`.
-2. **Wallet.** Debit the stakes in `round-started` and every `stake-added`, and credit the `payout`
-   of every `bet-settled`. `round-settled` carries the round totals for reconciliation.
+2. **Wallet.** Debit the stakes in `round-started` and every `stake-added`, debit every
+   `fee-charged` (a fee a choice costs, never returned), and credit the `payout` of every
+   `bet-settled`. `round-settled` carries the round totals for reconciliation.
 3. **Audit trail.** Keep `events`: every roll, card, decision, stake and settlement, in order.
 4. **Client projection.** Before sending a snapshot, drop `data` and blank the card in every
    face-down `card-dealt` until its `card-revealed`. The UI kit already works this way:
@@ -260,6 +262,16 @@ fed by 10% of its stakes; its declared 87.24% excludes the seed, and the sheet s
 meter's economics, including the seed's cost. Seeded runs of 125 million rounds on an infinite
 shoe and 31 million on the real one confirm every figure, and measure the card counting exposure
 per bet in the [game sheet](docs/games/espelho.md).
+
+Trancar has a decision. After the roll the player may lock one die and re-roll the other for 40%
+of the bet (free on 1-1); the fee is never returned and counts against the return. The best choice
+on each of the 21 rolls is computed by expected value, never typed in, and a test derives it from
+scratch: it is the published strategy, and the house edge follows exactly, 791/19440 = 4.07% with
+the free 1-1 and 161/3240 = 4.97% without. The game, enumerated with that strategy deciding,
+returns the declared 18649/19440, and 148219/154440 on every pair of cards a six-deck shoe can deal.
+Seeded runs of 5.1 million rounds on each shoe, with the strategy bot deciding as autoplay does,
+confirm both, and the [game sheet](docs/games/trancar.md) publishes the strategy card and the card
+counting exposure.
 
 ## Quality gates
 

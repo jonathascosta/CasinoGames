@@ -2,10 +2,11 @@
 
 These are the conventions and methods behind every declared figure in this repository. Each game
 sheet in [games/](games/) applies them to one game. The code lives in
-[`packages/engine/src/math`](../packages/engine/src/math). The two test fixtures,
-[`dice-fixture.ts`](../packages/engine/src/fixtures/dice-fixture.ts) and
-[`war-fixture.ts`](../packages/engine/src/fixtures/war-fixture.ts), serve as the worked examples
-below.
+[`packages/engine/src/math`](../packages/engine/src/math). The test fixtures,
+[`dice-fixture.ts`](../packages/engine/src/fixtures/dice-fixture.ts),
+[`war-fixture.ts`](../packages/engine/src/fixtures/war-fixture.ts) and
+[`reroll-fixture.ts`](../packages/engine/src/fixtures/reroll-fixture.ts), serve as the worked
+examples below.
 
 ## Conventions
 
@@ -15,8 +16,16 @@ below.
   is everything handed back, stake included (0 on a loss, the stake on a push). The stake includes
   any amount added to that bet during the round, such as a raise. The **house edge** is 1 − RTP.
 - **RTP of the game** is the same ratio over all bets together.
+- **Fees.** A choice may cost a fee (Trancar's re-roll): taken when the choice is made, never
+  returned, and nothing pays on it. A fee is not a stake. It counts against the return of the bet
+  it is charged to: RTP = Σ (payout − fee) ÷ Σ stake, and the house edge is the loss, fees
+  included, per unit staked. The **element of risk** divides the same loss by everything the
+  player pays, the stakes and the fees; the game sheet publishes both.
 - Declared RTPs assume the reference strategy stated on the game sheet, which is the optimal
-  strategy whenever the game has decisions.
+  strategy whenever the game has decisions. Trancar's is computed from exact expected values, not
+  written down: on each roll, standing on a total _t_ is worth 2·P(dealer < _t_) − 1 per unit
+  of the bet, and a re-roll the average of that over the six faces of the re-rolled die, less the
+  fee.
 
 Per-bet figures need care in games with decisions. A bet that is only made in favourable spots can
 return more than it takes. In the war fixture the player raises (places a "play" bet equal to the
@@ -50,20 +59,22 @@ exercise decisions and added stakes, not to be a good game.
 
 ### Statistics reported per bet
 
-| Statistic             | Definition                                                                                                                                                                                                                                                  |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `probability`         | Per paytable entry: exact chance per round that this entry decides the bet (enumerable games)                                                                                                                                                               |
-| `frequency`           | Chance that the bet is made in a round (1 for bets placed up front)                                                                                                                                                                                         |
-| `hitFrequency`        | Chance that the bet wins, given that it is made                                                                                                                                                                                                             |
-| `pushFrequency`       | Chance that the stake is simply returned, given that the bet is made                                                                                                                                                                                        |
-| `maxExposure`         | Largest net win per unit staked, from the fixed-odds entries: the house's worst case per unit                                                                                                                                                               |
-| `breakdown`           | For a bet whose lines name the condition they are paid under (Alvo Móvel's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                |
-| `progressive`         | For a bet with a progressive meter (Espelho's 6-6 vs 6-6): its terms, and the RTP excluding the seed, the RTP at the seed, the break-even meter, the cycle, the seed's cost and the exposure at the seed                                                    |
-| `finiteShoe`          | Exact figures on the table's own shoe, when every round deals the same cards (Espelho): RTP and hit frequency                                                                                                                                               |
-| `standardDeviation` σ | Standard deviation of (payout − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
+| Statistic             | Definition                                                                                                                                                                                                                                                        |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `probability`         | Per paytable entry: exact chance per round that this entry decides the bet (enumerable games)                                                                                                                                                                     |
+| `frequency`           | Chance that the bet is made in a round (1 for bets placed up front)                                                                                                                                                                                               |
+| `hitFrequency`        | Chance that the bet wins, given that it is made                                                                                                                                                                                                                   |
+| `pushFrequency`       | Chance that the stake is simply returned, given that the bet is made                                                                                                                                                                                              |
+| `maxExposure`         | Largest net win per unit staked, from the fixed-odds entries: the house's worst case per unit                                                                                                                                                                     |
+| `breakdown`           | For a bet whose lines name the condition they are paid under (Alvo Móvel's target): per value, its chance and the hit frequency, RTP and house edge given it                                                                                                      |
+| `progressive`         | For a bet with a progressive meter (Espelho's 6-6 vs 6-6): its terms, and the RTP excluding the seed, the RTP at the seed, the break-even meter, the cycle, the seed's cost and the exposure at the seed                                                          |
+| `finiteShoe`          | Exact figures on the table's own shoe, when every round deals the same cards (Espelho, Trancar): RTP and hit frequency                                                                                                                                            |
+| `standardDeviation` σ | Standard deviation of (payout − fee − RTP·stake) in a round where the bet is made, per unit of average stake; for a fixed stake, the ordinary σ of the net result per unit staked. Game sheets call it the volatility index; `exactReturns` also gives σ² exactly |
 
 The exact enumerator and the simulator use the same definitions, so their figures are directly
-comparable.
+comparable. A game with decisions also publishes its **strategy card** (the value of every choice
+in each situation, and the best) and what the strategy returns under the table's rules and under
+variants of them.
 
 ## Randomness
 
@@ -106,7 +117,8 @@ comparable.
   has been dealt. The first round's exact figures are then the long-run figures. The
   [Espelho sheet](games/espelho.md#card-source) proves them by running the game over every pair of
   cards a full shoe can deal, declares them in the bets (`finiteShoe`), and confirms them by
-  simulating the real shoe.
+  simulating the real shoe. Trancar deals the same two cards a round after the player's decision,
+  which does not look at the cards, so the same holds for it.
 
 ## Exact method
 
@@ -145,6 +157,12 @@ different number of values, which would mean the game is not deterministic.
 | :------ | ----: | :------------------------------------ | :------- |
 | Dice    |    36 | Over 7: 5/6 · Doubles (9 to 2): 11/12 | 7/8      |
 | War     | 2,704 | Ante: 120/169 · Play: 20/13           | 240/247  |
+| Re-roll |   771 | Eight or more: 349/360, fees included | 349/360  |
+
+The re-roll fixture pays a total of 8 or more 1 to 1 and lets the player re-roll both dice for a
+fee of 60% of the stake. Re-rolling below 8 is optimal: it pays the fee in 7/12 of rounds and wins
+95/144 of them, so the RTP is 95/72 − 0.6 × 7/12 = 349/360; `exactReturns` reports the fees apart
+(`expectedFee`).
 
 ## Monte Carlo method
 
@@ -195,6 +213,7 @@ two-sided confidence (`roundsForTolerance`):
 | Alvo Móvel, six-deck shift to ±0.07 pp | 2.886 |   183,929,931 |
 | Espelho, Par vs Par (30 to 1)          | 5.094 |   124,852,059 |
 | Espelho, six-deck run to ±0.3 pp       | 5.094 |    31,213,015 |
+| Trancar, the bet with its fee          | 1.034 |     5,144,842 |
 
 A run covers all bets of a game at once, sized by its most demanding bet. The dice suite plays
 20,211,669 rounds. The war suite plays 9,176,919: the ante's requirement divided by the play bet's
@@ -202,6 +221,8 @@ frequency. The Entre Dados suite plays 124,852,059 rounds, sized by Triplo. The 
 on an infinite shoe plays 40,055,852 rounds, sized by Primeira Carta; its six-deck run plays
 183,929,931, enough to measure each shift to ±0.07 pp at 3.29 standard errors. The Espelho suite on
 an infinite shoe plays 124,852,059 rounds, sized by Par vs Par; its six-deck run plays 31,213,015.
+Trancar's two suites play 5,144,842 rounds each, on an infinite and on the six-deck shoe, with the
+reference strategy deciding every round.
 The suites run in parallel; on a CI runner the whole `pnpm test:math` takes about six minutes.
 
 ### What it catches
@@ -285,7 +306,9 @@ frozen at a value; the conservation identity checks the rest, to the millionth o
 ## Checklist for every game
 
 1. Declare `rtp` (as an exact fraction such as `120 / 169`), `standardDeviation` and per-entry
-   `probability` in the bet definitions.
+   `probability` in the bet definitions. For a game with decisions, compute the reference strategy
+   from exact expected values in code, derive it again from scratch in a test, and declare its
+   card (`decisions`).
 2. Exact test: `exactReturns` equals the declared fraction for every bet and for the game, under
    the reference strategy.
 3. Monte Carlo test: seeded, rounds sized as above, every bet within ±0.15 pp and every hit and
