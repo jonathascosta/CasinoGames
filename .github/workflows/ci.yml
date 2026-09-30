@@ -55,7 +55,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # Prints docs/SUBMISSION-PACK.pdf afresh with the runner's Chrome; the
       # check then confirms every document, and the PDF's build, still match.
-      - run: pnpm docs:generate
+      - run: pnpm docs:generate --reprint
       - run: pnpm docs:check
       - uses: actions/upload-artifact@v7
         with:

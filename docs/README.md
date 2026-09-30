@@ -61,7 +61,8 @@ its tests or their records. After changing a game or a test, record the new figu
 (`pnpm test -u`, `pnpm test:math -u`), commit the engine, then run `pnpm docs:generate` and
 commit the documents. Merge such a branch with a merge commit: a squash merge makes a new engine
 commit, and `pnpm docs:check` then fails until the documents are regenerated to name it. The PDF
-needs Chrome or Chromium (`CHROME_PATH`); `--skip-pdf` writes the rest without it.
+needs Chrome or Chromium (`CHROME_PATH`) and is printed only when its sources change (`--reprint`
+prints it anyway, as CI does); `--skip-pdf` writes the rest without it.
 
 ### How to verify
 

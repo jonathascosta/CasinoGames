@@ -11,8 +11,10 @@
  * nothing else: tools/docs/figures.ts fails the run on a number typed into a
  * template, and re-checks every figure against results.json. With --check,
  * nothing is written: the run fails if any file differs from what the code
- * gives now (CI runs it). --skip-pdf writes the Markdown and results.json
- * only, without Chrome.
+ * gives now (CI runs it). The PDF is printed only when it is out of date,
+ * so an unchanged pack stays byte for byte in git; --reprint prints it
+ * anyway (CI does, with the runner's Chrome). --skip-pdf writes the
+ * Markdown and results.json only, without Chrome.
  *
  *   pnpm docs:generate    # needs Chrome or Chromium for the PDF
  *   pnpm docs:check
@@ -32,6 +34,7 @@ import { rulesOfPlay } from './docs/rules.ts';
 const ROOT = new URL('../', import.meta.url);
 const check = process.argv.includes('--check');
 const skipPdf = process.argv.includes('--skip-pdf');
+const reprint = process.argv.includes('--reprint');
 
 const results = buildResults();
 const json = `${JSON.stringify(results, null, 2)}\n`;
@@ -86,7 +89,7 @@ if (skipPdf) {
       markdown: outputs.find((output) => output.path === `docs/${kind}/${id}.md`)!.content,
     })),
   );
-  const { ok, message } = await writePack(coverMarkdown, pack, check);
+  const { ok, message } = await writePack(coverMarkdown, pack, { check, reprint });
   (ok ? process.stdout : process.stderr).write(`${message}\n`);
   if (!ok) stale++;
 }

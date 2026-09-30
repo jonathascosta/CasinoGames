@@ -173,18 +173,19 @@ function printToPdf(chrome: string, url: string, output: string): void {
 }
 
 /**
- * Prints the pack, unless `check`: then only compares the stored PDF's build
- * with the documents'. Returns whether the PDF is (now) up to date.
+ * Prints the pack when the stored PDF's build is not the documents' (or
+ * always, with `reprint`). With `check`, prints nothing and only compares the
+ * builds. Returns whether the PDF is (now) up to date.
  */
 export async function writePack(
   coverMarkdown: string,
   documents: readonly PackDocument[],
-  check: boolean,
+  { check = false, reprint = false }: { readonly check?: boolean; readonly reprint?: boolean } = {},
 ): Promise<{ readonly ok: boolean; readonly message: string }> {
   const output = new URL(PDF_PATH, ROOT);
   const hash = build(coverMarkdown, documents);
   const stored = existsSync(output) ? buildOf(readFileSync(output)) : undefined;
-  if (stored === hash) return { ok: true, message: `✓ ${PDF_PATH}` };
+  if (stored === hash && (check || !reprint)) return { ok: true, message: `✓ ${PDF_PATH}` };
   if (check) {
     return {
       ok: false,
