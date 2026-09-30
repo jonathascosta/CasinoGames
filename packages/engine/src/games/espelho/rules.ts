@@ -42,24 +42,32 @@ export interface EspelhoHand {
   readonly label: string;
 }
 
-export function readHand([a, b]: HandValues): EspelhoHand {
-  for (const value of [a, b]) {
-    if (!Number.isInteger(value) || value < 1 || value > 6) {
-      throw new RangeError(`A hand holds values from 1 to 6, got ${value}`);
-    }
-  }
+function handOf(a: number, b: number): EspelhoHand {
   const high = a > b ? a : b;
   const low = a > b ? b : a;
   const pair = a === b;
   const sum = a + b;
-  return {
+  return Object.freeze({
     high,
     low,
     pair,
     sum,
     strength: pair ? 200 + high : sum * 10 + high,
     label: pair ? `PAIR ${high}s` : `SUM ${sum} HIGH ${high}`,
-  };
+  });
+}
+
+/** The 36 hands, read once: rounds and simulations look them up. */
+const HAND_TABLE: readonly (readonly EspelhoHand[])[] = [1, 2, 3, 4, 5, 6].map((a) =>
+  [1, 2, 3, 4, 5, 6].map((b) => handOf(a, b)),
+);
+
+export function readHand([a, b]: HandValues): EspelhoHand {
+  const hand = HAND_TABLE[a - 1]?.[b - 1];
+  if (hand === undefined) {
+    throw new RangeError(`A hand holds values from 1 to 6, got ${a} and ${b}`);
+  }
+  return hand;
 }
 
 /** 1 when the dice outrank the cards, −1 when the cards outrank the dice, 0 for a tie. */
