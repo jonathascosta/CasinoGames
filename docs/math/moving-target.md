@@ -306,7 +306,7 @@ before every round: the chance that some first k cards of the shoe add up to the
 over the multisets of values that do, each with its hypergeometric chance, which the test checks
 against a direct recursion.
 
-| Wager | Rounds favouring a perfect counter | Counter’s edge in them | Break-even bet spread |
+| Wager | Rounds favouring a perfect counter | Counter's edge in them | Break-even bet spread |
 | :-- | --: | --: | --: |
 | Exact Hit | 11.07% | 2.8% | 1 to 13.6 |
 | First Card | 0.85% | 1.7% | 1 to 580.0 |

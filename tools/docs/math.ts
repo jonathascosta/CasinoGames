@@ -293,7 +293,7 @@ function countingRows(rows: readonly (readonly [Part, Figs<Counting>])[]): Part[
 const COUNTING_COLUMNS: readonly (readonly [Part, Align])[] = [
   ['Wager', 'left'],
   ['Rounds favouring a perfect counter', 'right'],
-  ['Counter’s edge in them', 'right'],
+  ["Counter's edge in them", 'right'],
   ['Break-even bet spread', 'right'],
 ];
 
@@ -443,7 +443,7 @@ ${table(
     ['Penetration', 'left'],
     ['Rounds per shoe', 'right'],
     [doc`${text(between.label)}: rounds favouring the counter`, 'right'],
-    ['Counter’s edge in them', 'right'],
+    ["Counter's edge in them", 'right'],
     ['Break-even bet spread', 'right'],
     [
       doc`${text(bets.find((bet) => bet.betId.value === 'bullseye')!.label)}: rounds favouring the counter`,

@@ -251,7 +251,7 @@ other strategies. A player who never locks gives the house 73/648 (11.27%) inste
 composition before every round. The 6-deck simulation computes the exact expectation for that
 composition, round by round, playing the reference strategy and deciding with the count:
 
-| Wager | Rounds favouring a perfect counter | Counter’s edge in them | Break-even bet spread |
+| Wager | Rounds favouring a perfect counter | Counter's edge in them | Break-even bet spread |
 | :-- | --: | --: | --: |
 | The reference strategy | 21.07% | 4.6% | 1 to 5.1 |
 | Deciding with the count | 21.09% | 4.7% | 1 to 5.0 |

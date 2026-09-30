@@ -241,7 +241,7 @@ The other wagers are worth the same whatever the card, so they cannot be counted
 computed exactly for a player who knows the composition before every round (a hypergeometric model
 of the shoe, no simulation):
 
-| Penetration | Rounds per shoe | Between: rounds favouring the counter | Counter’s edge in them | Break-even bet spread | Bullseye: rounds favouring the counter |
+| Penetration | Rounds per shoe | Between: rounds favouring the counter | Counter's edge in them | Break-even bet spread | Bullseye: rounds favouring the counter |
 | :-- | --: | --: | --: | --: | --: |
 | 75% (the table) | 108 | 8.57% | 2.05% | 1 to 22.1 | 0.47% |
 | 50% | 72 | 3.66% | 1.18% | 1 to 86.7 | 0.01% |

@@ -338,7 +338,7 @@ a round the cards are dealt from one shoe, which the finite-shoe figures account
 round. The 6-deck simulation computes each wager's exact expectation for that composition, round by
 round (for Double Sixes also with the meter as it stood):
 
-| Wager | Rounds favouring a perfect counter | Counter’s edge in them | Break-even bet spread |
+| Wager | Rounds favouring a perfect counter | Counter's edge in them | Break-even bet spread |
 | :-- | --: | --: | --: |
 | Mirror | 10.80% | 2.8% | 1 to 16.2 |
 | Tie | 0.00% | — | — |

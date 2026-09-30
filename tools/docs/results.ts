@@ -988,8 +988,9 @@ export function buildResults(): Results {
   const results: Results = {
     about:
       'Every figure of the Rules of Play and Math Reports (docs/rules, docs/math), as ' +
-      'tools/generate-docs.ts wrote them: the games’ math summaries, the figures their tests ' +
-      'recorded, and the table facts read from the engine. Regenerate with pnpm docs:generate.',
+      'tools/generate-docs.ts wrote them: the math summaries of the games, the figures ' +
+      'their tests recorded, and the table facts read from the engine. Regenerate with ' +
+      'pnpm docs:generate.',
     meta: {
       version,
       ...engineCommit(),
