@@ -219,21 +219,40 @@ function splitRow(row: string): string[] {
   return trimmed.split(/(?<!\\)\|/).map((cell) => cell.trim().replace(/\\\|/g, '|'));
 }
 
+/**
+ * A text column with a cell longer than this, which can wrap, is prose: it
+ * keeps a readable width (.cg-md-table__prose), so a table short of room
+ * scrolls sideways rather than wrapping it a word per line.
+ */
+const PROSE_LENGTH = 12;
+
 function renderTable(header: string, separator: string, rows: readonly string[]): HTMLElement {
   const aligns = splitRow(separator).map((cell) => {
     const left = cell.startsWith(':');
     const right = cell.endsWith(':');
     return left && right ? 'center' : right ? 'right' : left ? 'left' : null;
   });
+  const headers = splitRow(header);
+  const body = rows.map((row) => splitRow(row));
+  const prose = headers.map(
+    (_, column) =>
+      (aligns[column] ?? 'left') === 'left' &&
+      body.some((cells) => {
+        const text = cells[column] ?? '';
+        return text.length > PROSE_LENGTH && /\s/.test(text);
+      }),
+  );
   const cell = (tag: 'th' | 'td', text: string, column: number) => {
     const align = aligns[column];
     return h(
       tag,
-      align === null || align === undefined ? null : { style: `text-align: ${align}` },
+      {
+        ...(prose[column] === true ? { class: 'cg-md-table__prose' } : {}),
+        ...(align === null || align === undefined ? {} : { style: `text-align: ${align}` }),
+      },
       ...parseInline(text),
     );
   };
-  const headers = splitRow(header);
   return h(
     'div',
     { class: 'cg-md-table' },
@@ -244,10 +263,9 @@ function renderTable(header: string, separator: string, rows: readonly string[])
       h(
         'tbody',
         null,
-        ...rows.map((row) => {
-          const cells = splitRow(row);
-          return h('tr', null, ...headers.map((_, c) => cell('td', cells[c] ?? '', c)));
-        }),
+        ...body.map((cells) =>
+          h('tr', null, ...headers.map((_, c) => cell('td', cells[c] ?? '', c))),
+        ),
       ),
     ),
   );

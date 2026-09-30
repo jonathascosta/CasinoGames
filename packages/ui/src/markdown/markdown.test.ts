@@ -50,6 +50,22 @@ describe('renderMarkdown blocks', () => {
     );
   });
 
+  it('keeps a readable width for text columns that would wrap, not for labels or numbers', () => {
+    const table = html(
+      '| Roll | Play | Chance |\n|:--|:--|--:|\n| 2-1 | Lock the 2, re-roll the 1 | 5.56% |\n' +
+        '| 6-6 | Ficar | 2.78% |',
+    );
+    const cells = (tag: string) =>
+      [...new DOMParser().parseFromString(table, 'text/html').querySelectorAll(tag)].map((cell) =>
+        cell.classList.contains('cg-md-table__prose'),
+      );
+    expect(cells('th')).toEqual([false, true, false]);
+    expect(cells('td')).toEqual([false, true, false, false, true, false]);
+    expect(table).toContain(
+      '<td class="cg-md-table__prose" style="text-align: left">Lock the 2, re-roll the 1</td>',
+    );
+  });
+
   it('drops HTML comments (generated-section markers)', () => {
     expect(html('<!-- math:start -->\nText\n<!-- math:end -->')).toBe('<p>Text</p>');
   });
